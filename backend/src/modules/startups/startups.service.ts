@@ -1,0 +1,123 @@
+import { prisma } from "../../lib/prisma";
+import { AppError } from "../../middleware/errorHandler";
+import { uploadFile } from "../../lib/storage";
+import { env } from "../../config/env";
+import { Prisma } from "@prisma/client";
+
+export class StartupsService {
+  async getStartups(query: any) {
+    const { page = 1, limit = 10, domain, stage, search } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const where: Prisma.StartupWhereInput = {
+      isActive: true,
+      isVerified: true,
+      ...(domain && { domain: domain as any }),
+      ...(stage && { stage: stage as any }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { description: { contains: search, mode: "insensitive" } }
+        ]
+      })
+    };
+
+    const [data, total] = await Promise.all([
+      prisma.startup.findMany({
+        where,
+        skip,
+        take: Number(limit),
+        orderBy: { createdAt: "desc" },
+        include: { primaryFounder: { select: { id: true, email: true, profile: { select: { name: true, avatarUrl: true } } } } }
+      }),
+      prisma.startup.count({ where })
+    ]);
+
+    return { data, meta: { total, page: Number(page), limit: Number(limit) } };
+  }
+
+  async getFeatured() {
+    return await prisma.startup.findMany({
+      where: { isFeatured: true, isActive: true, isVerified: true },
+      take: 6,
+      orderBy: { createdAt: "desc" }
+    });
+  }
+
+  async getBySlug(slug: string) {
+    const startup = await prisma.startup.findUnique({
+      where: { slug },
+      include: {
+        founders: { include: { profile: true } },
+        jobs: { where: { isActive: true } }
+      }
+    });
+    if (!startup) throw new AppError(404, "Startup not found");
+    return startup;
+  }
+
+  async createStartup(data: any) {
+    // Admin only creation
+    return await prisma.startup.create({
+      data: {
+        ...data,
+        founders: { connect: [{ id: data.founderId }] }
+      }
+    });
+  }
+
+  async updateStartup(id: string, requesterId: string, role: string, data: any) {
+    const startup = await prisma.startup.findUnique({
+      where: { id },
+      include: { founders: true }
+    });
+
+    if (!startup) throw new AppError(404, "Startup not found");
+
+    if (role !== "ADMIN" && !startup.founders.some(f => f.id === requesterId)) {
+      throw new AppError(403, "Not authorized to update this startup");
+    }
+
+    return await prisma.startup.update({
+      where: { id },
+      data
+    });
+  }
+
+  async deleteStartup(id: string) {
+    return await prisma.startup.delete({ where: { id } });
+  }
+
+  async uploadImage(id: string, requesterId: string, role: string, type: "logo" | "banner", fileBuffer: Buffer, mimetype: string) {
+    const startup = await prisma.startup.findUnique({ where: { id }, include: { founders: true } });
+    if (!startup) throw new AppError(404, "Startup not found");
+    
+    if (role !== "ADMIN" && !startup.founders.some(f => f.id === requesterId)) {
+      throw new AppError(403, "Not authorized");
+    }
+
+    const bucket = type === "logo" ? env.STORAGE_BUCKET_LOGOS : env.STORAGE_BUCKET_BANNERS;
+    const path = `${id}/${type}-${Date.now()}`;
+    const url = await uploadFile(bucket, path, fileBuffer, mimetype);
+
+    return await prisma.startup.update({
+      where: { id },
+      data: type === "logo" ? { logoUrl: url } : { bannerUrl: url }
+    });
+  }
+
+  async getJobs(id: string) {
+    return await prisma.job.findMany({ where: { startupId: id, isActive: true } });
+  }
+
+  async getDocuments(id: string, requesterId: string, role: string) {
+    const startup = await prisma.startup.findUnique({ where: { id }, include: { founders: true } });
+    if (!startup) throw new AppError(404, "Startup not found");
+    
+    if (role !== "ADMIN" && !startup.founders.some(f => f.id === requesterId)) {
+      throw new AppError(403, "Not authorized");
+    }
+
+    return await prisma.document.findMany({ where: { startupId: id } });
+  }
+}

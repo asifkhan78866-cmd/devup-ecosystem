@@ -2,24 +2,27 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Menu, X, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
-const navLinks = [
-  { name: "Ecosystem", href: "/ecosystem" },
-  { name: "About", href: "/about" },
-  { name: "Careers", href: "/careers" },
-  { name: "Events", href: "/events" },
+const NAV_LINKS = [
+  { name: "Ecosystem", path: "/ecosystem" },
+  { name: "Careers", path: "/careers" },
+  { name: "Hackathons", path: "/hackathons" },
+  { name: "Co-Founders", path: "/cofounders" },
+  { name: "Apply", path: "/apply" },
 ];
 
 export function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 50);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -27,98 +30,98 @@ export function Navbar() {
 
   return (
     <header
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent",
-        isScrolled ? "glass border-white/10 py-3" : "bg-transparent py-5"
-      )}
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-black/40 backdrop-blur-xl border-b border-white/5 py-3"
+          : "bg-transparent border-transparent py-5"
+      }`}
     >
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center font-bold text-xl group-hover:scale-105 transition-transform">
-              D
-            </div>
-            <span className="font-bold text-xl tracking-tight text-white">
-              DevUp
-            </span>
-          </Link>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="font-heading text-2xl font-bold tracking-tight z-50">
+          Dev<span className="text-gradient">Up</span>
+        </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-8">
+          {NAV_LINKS.map((link) => {
+            const isActive = pathname === link.path;
+            return (
               <Link
                 key={link.name}
-                href={link.href}
-                className="text-sm font-medium text-white/70 hover:text-white transition-colors"
+                href={link.path}
+                className="relative group text-sm font-medium text-[var(--text-primary)] transition-colors hover:text-white"
               >
                 {link.name}
+                {/* Hover underline */}
+                <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-[var(--accent-primary)] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
+                {/* Active dot */}
+                {isActive && (
+                  <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]" />
+                )}
               </Link>
-            ))}
-          </nav>
+            );
+          })}
+        </nav>
 
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-white hover:text-white/80 transition-colors"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/apply"
-              className="group relative inline-flex items-center justify-center gap-2 px-5 py-2 text-sm font-medium text-black bg-white rounded-full overflow-hidden transition-transform hover:scale-105"
-            >
-              <span>Join Ecosystem</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            className="md:hidden text-white p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X /> : <Menu />}
-          </button>
+        {/* CTA Button */}
+        <div className="hidden md:block">
+          <Link href="/apply">
+            <Button variant="primary" size="sm" withShimmer>
+              Join Ecosystem
+            </Button>
+          </Link>
         </div>
-      </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="absolute top-full left-0 right-0 glass border-b border-white/10 p-4 md:hidden flex flex-col gap-4 shadow-2xl"
+        {/* Mobile Menu Toggle */}
+        <button
+          className="md:hidden z-50 p-2 -mr-2 text-white"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle Menu"
         >
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-lg font-medium text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
+          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+
+        {/* Mobile Fullscreen Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-black/95 backdrop-blur-3xl z-40 flex flex-col items-center justify-center gap-8"
             >
-              {link.name}
-            </Link>
-          ))}
-          <div className="h-px bg-white/10 w-full my-2" />
-          <Link
-            href="/login"
-            className="text-lg font-medium text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Log in
-          </Link>
-          <Link
-            href="/apply"
-            className="flex items-center justify-center w-full py-3 mt-2 text-black bg-white rounded-xl font-medium"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Join Ecosystem
-          </Link>
-        </motion.div>
-      )}
+              {NAV_LINKS.map((link, idx) => (
+                <motion.div
+                  key={link.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * idx }}
+                >
+                  <Link
+                    href={link.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-3xl font-heading font-bold hover:text-[var(--accent-primary)] transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </motion.div>
+              ))}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mt-4"
+              >
+                <Button variant="primary" size="lg" withShimmer onClick={() => setMobileMenuOpen(false)}>
+                  Join Ecosystem
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </header>
   );
 }

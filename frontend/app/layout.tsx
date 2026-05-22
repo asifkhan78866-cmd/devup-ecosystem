@@ -1,11 +1,20 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Syne, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import LayoutClient from "@/components/LayoutClient";
 
 const inter = Inter({
   variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+const syne = Syne({
+  variable: "--font-syne",
+  subsets: ["latin"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
 });
 
@@ -20,11 +29,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased dark`}>
+    <html lang="en" className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} h-full antialiased dark`}>
       <body className="min-h-full flex flex-col selection:bg-white/20">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <LayoutClient>{children}</LayoutClient>
       </body>
     </html>
   );

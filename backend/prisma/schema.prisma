@@ -1,0 +1,381 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  FOUNDER
+  STUDENT
+  INVESTOR
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+}
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  passwordHash     String?
+  role             Role     @default(STUDENT)
+  isVerified       Boolean  @default(false)
+  avatarUrl        String?
+  authProvider     AuthProvider @default(EMAIL)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  profile          Profile?
+  startups         Startup[] @relation("StartupFounders")
+  foundedStartups  Startup[] @relation("StartupPrimaryFounder")
+  applications     Application[] @relation("ApplicationReviewer")
+  jobApplications  JobApplication[]
+  hackathonRegs    HackathonRegistration[]
+  cofounderProfile CofounderProfile?
+  sentRequests     CofounderRequest[] @relation("SentRequests")
+  receivedRequests CofounderRequest[] @relation("ReceivedRequests")
+  notifications    Notification[]
+}
+
+model Profile {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  name                  String
+  bio                   String?
+  college               String?
+  city                  String?
+  linkedinUrl           String?
+  githubUrl             String?
+  twitterUrl            String?
+  portfolioUrl          String?
+  skills                String[]
+  isOpenToWork          Boolean  @default(true)
+  isLookingForCofounder Boolean  @default(false)
+  resumeUrl             String?
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Domain {
+  AI_ML
+  FINTECH
+  HEALTHTECH
+  DEVTOOLS
+  SAAS
+  EDTECH
+  WEB3
+  OTHER
+}
+
+enum Stage {
+  IDEA
+  PRE_SEED
+  SEED
+  SERIES_A
+  SERIES_B
+}
+
+model Startup {
+  id             String   @id @default(uuid())
+  name           String
+  slug           String   @unique
+  tagline        String
+  description    String
+  logoUrl        String?
+  bannerUrl      String?
+  website        String?
+  domain         Domain
+  stage          Stage
+  foundedYear    Int
+  headcount      String
+  location       String
+  city           String?
+  fundingAmount  String?
+  mrr            String?
+  userCount      String?
+  isVerified     Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  isFeatured     Boolean  @default(false)
+  
+  founderId      String
+  primaryFounder User     @relation("StartupPrimaryFounder", fields: [founderId], references: [id])
+  founders       User[]   @relation("StartupFounders")
+  
+  jobs           Job[]
+  documents      Document[]
+  
+  githubUrl      String?
+  linkedinUrl    String?
+  twitterUrl     String?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  approvedAt     DateTime?
+  approvedBy     String?
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  APPROVED
+  REJECTED
+}
+
+model Application {
+  id             String   @id @default(uuid())
+  startupName    String
+  domain         Domain
+  oneLiner       String
+  website        String?
+  stage          Stage
+  mrr            String?
+  userCount      String?
+  pitchDeckUrl   String?
+  teamMembers    Json
+  needs          String[]
+  status         ApplicationStatus @default(PENDING)
+  
+  submittedBy    String
+  
+  reviewedBy     String?
+  reviewer       User?    @relation("ApplicationReviewer", fields: [reviewedBy], references: [id])
+  reviewNotes    String?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+enum JobType {
+  INTERNSHIP
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+}
+
+model Job {
+  id             String   @id @default(uuid())
+  startupId      String
+  title          String
+  description    String
+  type           JobType
+  domain         String
+  skills         String[]
+  location       String
+  isRemote       Boolean  @default(false)
+  stipend        String?
+  salaryRange    String?
+  openings       Int      @default(1)
+  deadline       DateTime?
+  isActive       Boolean  @default(true)
+  
+  startup        Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  applications   JobApplication[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+enum JobAppStatus {
+  APPLIED
+  SHORTLISTED
+  REJECTED
+  HIRED
+}
+
+model JobApplication {
+  id             String   @id @default(uuid())
+  jobId          String
+  userId         String
+  resumeUrl      String?
+  coverLetter    String?
+  status         JobAppStatus @default(APPLIED)
+  
+  job            Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  appliedAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([jobId, userId])
+}
+
+enum HackathonMode {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
+model Hackathon {
+  id                   String   @id @default(uuid())
+  title                String
+  description          String
+  organizer            String
+  logoUrl              String?
+  bannerUrl            String?
+  startupId            String?  // Nullable, if ecosystem hosted
+  prizePool            String
+  mode                 HackathonMode
+  location             String?
+  domain               String[]
+  startDate            DateTime
+  endDate              DateTime
+  registrationDeadline DateTime
+  registrationLink     String?
+  maxParticipants      Int?
+  currentParticipants  Int      @default(0)
+  isEcosystemHosted    Boolean  @default(false)
+  isFeatured           Boolean  @default(false)
+  isActive             Boolean  @default(true)
+  
+  registrations        HackathonRegistration[]
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model HackathonRegistration {
+  id             String   @id @default(uuid())
+  hackathonId    String
+  userId         String
+  teamName       String?
+  teamSize       Int      @default(1)
+  
+  hackathon      Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  registeredAt   DateTime @default(now())
+
+  @@unique([hackathonId, userId])
+}
+
+enum CofounderRole {
+  DEVELOPER
+  DESIGNER
+  MARKETER
+  OPERATOR
+  SALES
+  OTHER
+}
+
+enum CofounderStage {
+  IDEA
+  MVP
+  LAUNCHED
+}
+
+enum Availability {
+  FULL_TIME
+  PART_TIME
+  WEEKENDS
+}
+
+model CofounderProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  role           CofounderRole
+  stage          CofounderStage
+  seeking        String[]
+  availability   Availability
+  idea           String?
+  isActive       Boolean  @default(true)
+  
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model CofounderRequest {
+  id             String   @id @default(uuid())
+  fromUserId     String
+  toUserId       String
+  message        String
+  status         RequestStatus @default(PENDING)
+  
+  fromUser       User     @relation("SentRequests", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser         User     @relation("ReceivedRequests", fields: [toUserId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime @default(now())
+
+  @@unique([fromUserId, toUserId])
+}
+
+enum DocType {
+  NDA
+  EQUITY_AGREEMENT
+  PARTNERSHIP_TERMS
+  OTHER
+}
+
+enum DocStatus {
+  PENDING
+  SIGNED
+  EXPIRED
+}
+
+model Document {
+  id                String   @id @default(uuid())
+  startupId         String
+  type              DocType
+  name              String
+  fileUrl           String
+  signedByFounder   Boolean  @default(false)
+  signedByAdmin     Boolean  @default(false)
+  founderSignedAt   DateTime?
+  adminSignedAt     DateTime?
+  status            DocStatus @default(PENDING)
+  
+  startup           Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime @default(now())
+}
+
+model Testimonial {
+  id             String   @id @default(uuid())
+  authorName     String
+  role           String
+  company        String
+  avatarUrl      String?
+  quote          String
+  isActive       Boolean  @default(true)
+  order          Int      @default(0)
+  
+  createdAt      DateTime @default(now())
+}
+
+model Notification {
+  id             String   @id @default(uuid())
+  userId         String
+  title          String
+  message        String
+  type           String
+  isRead         Boolean  @default(false)
+  link           String?
+  
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime @default(now())
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  adminId        String
+  action         String
+  entity         String
+  entityId       String?
+  metadata       Json?
+  
+  createdAt      DateTime @default(now())
+}

@@ -1,123 +1,53 @@
-import Link from "next/link";
-import { MessageCircle, Globe, Briefcase, ArrowRight } from "lucide-react";
-
 export function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-black pt-20 pb-10">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+    <footer className="border-t border-white/5 bg-black py-12 relative z-10 mt-20">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center font-bold text-xl">
-                D
-              </div>
-              <span className="font-bold text-xl tracking-tight text-white">
-                DevUp
-              </span>
-            </Link>
-            <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-xs">
-              The premier ecosystem for the next generation of visionary founders
-              and industry-defining startups.
+            <h3 className="font-heading text-2xl font-bold tracking-tight mb-4">
+              Dev<span className="text-gradient">Up</span>
+            </h3>
+            <p className="text-[var(--text-muted)] text-sm mb-4">
+              The premier ecosystem for student founders. Build, scale, and get funded.
             </p>
-            <div className="flex items-center gap-4">
-              <a href="#" className="text-white/40 hover:text-white transition-colors">
-                <MessageCircle className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-white/40 hover:text-white transition-colors">
-                <Globe className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-white/40 hover:text-white transition-colors">
-                <Briefcase className="w-5 h-5" />
-              </a>
-            </div>
           </div>
-
+          
           <div>
-            <h4 className="text-white font-semibold mb-6">Ecosystem</h4>
-            <ul className="space-y-4">
-              <li>
-                <Link href="/ecosystem" className="text-white/60 hover:text-white text-sm transition-colors">
-                  Directory
-                </Link>
-              </li>
-              <li>
-                <Link href="/apply" className="text-white/60 hover:text-white text-sm transition-colors">
-                  Apply Now
-                </Link>
-              </li>
-              <li>
-                <Link href="/events" className="text-white/60 hover:text-white text-sm transition-colors">
-                  Events & Hackathons
-                </Link>
-              </li>
-              <li>
-                <Link href="/community" className="text-white/60 hover:text-white text-sm transition-colors">
-                  Community
-                </Link>
-              </li>
+            <h4 className="font-semibold mb-4 text-white">Platform</h4>
+            <ul className="space-y-2 text-sm text-[var(--text-muted)]">
+              <li><a href="/ecosystem" className="hover:text-white transition-colors">Startups</a></li>
+              <li><a href="/cofounders" className="hover:text-white transition-colors">Find a Co-Founder</a></li>
+              <li><a href="/hackathons" className="hover:text-white transition-colors">Hackathons</a></li>
+              <li><a href="/careers" className="hover:text-white transition-colors">Careers</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-6">Resources</h4>
-            <ul className="space-y-4">
-              <li>
-                <Link href="/about" className="text-white/60 hover:text-white text-sm transition-colors">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/careers" className="text-white/60 hover:text-white text-sm transition-colors">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link href="/resources" className="text-white/60 hover:text-white text-sm transition-colors">
-                  Startup Guides
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-white/60 hover:text-white text-sm transition-colors">
-                  Contact
-                </Link>
-              </li>
+            <h4 className="font-semibold mb-4 text-white">Resources</h4>
+            <ul className="space-y-2 text-sm text-[var(--text-muted)]">
+              <li><a href="#" className="hover:text-white transition-colors">Playbook</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Legal Templates</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-6">Stay Updated</h4>
-            <p className="text-white/60 text-sm mb-4">
-              Get the latest news and updates from the DevUp Ecosystem.
-            </p>
-            <form className="flex flex-col gap-2">
-              <div className="relative">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
-                />
-                <button
-                  type="button"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-white text-black rounded-md hover:scale-105 transition-transform"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </form>
+            <h4 className="font-semibold mb-4 text-white">Connect</h4>
+            <ul className="space-y-2 text-sm text-[var(--text-muted)]">
+              <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">LinkedIn</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Discord</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
+            </ul>
           </div>
         </div>
-
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/40 text-sm">
-            © {new Date().getFullYear()} DevUp Ecosystem. All rights reserved.
-          </p>
-          <div className="flex items-center gap-6">
-            <Link href="#" className="text-white/40 hover:text-white text-sm transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="#" className="text-white/40 hover:text-white text-sm transition-colors">
-              Terms of Service
-            </Link>
+        
+        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-sm text-[var(--text-muted)]">
+          <p>© {new Date().getFullYear()} DevUp Ecosystem. All rights reserved.</p>
+          <div className="flex gap-4 mt-4 md:mt-0">
+            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
           </div>
         </div>
       </div>

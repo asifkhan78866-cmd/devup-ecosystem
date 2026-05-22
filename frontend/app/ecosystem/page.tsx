@@ -1,146 +1,248 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, ShieldCheck, Briefcase, MapPin } from "lucide-react";
 import Link from "next/link";
-import { Search, Filter, ArrowUpRight } from "lucide-react";
+import FloatingSymbols from "@/components/FloatingSymbols";
 import { Card } from "@/components/ui/Card";
-import { featuredStartups } from "@/data/mockData";
+import { Badge } from "@/components/ui/Badge";
 
-const categories = ["All", "Artificial Intelligence", "Fintech", "HealthTech", "Developer Tools", "SaaS"];
+const CATEGORIES = ["All", "AI/ML", "Fintech", "HealthTech", "DevTools", "SaaS", "EdTech", "Web3"];
+const PLACEHOLDERS = ["Search startups...", "Find by domain...", "Explore AI startups..."];
 
-export default function EcosystemDirectory() {
-  const [searchQuery, setSearchQuery] = useState("");
+const STARTUPS = [
+  {
+    id: "nexus-ai",
+    name: "NexusAI",
+    tagline: "Next-gen LLM orchestration for enterprise.",
+    stage: "Seed",
+    domain: "AI/ML",
+    roles: 3,
+    verified: true,
+    location: "Bengaluru",
+    color: "from-blue-500 to-cyan-400"
+  },
+  {
+    id: "volt-space",
+    name: "VoltSpace",
+    tagline: "Decentralized energy trading protocol.",
+    stage: "Series A",
+    domain: "Web3",
+    roles: 5,
+    verified: true,
+    location: "Delhi NCR",
+    color: "from-amber-400 to-orange-500"
+  },
+  {
+    id: "synth",
+    name: "Synth",
+    tagline: "Generative audio synthesis engine.",
+    stage: "Pre-seed",
+    domain: "AI/ML",
+    roles: 1,
+    verified: false,
+    location: "Remote",
+    color: "from-purple-500 to-pink-500"
+  },
+  {
+    id: "blockchain-x",
+    name: "BlockChainX",
+    tagline: "Zero-knowledge proof infrastructure.",
+    stage: "Seed",
+    domain: "Web3",
+    roles: 2,
+    verified: true,
+    location: "Pune",
+    color: "from-emerald-400 to-green-600"
+  },
+  {
+    id: "med-sync",
+    name: "MedSync",
+    tagline: "Unified patient record platform.",
+    stage: "Seed",
+    domain: "HealthTech",
+    roles: 4,
+    verified: true,
+    location: "Hyderabad",
+    color: "from-rose-400 to-red-500"
+  },
+  {
+    id: "dev-flow",
+    name: "DevFlow",
+    tagline: "Automated CI/CD pipeline generator.",
+    stage: "Pre-seed",
+    domain: "DevTools",
+    roles: 2,
+    verified: false,
+    location: "Remote",
+    color: "from-gray-600 to-gray-400"
+  }
+];
+
+export default function EcosystemPage() {
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const [activeCategory, setActiveCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredStartups = featuredStartups.filter((startup) => {
-    const matchesSearch = startup.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          startup.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === "All" || startup.category === activeCategory;
-    return matchesSearch && matchesCategory;
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIdx((prev) => (prev + 1) % PLACEHOLDERS.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const filteredStartups = STARTUPS.filter((s) => {
+    const matchesCategory = activeCategory === "All" || s.domain === activeCategory;
+    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          s.tagline.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
   });
 
   return (
-    <div className="min-h-screen pt-32 pb-20">
-      {/* Header */}
-      <section className="container mx-auto px-4 md:px-6 mb-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-3xl"
-        >
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
-            Explore the <span className="text-gradient">Ecosystem</span>
-          </h1>
-          <p className="text-xl text-white/60">
-            Discover the most innovative startups building the future. Filter by industry, or search for your next big opportunity.
-          </p>
-        </motion.div>
-      </section>
+    <>
+      <div className="fixed inset-0 opacity-50 z-0 pointer-events-none">
+        <FloatingSymbols />
+      </div>
 
-      {/* Filters and Search */}
-      <section className="container mx-auto px-4 md:px-6 mb-12 sticky top-24 z-40">
-        <div className="glass rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-            <input
-              type="text"
-              placeholder="Search startups, founders, or keywords..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
-            />
+      <div className="pt-32 pb-24 px-4 relative z-10 min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-5xl md:text-7xl font-bold mb-6"
+            >
+              Our Ecosystem
+            </motion.h1>
+            
+            {/* Search Bar */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="max-w-2xl mx-auto relative group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
+              <div className="relative glass-card rounded-2xl p-2 flex items-center">
+                <Search className="w-6 h-6 text-[var(--text-muted)] ml-4" />
+                <div className="relative flex-1 h-12 ml-4">
+                  <AnimatePresence mode="wait">
+                    {!searchQuery && (
+                      <motion.div
+                        key={placeholderIdx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute inset-0 flex items-center text-[var(--text-muted)] pointer-events-none text-lg"
+                      >
+                        {PLACEHOLDERS[placeholderIdx]}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <input 
+                    type="text" 
+                    className="absolute inset-0 w-full h-full bg-transparent outline-none text-lg text-white"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+            </motion.div>
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
-            {categories.map((category) => (
+
+          {/* Categories */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex overflow-x-auto pb-4 mb-12 gap-3 hide-scrollbar w-full"
+          >
+            {CATEGORIES.map((cat) => (
               <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeCategory === category
-                    ? "bg-white text-black"
-                    : "hover:bg-white/10 text-white/70"
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`shrink-0 px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  activeCategory === cat 
+                    ? "bg-[var(--accent-primary)] text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]" 
+                    : "glass text-[var(--text-muted)] hover:text-white hover:bg-white/10"
                 }`}
               >
-                {category}
+                {cat}
               </button>
             ))}
-            <button className="p-2 rounded-lg hover:bg-white/10 text-white/70 transition-all">
-              <Filter className="w-5 h-5" />
-            </button>
+          </motion.div>
+
+          {/* Startup Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence mode="popLayout">
+              {filteredStartups.map((startup, idx) => (
+                <motion.div
+                  key={startup.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                >
+                  <Link href={`/ecosystem/${startup.id}`}>
+                    <Card className="h-full p-0 overflow-hidden group cursor-pointer border-white/5 hover:border-white/20">
+                      <div className={`h-24 w-full bg-gradient-to-r ${startup.color} opacity-30 group-hover:opacity-50 transition-opacity`} />
+                      
+                      <div className="p-6 relative">
+                        <div className={`absolute -top-12 left-6 w-16 h-16 rounded-xl bg-gradient-to-br ${startup.color} flex items-center justify-center shadow-lg border border-white/10`}>
+                          <span className="text-2xl font-bold text-white">{startup.name[0]}</span>
+                        </div>
+                        
+                        <div className="mt-6">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-2xl font-bold flex items-center gap-2">
+                              {startup.name}
+                              {startup.verified && (
+                                <ShieldCheck className="w-5 h-5 text-blue-400" />
+                              )}
+                            </h3>
+                            <Badge variant="secondary">{startup.stage}</Badge>
+                          </div>
+                          
+                          <p className="text-[var(--text-muted)] mb-6 h-12">
+                            {startup.tagline}
+                          </p>
+                          
+                          <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                            <div className="flex items-center gap-4">
+                              <Badge variant="outline" className="border-white/10">{startup.domain}</Badge>
+                              <div className="flex items-center text-xs text-[var(--text-muted)] gap-1">
+                                <MapPin className="w-3 h-3" />
+                                {startup.location}
+                              </div>
+                            </div>
+                            
+                            {startup.roles > 0 && (
+                              <div className="flex items-center gap-1 text-xs font-medium text-[var(--accent-green)] bg-[var(--accent-green)]/10 px-2 py-1 rounded-full">
+                                <Briefcase className="w-3 h-3" />
+                                {startup.roles} Roles
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
+            {filteredStartups.length === 0 && (
+              <div className="col-span-full py-20 text-center text-[var(--text-muted)]">
+                <p className="text-xl">No startups found matching your criteria.</p>
+              </div>
+            )}
           </div>
         </div>
-      </section>
-
-      {/* Grid */}
-      <section className="container mx-auto px-4 md:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStartups.length > 0 ? (
-            filteredStartups.map((startup, index) => (
-              <motion.div
-                key={startup.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-              >
-                <Link href={`/ecosystem/${startup.id}`}>
-                  <Card className="h-full flex flex-col group cursor-pointer hover:border-white/20">
-                    <div className="p-6 flex flex-col flex-1">
-                      <div className="flex items-start justify-between mb-6">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={startup.logo}
-                          alt={startup.name}
-                          className="w-16 h-16 rounded-xl border border-white/10 bg-black/50"
-                        />
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium px-2 py-1 rounded-md bg-white/10 text-white/80">
-                            {startup.stage}
-                          </span>
-                          <ArrowUpRight className="w-5 h-5 text-white/40 group-hover:text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
-                        </div>
-                      </div>
-                      
-                      <h3 className="font-bold text-2xl mb-2">{startup.name}</h3>
-                      <p className="text-sm text-white/60 mb-6 flex-1 line-clamp-3">
-                        {startup.description}
-                      </p>
-                      
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-white/40">Category</span>
-                          <span className="text-white/80">{startup.category}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-white/40">Location</span>
-                          <span className="text-white/80">{startup.location}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm pt-3 border-t border-white/10">
-                          <span className="text-white/40">Open Roles</span>
-                          <span className="text-green-400 font-medium">{startup.openRoles} Jobs</span>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))
-          ) : (
-            <div className="col-span-full py-20 text-center">
-              <p className="text-white/50 text-lg">No startups found matching your criteria.</p>
-              <button 
-                onClick={() => {
-                  setSearchQuery("");
-                  setActiveCategory("All");
-                }}
-                className="mt-4 text-white hover:underline"
-              >
-                Clear filters
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
-    </div>
+      </div>
+    </>
   );
 }

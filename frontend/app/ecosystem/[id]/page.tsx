@@ -1,174 +1,200 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { ArrowLeft, ExternalLink, MessageCircle, Globe, Briefcase, MapPin, Users, Calendar } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShieldCheck, MapPin, Users, Calendar, Coins, ExternalLink, Briefcase } from "lucide-react";
 import { Card } from "@/components/ui/Card";
-import { featuredStartups } from "@/data/mockData";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 
-export default function StartupProfile() {
+const TABS = ["Overview", "Team", "Open Roles", "Gallery"];
+
+export default function StartupProfilePage() {
   const params = useParams();
-  const { id } = params as { id: string };
+  const id = params?.id as string;
+  const [activeTab, setActiveTab] = useState("Overview");
 
-  const startup = featuredStartups.find((s) => s.id === id);
-
-  if (!startup) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Startup not found</h1>
-          <Link href="/ecosystem">
-            <Button variant="outline">Back to Directory</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Dummy data based on the route
+  const startup = {
+    name: id === "nexus-ai" ? "NexusAI" : "Startup Name",
+    tagline: "Next-gen LLM orchestration for enterprise.",
+    color: "from-blue-500 to-cyan-400",
+    verified: true,
+    domain: "AI/ML",
+    location: "Bengaluru, India",
+    founded: "2023",
+    headcount: "10-50",
+    stage: "Seed",
+    funding: "$1.2M",
+    about: "NexusAI is building the operating system for enterprise LLM applications. We help Fortune 500 companies securely orchestrate, evaluate, and deploy foundational models across their internal workflows without compromising data privacy.",
+    team: [
+      { name: "Rahul Sharma", role: "CEO & Co-founder", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul", linkedin: "#" },
+      { name: "Sneha Reddy", role: "CTO & Co-founder", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sneha", linkedin: "#" },
+    ],
+    roles: [
+      { title: "Senior AI Engineer", type: "Full-time", location: "Bengaluru / Remote" },
+      { title: "Frontend Developer (React/Three.js)", type: "Full-time", location: "Bengaluru" },
+      { title: "Product Marketing Intern", type: "Internship", location: "Remote" },
+    ],
+    gallery: [1, 2, 3, 4]
+  };
 
   return (
-    <div className="min-h-screen pt-24 pb-20">
+    <div className="min-h-screen bg-[var(--background)]">
       {/* Banner */}
-      <div className="w-full h-64 md:h-80 relative">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={startup.banner}
-          alt={`${startup.name} banner`}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+      <div className={`w-full h-64 md:h-80 bg-gradient-to-r ${startup.color} relative`}>
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] to-transparent" />
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 -mt-20 relative z-10">
-        <Link href="/ecosystem" className="inline-flex items-center gap-2 text-white/60 hover:text-white mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back to Directory
-        </Link>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 -mt-20">
+        <div className="flex flex-col md:flex-row gap-8">
+          
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="flex flex-col md:flex-row gap-6 items-start md:items-end">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={startup.logo}
-                alt={startup.name}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-black bg-zinc-900"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-4xl md:text-5xl font-bold">{startup.name}</h1>
-                  <span className="px-3 py-1 text-xs font-medium bg-white/10 rounded-full">
-                    {startup.stage}
-                  </span>
-                </div>
-                <p className="text-xl text-white/60">{startup.category}</p>
+          <div className="flex-1">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6 mb-8">
+              <div className={`w-32 h-32 rounded-2xl bg-gradient-to-br ${startup.color} border-4 border-[var(--background)] shadow-xl flex items-center justify-center shrink-0`}>
+                <span className="text-5xl font-bold text-white">{startup.name[0]}</span>
               </div>
-              <div className="flex gap-2">
-                <Button className="rounded-full px-6">
-                  Follow
-                </Button>
-                <Button variant="outline" className="rounded-full w-12 px-0 flex items-center justify-center">
-                  <ExternalLink className="w-4 h-4" />
-                </Button>
+              
+              <div className="pb-2">
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-bold">{startup.name}</h1>
+                  {startup.verified && <ShieldCheck className="w-6 h-6 text-blue-400" />}
+                </div>
+                <p className="text-xl text-[var(--text-muted)]">{startup.tagline}</p>
               </div>
             </div>
 
-            <Card className="p-8">
-              <h2 className="text-2xl font-bold mb-4">About</h2>
-              <p className="text-white/70 leading-relaxed text-lg mb-6">
-                {startup.description}
-                <br /><br />
-                We are on a mission to completely revolutionize our industry by leveraging state-of-the-art technologies and an incredibly talented team. Our vision is to empower individuals and businesses globally, providing them with the tools they need to succeed in an ever-evolving digital landscape.
-              </p>
-              
-              <div className="flex flex-wrap gap-6 pt-6 border-t border-white/10">
-                <div className="flex items-center gap-2 text-white/60">
-                  <MapPin className="w-5 h-5 text-white/40" />
-                  <span>{startup.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/60">
-                  <Users className="w-5 h-5 text-white/40" />
-                  <span>10-50 Employees</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/60">
-                  <Calendar className="w-5 h-5 text-white/40" />
-                  <span>Founded {startup.founded}</span>
-                </div>
-              </div>
-            </Card>
+            {/* Tabs */}
+            <div className="flex gap-6 border-b border-white/10 mb-8 overflow-x-auto hide-scrollbar">
+              {TABS.map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`pb-4 text-lg font-medium transition-colors relative whitespace-nowrap ${activeTab === tab ? "text-white" : "text-[var(--text-muted)] hover:text-white/80"}`}
+                >
+                  {tab}
+                  {activeTab === tab && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent-primary)]"
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
 
-            <Card className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Open Roles</h2>
-                <span className="text-sm text-green-400 font-medium">{startup.openRoles} Jobs</span>
-              </div>
-              <div className="space-y-4">
-                {[
-                  { title: "Senior Full Stack Engineer", type: "Full-time", location: "Remote" },
-                  { title: "Product Designer", type: "Full-time", location: "San Francisco, CA" },
-                  { title: "Growth Marketing Lead", type: "Full-time", location: "Remote" },
-                ].slice(0, startup.openRoles).map((job, i) => (
-                  <div key={i} className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-colors gap-4">
-                    <div>
-                      <h4 className="font-bold mb-1">{job.title}</h4>
-                      <div className="flex items-center gap-3 text-sm text-white/50">
-                        <span>{job.type}</span>
-                        <span className="w-1 h-1 rounded-full bg-white/20" />
-                        <span>{job.location}</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="text-sm">Apply</Button>
+            {/* Tab Content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="mb-20"
+              >
+                {activeTab === "Overview" && (
+                  <div className="space-y-8">
+                    <section>
+                      <h3 className="text-2xl font-bold mb-4">About</h3>
+                      <p className="text-lg text-[var(--text-muted)] leading-relaxed">
+                        {startup.about}
+                      </p>
+                    </section>
                   </div>
-                ))}
-              </div>
-            </Card>
+                )}
+
+                {activeTab === "Team" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {startup.team.map((member, i) => (
+                      <Card key={i} className="flex items-center gap-4">
+                        <img src={member.avatar} alt={member.name} className="w-16 h-16 rounded-full bg-white/5" />
+                        <div>
+                          <h4 className="font-bold text-lg">{member.name}</h4>
+                          <p className="text-[var(--text-muted)] text-sm mb-2">{member.role}</p>
+                          <a href={member.linkedin} className="text-blue-400 hover:text-blue-300">
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {activeTab === "Open Roles" && (
+                  <div className="space-y-4">
+                    {startup.roles.map((role, i) => (
+                      <Card key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <h4 className="font-bold text-lg">{role.title}</h4>
+                          <div className="flex items-center gap-3 mt-2 text-sm text-[var(--text-muted)]">
+                            <span className="flex items-center gap-1"><Briefcase className="w-4 h-4" /> {role.type}</span>
+                            <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {role.location}</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm">Apply Now</Button>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {activeTab === "Gallery" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {startup.gallery.map((img) => (
+                      <div key={img} className="aspect-video bg-white/5 rounded-xl border border-white/10 flex items-center justify-center relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+                        <span className="text-[var(--text-muted)]">Image {img}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
-            <Card className="p-6">
-              <h3 className="font-bold mb-4">Founder</h3>
-              <div className="flex items-center gap-4 mb-6">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${startup.founder}`}
-                  alt={startup.founder}
-                  className="w-12 h-12 rounded-full bg-white/10"
-                />
-                <div>
-                  <div className="font-medium">{startup.founder}</div>
-                  <div className="text-sm text-white/50">CEO & Founder</div>
+          {/* Sticky Sidebar */}
+          <div className="w-full md:w-80 shrink-0">
+            <div className="sticky top-24 space-y-6">
+              <Card className="p-6">
+                <h3 className="font-bold text-xl mb-6">Quick Stats</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-muted)] flex items-center gap-2"><MapPin className="w-4 h-4"/> Location</span>
+                    <span className="font-medium text-right">{startup.location}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-muted)] flex items-center gap-2"><Calendar className="w-4 h-4"/> Founded</span>
+                    <span className="font-medium">{startup.founded}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-muted)] flex items-center gap-2"><Users className="w-4 h-4"/> Headcount</span>
+                    <span className="font-medium">{startup.headcount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-muted)] flex items-center gap-2"><Coins className="w-4 h-4"/> Funding</span>
+                    <span className="font-medium">{startup.funding}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-muted)] flex items-center gap-2"><ShieldCheck className="w-4 h-4"/> Stage</span>
+                    <Badge variant="secondary">{startup.stage}</Badge>
+                  </div>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <a href="#" className="p-2 rounded-md bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors">
-                  <MessageCircle className="w-4 h-4" />
-                </a>
-                <a href="#" className="p-2 rounded-md bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors">
-                  <Briefcase className="w-4 h-4" />
-                </a>
-              </div>
-            </Card>
+              </Card>
 
-            <Card className="p-6">
-              <h3 className="font-bold mb-4">Socials & Links</h3>
-              <div className="space-y-3">
-                <a href="#" className="flex items-center gap-3 text-white/70 hover:text-white transition-colors">
-                  <Globe className="w-5 h-5 text-white/40" /> Website
-                </a>
-                <a href="#" className="flex items-center gap-3 text-white/70 hover:text-white transition-colors">
-                  <MessageCircle className="w-5 h-5 text-white/40" /> Twitter
-                </a>
-                <a href="#" className="flex items-center gap-3 text-white/70 hover:text-white transition-colors">
-                  <Briefcase className="w-5 h-5 text-white/40" /> LinkedIn
-                </a>
-                <a href="#" className="flex items-center gap-3 text-white/70 hover:text-white transition-colors">
-                  <Globe className="w-5 h-5 text-white/40" /> GitHub
-                </a>
-              </div>
-            </Card>
+              <Button variant="primary" className="w-full" withShimmer>
+                Connect with Founders
+              </Button>
+              <Button variant="outline" className="w-full group">
+                Visit Website
+                <ExternalLink className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
+              </Button>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
