@@ -21,6 +21,6 @@ export class AuthController {
   }
 
   async getMe(req: Request, res: Response) {
-    res.status(200).json({ success: true, data: req.user });
+    res.status(200).json({ success: true, data: (req as any).user });
   }
 }

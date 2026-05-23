@@ -1,6 +1,8 @@
 import { TopBar } from '@/components/Layout/TopBar'
 import { StatCard } from '@/components/ui/StatCard'
 import { Button } from '@/components/ui/Button'
+import { ApplicationsChart } from '@/components/charts/ApplicationsChart'
+import { UsersChart } from '@/components/charts/UsersChart'
 import { useAdminStats } from '@/hooks/useAdmin'
 import {
   Rocket,
@@ -49,13 +51,11 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Charts placeholder */}
+          {/* Charts */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white/[0.03] backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-              <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Applications Overview</h3>
-              <div className="h-48 flex items-center justify-center text-gray-600 text-sm">
-                Connect backend to see live charts
-              </div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <ApplicationsChart />
+              <UsersChart />
             </div>
 
             {/* Quick Actions */}

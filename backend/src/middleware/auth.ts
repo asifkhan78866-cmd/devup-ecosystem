@@ -23,7 +23,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       throw new AppError(401, "Not authorized, user not found");
     }
 
-    req.user = user;
+    (req as any).user = user;
     next();
   } catch (error) {
     next(new AppError(401, "Not authorized, token failed"));
@@ -32,11 +32,11 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
 export const requireRole = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
+    if (!(req as any).user) {
       return next(new AppError(401, "Not authorized"));
     }
     
-    if (!roles.includes(req.user.role)) {
+    if (!roles.includes((req as any).user.role)) {
       return next(new AppError(403, "Forbidden, insufficient permissions"));
     }
     

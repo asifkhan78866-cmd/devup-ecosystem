@@ -11,7 +11,7 @@ const controller = new DocumentsController();
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: parseInt(env.MAX_FILE_SIZE_MB) * 1024 * 1024 },
+  limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
 });
 
 router.post("/", requireAuth, requireRole(["ADMIN"]), upload.single("file"), validate(uploadDocumentSchema), controller.uploadDocument);

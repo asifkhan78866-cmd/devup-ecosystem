@@ -9,7 +9,7 @@ export const globalLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({
-    sendCommand: (...args: string[]) => redis.call(...args),
+    sendCommand: (...args: string[]) => redis.call(args[0], ...args.slice(1)) as any,
   }),
   message: { code: 429, message: "Too many requests, please try again later." }
 });
@@ -20,7 +20,7 @@ export const aiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({
-    sendCommand: (...args: string[]) => redis.call(...args),
+    sendCommand: (...args: string[]) => redis.call(args[0], ...args.slice(1)) as any,
   }),
   message: { code: 429, message: "AI rate limit exceeded. Please try again next hour." }
 });

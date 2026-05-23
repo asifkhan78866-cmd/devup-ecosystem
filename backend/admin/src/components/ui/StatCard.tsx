@@ -1,5 +1,6 @@
-import { ReactNode } from 'react'
-import { LucideIcon } from 'lucide-react'
+import type { ComponentType, SVGProps } from 'react'
+
+type LucideIcon = ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>
 
 export function StatCard({
   label,
