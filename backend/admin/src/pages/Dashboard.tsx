@@ -11,6 +11,7 @@ import {
   Briefcase,
   Trophy,
   Shield,
+  Building2,
   FileCheck,
   Plus,
   Send,
@@ -25,10 +26,10 @@ export default function Dashboard() {
   const statCards = [
     { label: 'Active Startups', value: stats?.totalStartups ?? '—', icon: Rocket, trend: '12% this week', trendUp: true },
     { label: 'Pending Applications', value: stats?.totalApplications ?? '—', icon: FileText, trend: '3 new today', trendUp: true },
+    { label: 'Service Requests', value: stats?.pendingServiceRequests ?? '—', icon: Building2, trend: 'Pending requests', trendUp: true },
     { label: 'Total Users', value: stats?.totalUsers ?? '—', icon: Users, trend: '8% this month', trendUp: true },
     { label: 'Active Jobs', value: stats?.totalJobs ?? '—', icon: Briefcase },
     { label: 'Hackathons', value: stats?.activeHackathons ?? '—', icon: Trophy },
-    { label: 'Documents', value: '—', icon: Shield },
   ]
 
   const activityItems = [

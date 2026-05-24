@@ -10,7 +10,7 @@ export class CofoundersController {
   }
 
   async getProfile(req: Request, res: Response) {
-    const data = await cofoundersService.getProfileByUserId(req.params.id);
+    const data = await cofoundersService.getProfileByUserId(req.params.id as string);
     res.status(200).json({ success: true, data });
   }
 
@@ -25,7 +25,7 @@ export class CofoundersController {
   }
 
   async sendRequest(req: Request, res: Response) {
-    const data = await cofoundersService.sendRequest(req.user!.id, req.params.id, req.body.message);
+    const data = await cofoundersService.sendRequest(req.user!.id, req.params.id as string, req.body.message);
     res.status(201).json({ success: true, data });
   }
 
@@ -35,7 +35,7 @@ export class CofoundersController {
   }
 
   async updateRequestStatus(req: Request, res: Response) {
-    const data = await cofoundersService.updateRequestStatus(req.params.id, req.user!.id, req.body.status);
+    const data = await cofoundersService.updateRequestStatus(req.params.id as string, req.user!.id, req.body.status);
     res.status(200).json({ success: true, data });
   }
 }

@@ -18,7 +18,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles = "relative inline-flex items-center justify-center font-medium transition-all duration-300 overflow-hidden outline-none cursor-pointer disabled:opacity-50 disabled:pointer-events-none";
-    
+
     const variants = {
       primary: "bg-[var(--accent-primary)] text-white hover:bg-[#4f46e5] shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]",
       secondary: "bg-[var(--surface)] text-white border border-[var(--border)] hover:bg-[var(--card)] hover:border-[rgba(255,255,255,0.1)]",
@@ -42,7 +42,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         <span className="relative z-10 flex items-center gap-2">{children}</span>
-        
+
         {withShimmer && (
           <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent hover:animate-shimmer z-0" />
         )}

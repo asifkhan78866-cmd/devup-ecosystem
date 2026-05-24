@@ -50,7 +50,7 @@ export default function StartupProfilePage() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 -mt-20">
         <div className="flex flex-col md:flex-row gap-8">
-          
+
           {/* Main Content */}
           <div className="flex-1">
             {/* Header */}
@@ -58,7 +58,7 @@ export default function StartupProfilePage() {
               <div className={`w-32 h-32 rounded-2xl bg-gradient-to-br ${startup.color} border-4 border-[var(--background)] shadow-xl flex items-center justify-center shrink-0`}>
                 <span className="text-5xl font-bold text-white">{startup.name[0]}</span>
               </div>
-              
+
               <div className="pb-2">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-4xl font-bold">{startup.name}</h1>
@@ -163,23 +163,23 @@ export default function StartupProfilePage() {
                 <h3 className="font-bold text-xl mb-6">Quick Stats</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-[var(--text-muted)] flex items-center gap-2"><MapPin className="w-4 h-4"/> Location</span>
+                    <span className="text-[var(--text-muted)] flex items-center gap-2"><MapPin className="w-4 h-4" /> Location</span>
                     <span className="font-medium text-right">{startup.location}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[var(--text-muted)] flex items-center gap-2"><Calendar className="w-4 h-4"/> Founded</span>
+                    <span className="text-[var(--text-muted)] flex items-center gap-2"><Calendar className="w-4 h-4" /> Founded</span>
                     <span className="font-medium">{startup.founded}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[var(--text-muted)] flex items-center gap-2"><Users className="w-4 h-4"/> Headcount</span>
+                    <span className="text-[var(--text-muted)] flex items-center gap-2"><Users className="w-4 h-4" /> Headcount</span>
                     <span className="font-medium">{startup.headcount}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[var(--text-muted)] flex items-center gap-2"><Coins className="w-4 h-4"/> Funding</span>
+                    <span className="text-[var(--text-muted)] flex items-center gap-2"><Coins className="w-4 h-4" /> Funding</span>
                     <span className="font-medium">{startup.funding}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[var(--text-muted)] flex items-center gap-2"><ShieldCheck className="w-4 h-4"/> Stage</span>
+                    <span className="text-[var(--text-muted)] flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Stage</span>
                     <Badge variant="secondary">{startup.stage}</Badge>
                   </div>
                 </div>

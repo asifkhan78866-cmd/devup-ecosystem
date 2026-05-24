@@ -22,6 +22,7 @@ const navItems = [
   { to: '/hackathons', icon: Trophy, label: 'Hackathons' },
   { to: '/documents', icon: Shield, label: 'Documents' },
   { to: '/cofounders', icon: Handshake, label: 'Co-Founders' },
+  { to: '/services', icon: Building2, label: 'Services' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]
 

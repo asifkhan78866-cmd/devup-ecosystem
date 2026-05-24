@@ -113,10 +113,10 @@ export default function CoFoundersPage() {
   return (
     <div className="min-h-screen pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
-        
+
         {/* Hero */}
         <div className="text-center mb-16 pt-12">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-5xl md:text-7xl font-bold mb-4"
@@ -133,15 +133,15 @@ export default function CoFoundersPage() {
           </motion.p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button 
-              variant={view === "browse" ? "primary" : "outline"} 
+            <Button
+              variant={view === "browse" ? "primary" : "outline"}
               size="lg"
               onClick={() => setView("browse")}
             >
               Browse Co-Founders
             </Button>
-            <Button 
-              variant={view === "list" ? "primary" : "outline"} 
+            <Button
+              variant={view === "list" ? "primary" : "outline"}
               size="lg"
               onClick={() => setView("list")}
             >
@@ -174,7 +174,7 @@ export default function CoFoundersPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-4 flex-1">
                       <div>
                         <div className="text-sm text-[var(--text-muted)] mb-2 font-medium">Brings: {profile.role}</div>
@@ -201,7 +201,7 @@ export default function CoFoundersPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="mt-6 pt-6 border-t border-white/5">
                       <Button variant="primary" className="w-full">Connect</Button>
                     </div>
@@ -221,10 +221,10 @@ export default function CoFoundersPage() {
               className="max-w-3xl mx-auto"
             >
               <Card className="p-8 md:p-12 border-white/10">
-                <StepForm 
-                  steps={formSteps} 
-                  onComplete={() => setView("success")} 
-                  onCancel={() => setView("browse")} 
+                <StepForm
+                  steps={formSteps}
+                  onComplete={() => setView("success")}
+                  onCancel={() => setView("browse")}
                 />
               </Card>
             </motion.div>

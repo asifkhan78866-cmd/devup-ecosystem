@@ -15,7 +15,7 @@ export default function ApplyPage() {
 
   const handleComplete = () => {
     setIsSubmitted(true);
-    
+
     // Trigger confetti
     const duration = 3 * 1000;
     const end = Date.now() + duration;
@@ -79,7 +79,7 @@ export default function ApplyPage() {
       content: (
         <div className="space-y-6">
           <h2 className="text-3xl font-bold mb-8 text-center">Who is building this?</h2>
-          
+
           <div className="space-y-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
             {Array.from({ length: foundersCount }).map((_, i) => (
               <div key={i} className="p-4 rounded-xl border border-white/10 bg-white/5 space-y-4">
@@ -132,7 +132,7 @@ export default function ApplyPage() {
               <input type="text" placeholder="$0" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-[var(--accent-primary)] text-white" />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm text-[var(--text-muted)] mb-2">Active Users / Customers</label>
             <input type="text" placeholder="e.g. 100 beta testers" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-[var(--accent-primary)] text-white" />

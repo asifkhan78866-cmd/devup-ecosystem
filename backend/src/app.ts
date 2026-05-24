@@ -19,6 +19,7 @@ import cofoundersRoutes from "./modules/cofounders/cofounders.routes";
 import documentsRoutes from "./modules/documents/documents.routes";
 import aiRoutes from "./modules/ai/ai.routes";
 import adminRoutes from "./modules/admin/admin.routes";
+import servicesRoutes from "./modules/services/services.routes";
 // ... (will import as implemented)
 
 export const app = express();
@@ -49,6 +50,7 @@ app.use("/api/cofounders", cofoundersRoutes);
 app.use("/api/documents", documentsRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/services", servicesRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

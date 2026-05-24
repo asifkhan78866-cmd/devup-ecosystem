@@ -8,12 +8,14 @@ export class AdminService {
       totalApplications,
       totalJobs,
       activeHackathons,
+      pendingServiceRequests,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.startup.count({ where: { isActive: true, isVerified: true } }),
       prisma.application.count(),
       prisma.job.count({ where: { isActive: true } }),
       prisma.hackathon.count({ where: { isActive: true } }),
+      prisma.serviceRequest.count({ where: { status: 'PENDING' } }),
     ]);
 
     // Calculate total funding dynamically if needed, or return placeholder
@@ -25,6 +27,7 @@ export class AdminService {
       totalApplications,
       totalJobs,
       activeHackathons,
+      pendingServiceRequests,
       totalFunding,
     };
   }

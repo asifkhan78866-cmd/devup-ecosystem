@@ -47,9 +47,8 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-600 outline-none transition-colors focus:border-indigo-500 ${
-                  error ? 'border-red-500' : 'border-white/10'
-                }`}
+                className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-600 outline-none transition-colors focus:border-indigo-500 ${error ? 'border-red-500' : 'border-white/10'
+                  }`}
                 placeholder="admin@devup.in"
               />
             </div>
@@ -61,9 +60,8 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-600 outline-none transition-colors focus:border-indigo-500 ${
-                  error ? 'border-red-500' : 'border-white/10'
-                }`}
+                className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-600 outline-none transition-colors focus:border-indigo-500 ${error ? 'border-red-500' : 'border-white/10'
+                  }`}
                 placeholder="••••••••"
               />
             </div>

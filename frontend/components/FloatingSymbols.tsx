@@ -2,11 +2,11 @@
 import { useEffect, useRef } from 'react'
 
 const SYMBOLS = [
-  '🚀','💡','⚡','💰','🎯','📈','🏆','💻','🔗','🛠️',
-  '🌐','👥','💎','🔥','⭐','🎓','📊','🤝','⚙️','🧠',
-  '💼','🪙','📱','🌱','✦','◆','▸','⬡','✺','⊕',
-  '$','€','%','@','#','→','↗','∞','≈','△','○','□',
-  '🏗️','🎪','£','¥','&','*','+','⟶'
+  '🚀', '💡', '⚡', '💰', '🎯', '📈', '🏆', '💻', '🔗', '🛠️',
+  '🌐', '👥', '💎', '🔥', '⭐', '🎓', '📊', '🤝', '⚙️', '🧠',
+  '💼', '🪙', '📱', '🌱', '✦', '◆', '▸', '⬡', '✺', '⊕',
+  '$', '€', '%', '@', '#', '→', '↗', '∞', '≈', '△', '○', '□',
+  '🏗️', '🎪', '£', '¥', '&', '*', '+', '⟶'
 ]
 
 interface Symbol {
@@ -23,10 +23,10 @@ interface Symbol {
   color: string
 }
 
-export default function FloatingSymbols({ 
-  opacity = 1 
-}: { 
-  opacity?: number 
+export default function FloatingSymbols({
+  opacity = 1
+}: {
+  opacity?: number
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const symbolsRef = useRef<Symbol[]>([])
@@ -43,8 +43,8 @@ export default function FloatingSymbols({
   function createSymbol(canvas: HTMLCanvasElement, startAtBottom = true): Symbol {
     return {
       x: Math.random() * canvas.width,
-      y: startAtBottom 
-        ? canvas.height + Math.random() * 100 
+      y: startAtBottom
+        ? canvas.height + Math.random() * 100
         : Math.random() * canvas.height,
       symbol: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
       fontSize: 10 + Math.random() * 10,
@@ -107,7 +107,7 @@ export default function FloatingSymbols({
 
         // Reset when off screen or fully faded
         if (s.y < -50 || (s.phase === 'fadeout' && s.opacity <= 0)) {
-          return createSymbol(canvas, true)
+          return createSymbol(canvas, false)
         }
 
         // Draw

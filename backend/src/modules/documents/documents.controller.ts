@@ -12,12 +12,12 @@ export class DocumentsController {
   }
 
   async getDocument(req: Request, res: Response) {
-    const data = await documentsService.getDocument(req.params.id, req.user!.id, req.user!.role);
+    const data = await documentsService.getDocument(req.params.id as string, req.user!.id, req.user!.role);
     res.status(200).json({ success: true, data });
   }
 
   async signDocument(req: Request, res: Response) {
-    const data = await documentsService.signDocument(req.params.id, req.user!.id, req.user!.role);
+    const data = await documentsService.signDocument(req.params.id as string, req.user!.id, req.user!.role);
     res.status(200).json({ success: true, data });
   }
 }

@@ -379,3 +379,25 @@ model AuditLog {
   
   createdAt      DateTime @default(now())
 }
+
+enum ServiceRequestStatus {
+  PENDING
+  REVIEWING
+  CONTACTED
+  REJECTED
+  FULFILLED
+}
+
+model ServiceRequest {
+  id             String   @id @default(uuid())
+  serviceId      String
+  serviceName    String
+  name           String
+  company        String
+  email          String
+  details        String
+  status         ServiceRequestStatus @default(PENDING)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

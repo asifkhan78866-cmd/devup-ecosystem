@@ -94,8 +94,8 @@ export default function EcosystemPage() {
 
   const filteredStartups = STARTUPS.filter((s) => {
     const matchesCategory = activeCategory === "All" || s.domain === activeCategory;
-    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          s.tagline.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.tagline.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -109,16 +109,16 @@ export default function EcosystemPage() {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-5xl md:text-7xl font-bold mb-6"
             >
               Our Ecosystem
             </motion.h1>
-            
+
             {/* Search Bar */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -142,8 +142,8 @@ export default function EcosystemPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className="absolute inset-0 w-full h-full bg-transparent outline-none text-lg text-white"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -154,7 +154,7 @@ export default function EcosystemPage() {
           </div>
 
           {/* Categories */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -164,11 +164,10 @@ export default function EcosystemPage() {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`shrink-0 px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                  activeCategory === cat 
-                    ? "bg-[var(--accent-primary)] text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]" 
+                className={`shrink-0 px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === cat
+                    ? "bg-[var(--accent-primary)] text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]"
                     : "glass text-[var(--text-muted)] hover:text-white hover:bg-white/10"
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -190,12 +189,12 @@ export default function EcosystemPage() {
                   <Link href={`/ecosystem/${startup.id}`}>
                     <Card className="h-full p-0 overflow-hidden group cursor-pointer border-white/5 hover:border-white/20">
                       <div className={`h-24 w-full bg-gradient-to-r ${startup.color} opacity-30 group-hover:opacity-50 transition-opacity`} />
-                      
+
                       <div className="p-6 relative">
                         <div className={`absolute -top-12 left-6 w-16 h-16 rounded-xl bg-gradient-to-br ${startup.color} flex items-center justify-center shadow-lg border border-white/10`}>
                           <span className="text-2xl font-bold text-white">{startup.name[0]}</span>
                         </div>
-                        
+
                         <div className="mt-6">
                           <div className="flex items-center justify-between mb-2">
                             <h3 className="text-2xl font-bold flex items-center gap-2">
@@ -206,11 +205,11 @@ export default function EcosystemPage() {
                             </h3>
                             <Badge variant="secondary">{startup.stage}</Badge>
                           </div>
-                          
+
                           <p className="text-[var(--text-muted)] mb-6 h-12">
                             {startup.tagline}
                           </p>
-                          
+
                           <div className="flex items-center justify-between pt-4 border-t border-white/5">
                             <div className="flex items-center gap-4">
                               <Badge variant="outline" className="border-white/10">{startup.domain}</Badge>
@@ -219,7 +218,7 @@ export default function EcosystemPage() {
                                 {startup.location}
                               </div>
                             </div>
-                            
+
                             {startup.roles > 0 && (
                               <div className="flex items-center gap-1 text-xs font-medium text-[var(--accent-green)] bg-[var(--accent-green)]/10 px-2 py-1 rounded-full">
                                 <Briefcase className="w-3 h-3" />
@@ -234,7 +233,7 @@ export default function EcosystemPage() {
                 </motion.div>
               ))}
             </AnimatePresence>
-            
+
             {filteredStartups.length === 0 && (
               <div className="col-span-full py-20 text-center text-[var(--text-muted)]">
                 <p className="text-xl">No startups found matching your criteria.</p>

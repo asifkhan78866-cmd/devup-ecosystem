@@ -30,7 +30,7 @@ export class DocumentsService {
         from: env.RESEND_FROM_EMAIL,
         to: startup.primaryFounder.email,
         subject: "New Document Requires Signature - DevUp Ecosystem",
-        html: EmailTemplates.documentReady(startup.primaryFounder.profile?.name || "Founder", data.name, `${env.FRONTEND_URL}/dashboard/documents`)
+        html: EmailTemplates.documentReady("Founder", data.name, `${env.FRONTEND_URL}/dashboard/documents`)
       }).catch(err => console.error("Email error:", err));
     }
 

@@ -54,9 +54,9 @@ export default function AdminDashboard() {
           <h2 className="text-xl font-bold mb-4 font-syne">Recent Audit Logs</h2>
           <div className="text-gray-400 font-jetbrains-mono text-sm">
             {/* Real implementation would fetch and map over audit logs */}
-            [2026-05-23] admin@devup.in approved Startup: NexusAI <br/>
-            [2026-05-23] admin@devup.in created Job: Senior Engineer <br/>
-            [2026-05-22] admin@devup.in rejected Application: RandomApp <br/>
+            [2026-05-23] admin@devup.in approved Startup: NexusAI <br />
+            [2026-05-23] admin@devup.in created Job: Senior Engineer <br />
+            [2026-05-22] admin@devup.in rejected Application: RandomApp <br />
           </div>
         </div>
       </div>

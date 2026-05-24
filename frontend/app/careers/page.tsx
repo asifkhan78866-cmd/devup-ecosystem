@@ -56,9 +56,8 @@ export default function CareersPage() {
                 <button
                   key={type}
                   onClick={() => setActiveType(type)}
-                  className={`flex-1 py-4 px-6 rounded-2xl text-lg font-bold transition-colors relative z-10 ${
-                    activeType === type ? "text-white" : "text-[var(--text-muted)] hover:text-white/80"
-                  }`}
+                  className={`flex-1 py-4 px-6 rounded-2xl text-lg font-bold transition-colors relative z-10 ${activeType === type ? "text-white" : "text-[var(--text-muted)] hover:text-white/80"
+                    }`}
                 >
                   {activeType === type && (
                     <motion.div
@@ -78,7 +77,7 @@ export default function CareersPage() {
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-4 md:px-6">
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* Filters Sidebar */}
           <div className="w-full lg:w-64 shrink-0 space-y-6">
             <div className="sticky top-24 space-y-6">
@@ -119,7 +118,7 @@ export default function CareersPage() {
 
           {/* Job Listings & Resume Drop */}
           <div className="flex-1 space-y-6">
-            
+
             {/* Resume Dropzone */}
             <div className="border-2 border-dashed border-white/20 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors p-8 flex flex-col items-center justify-center text-center group cursor-pointer relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] opacity-0 group-hover:opacity-5 transition-opacity" />
@@ -152,9 +151,9 @@ export default function CareersPage() {
                           </h3>
                           <div className="text-[var(--text-muted)] text-sm mb-3">{job.company}</div>
                           <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--text-muted)]">
-                            <span className="flex items-center gap-1"><MapPin className="w-3 h-3"/> {job.location}</span>
-                            <span className="flex items-center gap-1"><IndianRupee className="w-3 h-3"/> {job.stipend}</span>
-                            <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {job.date}</span>
+                            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {job.location}</span>
+                            <span className="flex items-center gap-1"><IndianRupee className="w-3 h-3" /> {job.stipend}</span>
+                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {job.date}</span>
                           </div>
                         </div>
                       </div>

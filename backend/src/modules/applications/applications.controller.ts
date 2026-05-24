@@ -12,7 +12,7 @@ export class ApplicationsController {
 
   async uploadPitchDeck(req: Request, res: Response) {
     if (!req.file) throw new AppError(400, "No pitch deck uploaded");
-    const data = await applicationsService.uploadPitchDeck(req.params.id, req.user!.id, req.file.buffer, req.file.mimetype);
+    const data = await applicationsService.uploadPitchDeck(req.params.id as string, req.user!.id, req.file.buffer, req.file.mimetype);
     res.status(200).json({ success: true, data });
   }
 
@@ -22,12 +22,12 @@ export class ApplicationsController {
   }
 
   async getApplication(req: Request, res: Response) {
-    const data = await applicationsService.getApplication(req.params.id, req.user!.id, req.user!.role);
+    const data = await applicationsService.getApplication(req.params.id as string, req.user!.id, req.user!.role);
     res.status(200).json({ success: true, data });
   }
 
   async reviewApplication(req: Request, res: Response) {
-    const data = await applicationsService.reviewApplication(req.params.id, req.user!.id, req.body);
+    const data = await applicationsService.reviewApplication(req.params.id as string, req.user!.id, req.body);
     res.status(200).json({ success: true, data });
   }
 }

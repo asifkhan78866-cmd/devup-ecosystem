@@ -11,7 +11,7 @@ export function Footer() {
               The premier ecosystem for student founders. Build, scale, and get funded.
             </p>
           </div>
-          
+
           <div>
             <h4 className="font-semibold mb-4 text-white">Platform</h4>
             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
@@ -42,7 +42,7 @@ export function Footer() {
             </ul>
           </div>
         </div>
-        
+
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-sm text-[var(--text-muted)]">
           <p>© {new Date().getFullYear()} DevUp Ecosystem. All rights reserved.</p>
           <div className="flex gap-4 mt-4 md:mt-0">

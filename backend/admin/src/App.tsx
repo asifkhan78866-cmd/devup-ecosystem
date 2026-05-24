@@ -12,6 +12,7 @@ import Jobs from '@/pages/Jobs'
 import Hackathons from '@/pages/Hackathons'
 import Documents from '@/pages/Documents'
 import Cofounders from '@/pages/Cofounders'
+import ServiceRequests from '@/pages/ServiceRequests'
 import SettingsPage from '@/pages/Settings'
 
 const queryClient = new QueryClient({
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="hackathons" element={<Hackathons />} />
             <Route path="documents" element={<Documents />} />
             <Route path="cofounders" element={<Cofounders />} />
+            <Route path="services" element={<ServiceRequests />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

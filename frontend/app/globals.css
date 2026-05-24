@@ -3,18 +3,18 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--text-primary);
-  
+
   --color-surface: var(--surface);
   --color-card: var(--card);
   --color-border: var(--border);
-  
+
   --color-accent-primary: var(--accent-primary);
   --color-accent-secondary: var(--accent-secondary);
   --color-accent-green: var(--accent-green);
-  
+
   --color-text-primary: var(--text-primary);
   --color-text-muted: var(--text-muted);
-  
+
   --font-sans: var(--font-inter);
   --font-heading: var(--font-syne);
   --font-mono: var(--font-jetbrains-mono);
@@ -29,7 +29,7 @@
   --background: #000000;
   --surface: #080808;
   --card: #0d0d0d;
-  --border: rgba(255,255,255,0.06);
+  --border: rgba(255, 255, 255, 0.06);
   --accent-primary: #6366f1;
   --accent-secondary: #a855f7;
   --accent-green: #22c55e;
@@ -49,11 +49,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading), sans-serif;
 }
 
-code, pre {
+code,
+pre {
   font-family: var(--font-mono), monospace;
 }
 
@@ -116,18 +122,35 @@ code, pre {
 
 /* Animations */
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .animate-shimmer {
