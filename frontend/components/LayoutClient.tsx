@@ -20,8 +20,22 @@ export default function LayoutClient({
   const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
+    // Check if intro has been seen
     const seen = sessionStorage.getItem("devup_intro_seen");
     if (!seen) setShowIntro(true);
+
+    // Suppress THREE.Clock deprecation warning caused by @react-three/fiber internals
+    const originalWarn = console.warn;
+    console.warn = (...args) => {
+      if (args[0] && typeof args[0] === 'string' && args[0].includes('THREE.Clock: This module has been deprecated')) {
+        return;
+      }
+      originalWarn(...args);
+    };
+
+    return () => {
+      console.warn = originalWarn;
+    };
   }, []);
 
   return (
