@@ -48,9 +48,11 @@ function DNAHelix({ color = "#c8f135" }: { color: string }) {
     return { nodes1: n1, nodes2: n2, lines: l };
   }, [nodeCount, height, radius, turns]);
 
-  useFrame(({ clock }) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
+    timeRef.current += delta;
     if (groupRef.current) {
-      const t = clock.elapsedTime;
+      const t = timeRef.current;
       groupRef.current.rotation.y += 0.008;
       groupRef.current.position.y = Math.sin(t) * 0.1;
     }

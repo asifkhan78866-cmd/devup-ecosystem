@@ -152,9 +152,11 @@ function OrbitalNode({ position, node }: { position: [number, number, number], n
 function PulsingDot({ curvePoints, color, offset }: { curvePoints: THREE.Vector3[], color: string, offset: number }) {
   const meshRef = useRef<THREE.Mesh>(null);
   
-  useFrame(({ clock }) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
+    timeRef.current += delta;
     if (meshRef.current) {
-      const t = ((clock.elapsedTime * 0.25) + (offset / (Math.PI * 2))) % 1; // 4s period staggered
+      const t = ((timeRef.current * 0.25) + (offset / (Math.PI * 2))) % 1; // 4s period staggered
       
       // Interpolate position along the pre-calculated curve points
       const pointCount = curvePoints.length - 1;
@@ -180,9 +182,11 @@ function PulsingDot({ curvePoints, color, offset }: { curvePoints: THREE.Vector3
 function CentralNode() {
   const coreRef = useRef<THREE.Mesh>(null);
 
-  useFrame(({ clock }) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
+    timeRef.current += delta;
     if (coreRef.current) {
-      const t = clock.elapsedTime;
+      const t = timeRef.current;
       coreRef.current.scale.setScalar(1 + Math.sin(t * 2.1) * 0.04);
     }
   });

@@ -75,8 +75,10 @@ function GraphNetwork() {
   const jobRefs = useRef<(THREE.Mesh | null)[]>([]);
   const jobPosRefs = useRef<THREE.Vector3[]>(jobs.map(() => new THREE.Vector3()));
   
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
+    timeRef.current += delta;
+    const t = timeRef.current;
     
     // Update companies
     companies.forEach((comp, i) => {

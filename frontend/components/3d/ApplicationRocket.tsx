@@ -27,9 +27,11 @@ function Rocket({ isLaunched }: { isLaunched: boolean }) {
   const particlesRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  useFrame(({ clock }) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
+    timeRef.current += delta;
     if (groupRef.current) {
-      const t = clock.elapsedTime;
+      const t = timeRef.current;
       
       if (!isLaunched) {
         // Idle animation

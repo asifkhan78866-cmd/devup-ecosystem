@@ -44,9 +44,11 @@ function generateProfiles(count: number) {
 function ProfileCard({ profile, index }: { profile: any, index: number }) {
   const groupRef = useRef<THREE.Group>(null);
   
-  useFrame(({ clock, camera }) => {
+  const timeRef = useRef(0);
+  useFrame(({ camera }, delta) => {
+    timeRef.current += delta;
     if (groupRef.current) {
-      const t = clock.elapsedTime;
+      const t = timeRef.current;
       // Oscillate Y and drift slightly X
       groupRef.current.position.x = profile.basePos.x + Math.sin(t * 0.5 + index) * 0.5;
       groupRef.current.position.y = profile.basePos.y + Math.sin(t + index * 0.7) * 0.3;
