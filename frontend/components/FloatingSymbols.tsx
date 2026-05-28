@@ -1,142 +1,113 @@
-'use client'
-import { useEffect, useRef } from 'react'
+
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 
 const SYMBOLS = [
-  '🚀', '💡', '⚡', '💰', '🎯', '📈', '🏆', '💻', '🔗', '🛠️',
-  '🌐', '👥', '💎', '🔥', '⭐', '🎓', '📊', '🤝', '⚙️', '🧠',
-  '💼', '🪙', '📱', '🌱', '✦', '◆', '▸', '⬡', '✺', '⊕',
-  '$', '€', '%', '@', '#', '→', '↗', '∞', '≈', '△', '○', '□',
-  '🏗️', '🎪', '£', '¥', '&', '*', '+', '⟶'
-]
+  "$", "€", "↗", "→", "∞", "+", "×", "%", "#",
+  "@", "&", "01", "{}", "//", "<>", "=>", "::",
+  "△", "○", "□", "◇", "✦"
+];
 
-interface Symbol {
-  x: number
-  y: number
-  symbol: string
-  fontSize: number
-  opacity: number
-  maxOpacity: number
-  speed: number
-  drift: number
-  phase: 'fadein' | 'visible' | 'fadeout'
-  phaseProgress: number
-  color: string
+const SYMBOL_COUNT = 55;
+
+interface SymbolProps {
+  x: number;
+  y: number;
+  symbol: string;
+  size: number;
+  opacity: number;
+  speedY: number;
+  speedX: number;
 }
 
-export default function FloatingSymbols({
-  opacity = 1
-}: {
-  opacity?: number
-}) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const symbolsRef = useRef<Symbol[]>([])
-  const rafRef = useRef<number>(0)
+export default function FloatingSymbols() {
+  const [symbols, setSymbols] = useState<SymbolProps[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const requestRef = useRef<number>(0);
 
-  const COLORS = [
-    'rgba(255,255,255,',
-    'rgba(99,102,241,',
-    'rgba(168,85,247,',
-    'rgba(255,255,255,',
-    'rgba(255,255,255,',
-  ]
-
-  function createSymbol(canvas: HTMLCanvasElement, startAtBottom = true): Symbol {
-    return {
-      x: Math.random() * canvas.width,
-      y: startAtBottom
-        ? canvas.height + Math.random() * 100
-        : Math.random() * canvas.height,
-      symbol: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
-      fontSize: 10 + Math.random() * 10,
-      opacity: 0,
-      maxOpacity: (0.08 + Math.random() * 0.12) * opacity,
-      speed: 0.3 + Math.random() * 0.5,
-      drift: (Math.random() - 0.5) * 0.3,
-      phase: 'fadein',
-      phaseProgress: 0,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)]
-    }
-  }
-
+  // Initialize symbols
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (typeof window === "undefined") return;
 
-    function resize() {
-      if (!canvas) return
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-    }
-    resize()
-    window.addEventListener('resize', resize)
+    const initialSymbols: SymbolProps[] = Array.from({ length: SYMBOL_COUNT }).map(() => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      symbol: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+      size: 9 + Math.random() * 4, // 9px to 13px
+      opacity: 0.035 + Math.random() * 0.035, // 0.035 to 0.07
+      speedY: -(0.15 + Math.random() * 0.25), // -0.15 to -0.40
+      speedX: (Math.random() - 0.5) * 0.2, // very slight horizontal drift
+    }));
 
-    // Initialize symbols spread across screen
-    symbolsRef.current = Array.from({ length: 90 }, () =>
-      createSymbol(canvas, false)
-    )
+    setSymbols(initialSymbols);
 
-    function animate() {
-      if (!canvas || !ctx) return
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+    const handleResize = () => {
+      if (canvasRef.current) {
+        canvasRef.current.width = window.innerWidth;
+        canvasRef.current.height = window.innerHeight;
+      }
+    };
 
-      symbolsRef.current = symbolsRef.current.map(sym => {
-        const s = { ...sym }
+    window.addEventListener("resize", handleResize);
+    handleResize();
 
-        // Move upward + drift
-        s.y -= s.speed
-        s.x += s.drift
-        s.phaseProgress += 0.008
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-        // Phase transitions
-        if (s.phase === 'fadein') {
-          s.opacity = Math.min(s.opacity + 0.003, s.maxOpacity)
-          if (s.opacity >= s.maxOpacity) {
-            s.phase = 'visible'
-            s.phaseProgress = 0
-          }
-        } else if (s.phase === 'visible') {
-          if (s.phaseProgress > 1.5) {
-            s.phase = 'fadeout'
-            s.phaseProgress = 0
-          }
-        } else if (s.phase === 'fadeout') {
-          s.opacity = Math.max(s.opacity - 0.003, 0)
+  // Animation loop
+  useEffect(() => {
+    if (symbols.length === 0 || !canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    // Store symbols in a ref to mutate without re-triggering effect
+    const symbolsData = [...symbols];
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      symbolsData.forEach((symbol) => {
+        // Move symbol
+        symbol.y += symbol.speedY;
+        symbol.x += symbol.speedX;
+
+        // Reset if it goes off screen
+        if (symbol.y < -20) {
+          symbol.y = canvas.height + 20;
+          symbol.x = Math.random() * canvas.width;
+          symbol.symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
         }
+        if (symbol.x < -20) symbol.x = canvas.width + 20;
+        if (symbol.x > canvas.width + 20) symbol.x = -20;
 
-        // Reset when off screen or fully faded
-        if (s.y < -50 || (s.phase === 'fadeout' && s.opacity <= 0)) {
-          return createSymbol(canvas, false)
-        }
+        // Draw symbol
+        ctx.font = `${symbol.size}px 'JetBrains Mono', monospace`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${symbol.opacity})`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(symbol.symbol, symbol.x, symbol.y);
+      });
 
-        // Draw
-        ctx.save()
-        ctx.globalAlpha = s.opacity
-        ctx.font = `${s.fontSize}px Arial`
-        ctx.fillStyle = `${s.color}${s.opacity})`
-        ctx.fillText(s.symbol, s.x, s.y)
-        ctx.restore()
+      requestRef.current = requestAnimationFrame(animate);
+    };
 
-        return s
-      })
-
-      rafRef.current = requestAnimationFrame(animate)
-    }
-
-    animate()
+    requestRef.current = requestAnimationFrame(animate);
 
     return () => {
-      window.removeEventListener('resize', resize)
-      cancelAnimationFrame(rafRef.current)
-    }
-  }, [opacity])
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+      }
+    };
+  }, [symbols]);
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none"
-      style={{ zIndex: 0 }}
+      className="fixed inset-0 pointer-events-none z-0"
+      aria-hidden="true"
     />
-  )
+  );
 }

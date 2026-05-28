@@ -1,167 +1,256 @@
 "use client";
 
-import { useRef, useLayoutEffect } from "react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
-import { ArrowRight, Box, Cpu, Zap, Activity } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-
-gsap.registerPlugin(ScrollTrigger);
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 const STARTUPS = [
   {
-    id: 1,
     name: "NexusAI",
-    pitch: "Next-gen LLM orchestration for enterprise.",
+    domain: "AI/ML",
+    tagline: "Autonomous customer success agents for high-growth B2B SaaS.",
     stage: "Seed",
-    icon: Cpu,
-    color: "from-blue-500 to-cyan-400"
+    roles: 3,
+    logoSeed: "nexus",
   },
   {
-    id: 2,
-    name: "VoltSpace",
-    pitch: "Decentralized energy trading protocol.",
+    name: "BuildSpace",
+    domain: "DevTools",
+    tagline: "The open protocol for decentralized continuous integration.",
     stage: "Series A",
-    icon: Zap,
-    color: "from-amber-400 to-orange-500"
+    roles: 8,
+    logoSeed: "build",
   },
   {
-    id: 3,
-    name: "Synth",
-    pitch: "Generative audio synthesis engine.",
+    name: "FinEdge",
+    domain: "FinTech",
+    tagline: "API-first infrastructure for cross-border student payments.",
     stage: "Pre-seed",
-    icon: Activity,
-    color: "from-purple-500 to-pink-500"
+    roles: 1,
+    logoSeed: "finedge",
   },
   {
-    id: 4,
-    name: "BlockChainX",
-    pitch: "Zero-knowledge proof infrastructure.",
+    name: "MedFlow",
+    domain: "HealthTech",
+    tagline: "Predictive resource allocation for tier-2 hospital networks.",
     stage: "Seed",
-    icon: Box,
-    color: "from-emerald-400 to-green-600"
+    roles: 2,
+    logoSeed: "med",
   },
   {
-    id: 5,
     name: "AeroDynamics",
-    pitch: "Drone fleet management software.",
-    stage: "Series A",
-    icon: RocketIcon, // Assuming RocketIcon as fallback if needed, but we'll use a generic one or map it
-    color: "from-indigo-500 to-blue-600"
-  }
+    domain: "DeepTech",
+    tagline: "Lightweight propulsion systems for urban air mobility.",
+    stage: "Pre-seed",
+    roles: 0,
+    logoSeed: "aero",
+  },
+  {
+    name: "Synth",
+    domain: "Creator Economy",
+    tagline: "Royalty-free generative audio engine for indie game devs.",
+    stage: "Seed",
+    roles: 4,
+    logoSeed: "synth",
+  },
 ];
 
-// Fallback icon for 5
-function RocketIcon(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" /><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" /><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" /><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" /></svg>
-  );
+// Simple hash function to generate a unique HSL hue from string
+function getHueFromString(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash * 37) % 360;
 }
 
 export default function StartupShowcase() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const scrollWrapperRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-
-  useGSAP(() => {
-    if (!scrollWrapperRef.current || !containerRef.current) return;
-
-    const cards = gsap.utils.toArray(cardsRef.current);
-    const scrollWidth = scrollWrapperRef.current.scrollWidth;
-    const viewportWidth = window.innerWidth;
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: containerRef.current,
-        pin: true,
-        scrub: 1,
-        start: "top top",
-        end: () => `+=${scrollWidth - viewportWidth}`,
-        invalidateOnRefresh: true,
-      }
-    });
-
-    tl.to(scrollWrapperRef.current, {
-      x: () => -(scrollWidth - viewportWidth),
-      ease: "none"
-    });
-
-    // Animate cards on enter
-    cards.forEach((card: any) => {
-      gsap.fromTo(card,
-        { scale: 0.8, opacity: 0 },
-        {
-          scale: 1,
-          opacity: 1,
-          duration: 0.5,
-          scrollTrigger: {
-            trigger: card,
-            containerAnimation: tl,
-            start: "left center+=200",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
-    });
-  }, { scope: containerRef });
-
   return (
-    <section ref={containerRef} className="h-screen bg-black overflow-hidden flex flex-col justify-center relative z-10 py-12">
-      <div className="absolute top-12 left-0 w-full px-8 md:px-24">
-        <h2 className="text-4xl md:text-6xl font-bold mb-4 relative inline-block">
-          Meet Our Ecosystem
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="absolute -bottom-2 left-0 w-full h-1 bg-[var(--accent-primary)] origin-left"
-          />
-        </h2>
-        <p className="text-[var(--text-muted)] text-xl">
-          The next generation of unicorns, building from dorm rooms to boardrooms.
-        </p>
+    <section className="py-24 px-6 max-w-[1200px] mx-auto w-full relative z-10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+        <div>
+          <span 
+            style={{
+              fontFamily: "var(--font-inter), sans-serif",
+              fontSize: "11px",
+              fontWeight: 500,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "#6b6b6b"
+            }}
+          >
+            OUR ECOSYSTEM
+          </span>
+          <h2 
+            className="mt-4 whitespace-pre-line"
+            style={{
+              fontFamily: "var(--font-syne), sans-serif",
+              fontSize: "clamp(32px, 4vw, 52px)",
+              fontWeight: 700,
+              letterSpacing: "-0.025em",
+              lineHeight: 1.1,
+              color: "#ffffff"
+            }}
+          >
+            {"Startups building\nwith DevUp."}
+          </h2>
+        </div>
+        
+        <Link 
+          href="/ecosystem"
+          className="group flex items-center mt-6 md:mt-0"
+          style={{
+            fontFamily: "var(--font-inter), sans-serif",
+            fontSize: "14px",
+            fontWeight: 500,
+            color: "#c8f135",
+            transition: "all 0.2s cubic-bezier(0.16,1,0.3,1)"
+          }}
+        >
+          View all 
+          <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+        </Link>
       </div>
 
-      <div ref={scrollWrapperRef} className="flex gap-8 px-8 md:px-24 mt-32 w-max items-center h-[520px]">
-        {STARTUPS.map((startup, index) => (
-          <div
-            key={startup.id}
-            ref={(el) => { cardsRef.current[index] = el; }}
-            className="w-[340px] md:w-[380px] h-[480px] shrink-0"
-          >
-            <Card className="w-full h-full flex flex-col relative group overflow-hidden border-white/10 hover:border-white/20 transition-colors">
-              {/* Decorative top gradient */}
-              <div className={`absolute top-0 left-0 w-full h-32 bg-gradient-to-br ${startup.color} opacity-20 group-hover:opacity-30 transition-opacity`} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[16px]">
+        {STARTUPS.map((startup, index) => {
+          const hue = getHueFromString(startup.name);
+          const bannerBg = `hsl(${hue}, 70%, 12%)`;
+          
+          return (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div
+                className="group flex flex-col relative cursor-pointer"
+                style={{
+                  background: "#111111",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  borderRadius: "14px",
+                  overflow: "hidden",
+                  transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow = "0 20px 60px rgba(0,0,0,0.6)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                {/* Banner Area */}
+                <div 
+                  className="relative w-full"
+                  style={{
+                    height: "140px",
+                    background: bannerBg,
+                    backgroundImage: "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
+                    backgroundSize: "20px 20px"
+                  }}
+                >
+                  <div 
+                    className="absolute top-4 right-4"
+                    style={{
+                      background: "rgba(0,0,0,0.7)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: "4px",
+                      padding: "3px 8px",
+                      fontFamily: "var(--font-inter), sans-serif",
+                      fontSize: "10px",
+                      color: "#ffffff",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em"
+                    }}
+                  >
+                    {startup.stage}
+                  </div>
 
-              <div className="relative z-10 flex-1 flex flex-col">
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${startup.color} flex items-center justify-center shadow-lg mb-8 group-hover:scale-110 transition-transform`}>
-                  <startup.icon className="w-8 h-8 text-white" />
+                  {/* Logo */}
+                  <div 
+                    className="absolute z-10 flex items-center justify-center"
+                    style={{
+                      width: "44px",
+                      height: "44px",
+                      bottom: "-22px",
+                      left: "20px",
+                      background: "#1a1a1a",
+                      border: "2px solid #111111",
+                      borderRadius: "10px",
+                      fontFamily: "var(--font-syne), sans-serif",
+                      fontSize: "16px",
+                      fontWeight: 700,
+                      color: `hsl(${hue}, 80%, 70%)`
+                    }}
+                  >
+                    {startup.name.charAt(0)}
+                  </div>
                 </div>
 
-                <h3 className="text-3xl font-bold mb-2">{startup.name}</h3>
-                <p className="text-[var(--text-muted)] text-lg mb-6 flex-1">
-                  {startup.pitch}
-                </p>
+                {/* Content */}
+                <div style={{ padding: "32px 20px 20px 20px", flex: 1, display: "flex", flexDirection: "column" }}>
+                  <div 
+                    style={{
+                      fontFamily: "var(--font-inter), sans-serif",
+                      fontSize: "11px",
+                      color: "#c8f135",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      marginBottom: "8px"
+                    }}
+                  >
+                    {startup.domain}
+                  </div>
+                  <h3 
+                    style={{
+                      fontFamily: "var(--font-syne), sans-serif",
+                      fontSize: "16px",
+                      fontWeight: 700,
+                      color: "#ffffff",
+                      marginBottom: "6px"
+                    }}
+                  >
+                    {startup.name}
+                  </h3>
+                  <p 
+                    className="line-clamp-2"
+                    style={{
+                      fontFamily: "var(--font-inter), sans-serif",
+                      fontSize: "13px",
+                      lineHeight: 1.5,
+                      color: "#a1a1a1",
+                      marginBottom: "24px",
+                      flex: 1
+                    }}
+                  >
+                    {startup.tagline}
+                  </p>
 
-                <div className="mb-8">
-                  <Badge variant="secondary">{startup.stage}</Badge>
+                  <div className="flex items-center justify-between border-t border-[rgba(255,255,255,0.05)] pt-4 mt-auto">
+                    <span 
+                      style={{
+                        fontFamily: "var(--font-inter), sans-serif",
+                        fontSize: "12px",
+                        color: "#6b6b6b"
+                      }}
+                    >
+                      {startup.roles > 0 ? `${startup.roles} open roles` : "No open roles"}
+                    </span>
+                    <ArrowRight 
+                      className="w-4 h-4 text-[#6b6b6b] group-hover:text-[#ffffff] group-hover:translate-x-1 transition-all duration-200" 
+                    />
+                  </div>
                 </div>
-
-                <Button variant="ghost" className="w-full justify-between group/btn border border-white/5 hover:border-white/10">
-                  View Profile
-                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
               </div>
-            </Card>
-          </div>
-        ))}
-        {/* Empty space at the end to allow the last card to scroll to the center */}
-        <div className="w-[10vw] shrink-0" />
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );

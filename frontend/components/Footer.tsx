@@ -1,13 +1,13 @@
 export function Footer() {
   return (
-    <footer className="border-t border-white/5 bg-black py-12 relative z-10 mt-20">
+    <footer className="border-t border-[rgba(255,255,255,0.05)] bg-[#0a0a0a] py-12 relative z-10">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div className="md:col-span-1">
-            <h3 className="font-heading text-2xl font-bold tracking-tight mb-4">
-              Dev<span className="text-gradient">Up</span>
+            <h3 className="font-heading text-2xl font-bold tracking-tight mb-4" style={{ fontFamily: "var(--font-syne)" }}>
+              Dev<span style={{ color: "var(--accent-primary)" }}>Up</span>
             </h3>
-            <p className="text-[var(--text-muted)] text-sm mb-4">
+            <p className="text-[var(--text-muted)] text-sm mb-4" style={{ fontFamily: "var(--font-inter)" }}>
               The premier ecosystem for student founders. Build, scale, and get funded.
             </p>
           </div>

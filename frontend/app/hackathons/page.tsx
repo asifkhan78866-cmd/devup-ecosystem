@@ -1,24 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Clock, MapPin, IndianRupee, Zap } from "lucide-react";
-import FloatingSymbols from "@/components/FloatingSymbols";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
+import { Calendar, Users } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
-const FILTERS = ["All", "Online", "Offline", "Ecosystem-hosted", "External"];
+const HackathonArena = dynamic(
+  () => import("@/components/3d/HackathonArena"),
+  { ssr: false }
+);
+
+const FILTERS = ["All", "Online", "Offline", "Hybrid", "Ecosystem-hosted", "External"];
 
 const HACKATHONS = [
-  { id: 1, name: "GenAI Builders Week", org: "DevUp", prize: "₹5,000,000", mode: "Online", type: "Ecosystem-hosted", date: "Oct 15 - Oct 22", tags: ["AI/ML", "LLM", "Agents"], color: "from-blue-500 to-cyan-400" },
-  { id: 2, name: "Web3 Protocol Hack", org: "Polygon", prize: "$50,000", mode: "Offline", type: "External", date: "Nov 2 - Nov 4", tags: ["DeFi", "ZK", "Smart Contracts"], color: "from-purple-500 to-indigo-500" },
-  { id: 3, name: "Fintech Disrupt", org: "DevUp", prize: "₹2,500,000", mode: "Offline", type: "Ecosystem-hosted", date: "Dec 10 - Dec 12", tags: ["Payments", "DeFi", "B2B"], color: "from-emerald-400 to-green-500" },
-  { id: 4, name: "HealthTech Sprint", org: "MedSync", prize: "₹1,000,000", mode: "Online", type: "External", date: "Jan 5 - Jan 15", tags: ["Healthcare", "AI", "Data"], color: "from-rose-400 to-red-500" },
+  { id: 1, name: "GenAI Builders Week", org: "DevUp", prize: "₹5,00,000", mode: "Online", type: "Ecosystem-hosted", date: "Oct 15 - Oct 22", daysLeft: 4, color: "#c8f135" },
+  { id: 2, name: "Web3 Protocol Hack", org: "Polygon", prize: "₹2,50,000", mode: "Offline", type: "External", date: "Nov 2 - Nov 4", daysLeft: 12, color: "#a78bfa" },
+  { id: 3, name: "Fintech Disrupt", org: "DevUp", prize: "₹1,00,000", mode: "Offline", type: "Ecosystem-hosted", date: "Dec 10 - Dec 12", daysLeft: 45, color: "#22c55e" },
+  { id: 4, name: "HealthTech Sprint", org: "MedSync", prize: "₹50,000", mode: "Online", type: "External", date: "Jan 5 - Jan 15", daysLeft: -1, color: "#38bdf8" }, // closed
 ];
 
 export default function HackathonsPage() {
   const [activeFilter, setActiveFilter] = useState("All");
+  
   const [timeLeft, setTimeLeft] = useState({ days: 14, hours: 23, minutes: 59, seconds: 59 });
 
   useEffect(() => {
@@ -39,161 +43,240 @@ export default function HackathonsPage() {
     if (activeFilter === "All") return true;
     if (activeFilter === "Online") return h.mode === "Online";
     if (activeFilter === "Offline") return h.mode === "Offline";
+    if (activeFilter === "Hybrid") return h.mode === "Hybrid";
     if (activeFilter === "Ecosystem-hosted") return h.type === "Ecosystem-hosted";
     if (activeFilter === "External") return h.type === "External";
     return true;
   });
 
   return (
-    <>
-      <div className="fixed inset-0 opacity-40 z-0 pointer-events-none">
-        <FloatingSymbols />
-      </div>
+    <div className="min-h-screen bg-[#0a0a0a]">
+      <PageHeader
+        label="COMPETE & WIN"
+        headline="Hackathons built\nfor builders."
+        accentWord="builders"
+        subtitle="From 24-hour sprints to month-long challenges. Compete solo or with a team. Win prizes, get noticed."
+        variant="beam"
+      />
 
-      <div className="pt-32 pb-24 px-4 relative z-10 min-h-screen">
-        <div className="max-w-7xl mx-auto">
-          {/* Hero */}
-          <div className="text-center mb-16">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-5xl md:text-7xl font-bold mb-4"
+      {/* Featured Hackathon Card (Hero Card) */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mb-4 relative z-10">
+        <div className="bg-[#111111] border border-white/10 rounded-[20px] overflow-hidden flex flex-col md:flex-row">
+          
+          {/* Left section */}
+          <div className="p-10 flex-1 border-b md:border-b-0 md:border-r border-white/5">
+            <div 
+              className="inline-block px-3 py-1 bg-[rgba(200,241,53,0.1)] border border-[rgba(200,241,53,0.2)] text-[#c8f135] rounded-full mb-6"
+              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em" }}
             >
-              Build. Compete. <span className="text-gradient">Win.</span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-xl text-[var(--text-muted)] max-w-2xl mx-auto"
-            >
-              Join the most intense hackathons in the ecosystem. Turn your weekend projects into funded startups.
-            </motion.p>
-          </div>
-
-          {/* Featured Hackathon */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="mb-20"
-          >
-            <Card className="p-0 overflow-hidden relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 pointer-events-none" />
-              <div className="absolute -right-20 -top-20 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
-
-              <div className="flex flex-col md:flex-row items-center p-8 md:p-12 gap-12 relative z-10">
-                <div className="flex-1">
-                  <Badge variant="secondary" className="mb-4 border-blue-400 text-blue-400 bg-blue-400/10">Featured</Badge>
-                  <h2 className="text-4xl md:text-5xl font-bold mb-4">India AI Agents Summit Hackathon</h2>
-                  <p className="text-xl text-[var(--text-muted)] mb-8">
-                    Build autonomous agents that solve real-world problems. The winning team gets guaranteed pre-seed funding and direct entry into DevUp Cohort 4.
-                  </p>
-                  <div className="flex flex-wrap gap-6 mb-8">
-                    <div className="flex items-center gap-2">
-                      <Trophy className="w-5 h-5 text-yellow-500" />
-                      <span className="font-bold text-lg">₹10,000,000 Pool</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-[var(--text-muted)]" />
-                      <span className="text-[var(--text-muted)]">Bengaluru (Offline)</span>
-                    </div>
-                  </div>
-                  <Button variant="primary" size="lg" withShimmer>
-                    Register Now
-                  </Button>
-                </div>
-
-                <div className="w-full md:w-auto">
-                  <div className="glass-card p-6 rounded-2xl border-white/10">
-                    <div className="text-[var(--text-muted)] text-sm mb-4 text-center font-medium uppercase tracking-wider">Starting In</div>
-                    <div className="flex gap-4">
-                      {[
-                        { label: "Days", value: timeLeft.days },
-                        { label: "Hours", value: timeLeft.hours },
-                        { label: "Mins", value: timeLeft.minutes },
-                        { label: "Secs", value: timeLeft.seconds }
-                      ].map((item, i) => (
-                        <div key={item.label} className="flex flex-col items-center">
-                          <div className="w-16 h-16 bg-black/50 rounded-xl flex items-center justify-center text-3xl font-mono font-bold border border-white/5 shadow-inner">
-                            {item.value.toString().padStart(2, "0")}
-                          </div>
-                          <span className="text-xs text-[var(--text-muted)] mt-2">{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+              FEATURED
+            </div>
+            
+            <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "36px", fontWeight: 800, color: "#fff", marginBottom: "8px", lineHeight: 1.1 }}>
+              Global Hackathon '26
+            </h2>
+            <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", marginBottom: "24px" }}>
+              Hosted by DevUp Ecosystem
+            </div>
+            
+            <div className="mb-6">
+              <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "48px", fontWeight: 700, color: "#c8f135", lineHeight: 1 }}>
+                ₹2,00,000
               </div>
-            </Card>
-          </motion.div>
+              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", marginTop: "4px", letterSpacing: "0.05em" }}>
+                PRIZE POOL
+              </div>
+            </div>
 
-          {/* Filters */}
-          <div className="flex overflow-x-auto pb-4 mb-8 gap-3 hide-scrollbar">
-            {FILTERS.map(f => (
-              <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                className={`shrink-0 px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeFilter === f
-                    ? "bg-white text-black"
-                    : "glass text-[var(--text-muted)] hover:text-white hover:bg-white/10"
-                  }`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-
-          {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <AnimatePresence mode="popLayout">
-              {filteredHackathons.map((hackathon, idx) => (
-                <motion.div
-                  key={hackathon.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {["Online", "AI / Web3", "500+ Participants"].map(tag => (
+                <span 
+                  key={tag}
+                  className="px-3 py-1.5 bg-[#1a1a1a] border border-white/5 text-[#a1a1a1] rounded-[6px]"
+                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px" }}
                 >
-                  <Card className="h-full flex flex-col group border-white/5 hover:border-white/20">
-                    <div className="flex items-start justify-between mb-6">
-                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${hackathon.color} flex items-center justify-center font-bold text-xl text-white shadow-lg`}>
-                        {hackathon.org[0]}
-                      </div>
-                      <Badge variant="outline">{hackathon.mode}</Badge>
-                    </div>
-
-                    <h3 className="text-2xl font-bold mb-2 group-hover:text-[var(--accent-primary)] transition-colors">{hackathon.name}</h3>
-                    <p className="text-[var(--text-muted)] text-sm mb-6">by {hackathon.org}</p>
-
-                    <div className="space-y-3 mb-8 flex-1">
-                      <div className="flex items-center gap-3 text-sm">
-                        <IndianRupee className="w-4 h-4 text-yellow-500" />
-                        <span className="font-semibold">{hackathon.prize} Pool</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-[var(--text-muted)]">
-                        <Clock className="w-4 h-4" />
-                        <span>{hackathon.date}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-4">
-                        {hackathon.tags.map(tag => (
-                          <Badge key={tag} variant="secondary" className="bg-white/5 text-[10px]">{tag}</Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    <Button variant="outline" className="w-full group/btn">
-                      Register
-                      <Zap className="w-4 h-4 ml-2 group-hover/btn:text-yellow-400 transition-colors" />
-                    </Button>
-                  </Card>
-                </motion.div>
+                  {tag}
+                </span>
               ))}
-            </AnimatePresence>
+            </div>
+
+            <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#a1a1a1", marginBottom: "32px" }}>
+              Starts: June 15 &nbsp;·&nbsp; Ends: June 30
+            </div>
+
+            <div className="flex flex-wrap gap-4">
+              <button 
+                className="h-[52px] px-8 bg-[#c8f135] text-black font-bold rounded-[10px] hover:bg-[#b0d829] transition-colors"
+                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
+              >
+                Register Now
+              </button>
+              <button 
+                className="h-[52px] px-8 bg-transparent text-[#e4e4e4] border border-white/10 font-semibold rounded-[10px] hover:bg-white/5 transition-colors group"
+                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
+              >
+                Learn More <span className="inline-block transition-transform group-hover:translate-x-1 ml-1">→</span>
+              </button>
+            </div>
+          </div>
+          
+          {/* Right section (Timer) */}
+          <div className="p-10 md:w-[400px] bg-[#0a0a0a] flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-[#c8f135] opacity-[0.02]" />
+            <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#6b6b6b", letterSpacing: "0.1em", marginBottom: "24px", zIndex: 10 }}>
+              REGISTRATION CLOSES IN
+            </div>
+
+            <div className="flex items-center gap-4 z-10">
+              {[
+                { label: "DAYS", value: timeLeft.days },
+                { label: "HOURS", value: timeLeft.hours },
+                { label: "MINUTES", value: timeLeft.minutes },
+                { label: "SECONDS", value: timeLeft.seconds }
+              ].map((item, i, arr) => (
+                <div key={item.label} className="flex items-center gap-4">
+                  <div className="flex flex-col items-center">
+                    <div 
+                      className="w-[72px] h-[72px] sm:w-[80px] sm:h-[80px] bg-[#0a0a0a] border border-white/10 rounded-[12px] flex items-center justify-center overflow-hidden relative shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
+                    >
+                      {/* Using framer motion to create a flip effect */}
+                      <AnimatePresence mode="popLayout">
+                        <motion.div
+                          key={item.value}
+                          initial={{ y: "50%", opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: "-50%", opacity: 0 }}
+                          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                          style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "36px", fontWeight: 700, color: "#fff", position: "absolute" }}
+                        >
+                          {item.value.toString().padStart(2, "0")}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+                    <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", marginTop: "12px", letterSpacing: "0.05em" }}>
+                      {item.label}
+                    </div>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "24px", color: "#6b6b6b", paddingBottom: "24px" }}>:</div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </>
+
+      <HackathonArena />
+
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-12 pb-24">
+        
+        {/* Filters */}
+        <div className="flex overflow-x-auto gap-2 mb-10 pb-2 hide-scrollbar">
+          {FILTERS.map(f => {
+            const isActive = activeFilter === f;
+            return (
+              <button
+                key={f}
+                onClick={() => setActiveFilter(f)}
+                className="whitespace-nowrap rounded-full transition-all duration-150"
+                style={{
+                  padding: "8px 16px",
+                  fontFamily: "var(--font-inter), sans-serif",
+                  fontSize: "14px",
+                  border: `1px solid ${isActive ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                  background: isActive ? 'rgba(200,241,53,0.1)' : 'transparent',
+                  color: isActive ? '#c8f135' : '#6b6b6b',
+                }}
+              >
+                {f}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence mode="popLayout">
+            {filteredHackathons.map((hackathon, idx) => {
+              const isClosed = hackathon.daysLeft < 0;
+              let modeColor = "#38bdf8"; // Online
+              if (hackathon.mode === "Offline") modeColor = "#fb923c";
+              if (hackathon.mode === "Hybrid") modeColor = "#a78bfa";
+
+              return (
+                <motion.div
+                  key={hackathon.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.5), ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <div 
+                    className="h-full bg-[#111111] border border-white/5 rounded-[14px] overflow-hidden flex flex-col group transition-all duration-300 hover:border-white/20 hover:translate-y-[-4px]"
+                  >
+                    {/* Top Color Strip */}
+                    <div className="w-full h-[8px]" style={{ background: hackathon.color }} />
+                    
+                    <div className="p-6 flex flex-col flex-1">
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="w-[40px] h-[40px] rounded-[8px] bg-[#0a0a0a] border border-white/10 flex items-center justify-center">
+                          <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "18px", fontWeight: 700, color: "#fff" }}>
+                            {hackathon.org[0]}
+                          </span>
+                        </div>
+                        <div 
+                          className="px-2 py-1 rounded-[4px]"
+                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", color: modeColor, fontSize: "11px", fontFamily: "var(--font-inter), sans-serif" }}
+                        >
+                          {hackathon.mode}
+                        </div>
+                      </div>
+
+                      <h3 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "18px", fontWeight: 700, color: "#fff", marginBottom: "8px" }}>
+                        {hackathon.name}
+                      </h3>
+                      
+                      <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#c8f135", marginBottom: "20px" }}>
+                        {hackathon.prize} Prize Pool
+                      </div>
+
+                      <div className="flex items-center gap-2 mb-8" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b" }}>
+                        <Calendar className="w-4 h-4" />
+                        {hackathon.date}
+                      </div>
+
+                      <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
+                        <div 
+                          style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: isClosed ? "#6b6b6b" : (hackathon.daysLeft <= 7 ? "#fb923c" : "#a1a1a1") }}
+                        >
+                          {isClosed ? "Registration closed" : `${hackathon.daysLeft}d left to register`}
+                        </div>
+                        
+                        <button 
+                          disabled={isClosed}
+                          className="px-4 py-2 font-semibold rounded-[6px] transition-colors"
+                          style={{ 
+                            background: isClosed ? "rgba(255,255,255,0.05)" : "#c8f135",
+                            color: isClosed ? "#6b6b6b" : "#000",
+                            fontFamily: "var(--font-inter), sans-serif", 
+                            fontSize: "13px",
+                            cursor: isClosed ? "not-allowed" : "pointer"
+                          }}
+                        >
+                          {isClosed ? "Closed" : "Register"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+        </div>
+
+      </div>
+    </div>
   );
 }

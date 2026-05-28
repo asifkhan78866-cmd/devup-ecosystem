@@ -1,175 +1,309 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { UploadCloud, FileText, MapPin, Clock, IndianRupee, Search } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
+import { Upload, X } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
-const TYPES = ["Jobs", "Internships", "Hackathons"];
+const CareerNetworkGraph = dynamic(
+  () => import("@/components/3d/CareerNetworkGraph"),
+  { ssr: false }
+);
+
+const TABS = ["Internships", "Full-time Jobs", "Remote Only"];
 
 const JOBS = [
-  { id: 1, role: "Senior Frontend Engineer", company: "NexusAI", type: "Full-time", location: "Bengaluru", remote: true, stipend: "₹30-45 LPA", date: "2d ago", logo: "N", color: "from-blue-500 to-cyan-400" },
-  { id: 2, content: "Product Marketing Intern", company: "VoltSpace", type: "Internship", location: "Delhi NCR", remote: false, stipend: "₹40k/mo", date: "5h ago", logo: "V", color: "from-amber-400 to-orange-500" },
-  { id: 3, role: "Smart Contract Dev", company: "BlockChainX", type: "Contract", location: "Remote", remote: true, stipend: "$5k/mo", date: "1w ago", logo: "B", color: "from-emerald-400 to-green-600" },
-  { id: 4, role: "UX Researcher", company: "Synth", type: "Full-time", location: "Remote", remote: true, stipend: "₹18-25 LPA", date: "3d ago", logo: "S", color: "from-purple-500 to-pink-500" },
+  { id: 1, role: "Senior Frontend Engineer", company: "NexusAI", type: "Full-time", location: "Bengaluru", stipend: "₹30-45 LPA", date: "2d ago", logo: "N" },
+  { id: 2, role: "Product Marketing Intern", company: "VoltSpace", type: "Internship", location: "Delhi NCR", stipend: "₹40k/mo", date: "5h ago", logo: "V" },
+  { id: 3, role: "Smart Contract Dev", company: "BlockChainX", type: "Contract", location: "Remote", stipend: "$5k/mo", date: "1w ago", logo: "B" },
+  { id: 4, role: "UX Researcher", company: "Synth", type: "Full-time", location: "Remote", stipend: "₹18-25 LPA", date: "3d ago", logo: "S" },
 ];
 
 export default function CareersPage() {
-  const [activeType, setActiveType] = useState("Jobs");
-  const [typewriterText, setTypewriterText] = useState("");
-  const fullText = "Find Your Next Opportunity.";
-
-  useEffect(() => {
-    let i = 0;
-    const interval = setInterval(() => {
-      setTypewriterText(fullText.slice(0, i + 1));
-      i++;
-      if (i > fullText.length) clearInterval(interval);
-    }, 50);
-    return () => clearInterval(interval);
-  }, []);
+  const [activeTab, setActiveTab] = useState("Full-time Jobs");
+  const [stipendValue, setStipendValue] = useState(50);
+  const [selectedJob, setSelectedJob] = useState<any>(null); // For slide-up panel
 
   return (
-    <div className="min-h-screen pt-24 pb-20">
-      {/* Split Hero */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-6 min-h-[150px] lg:min-h-0">
-              {typewriterText}
-              <motion.span
-                animate={{ opacity: [1, 0] }}
-                transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                className="inline-block w-[3px] h-[1em] bg-[var(--accent-primary)] ml-2 align-middle"
-              />
-            </h1>
-            <p className="text-xl text-[var(--text-muted)] max-w-lg">
-              Join the fastest-growing startups in India. From early-stage internships to founding engineer roles.
-            </p>
-          </div>
+    <div className="min-h-screen bg-[#0a0a0a]">
+      <PageHeader
+        label="OPPORTUNITIES"
+        headline="Find your next\nrole."
+        accentWord="role"
+        subtitle="Internships, full-time positions, and remote roles across the DevUp ecosystem and partner companies."
+        variant="grid"
+      />
 
-          <div className="flex flex-col gap-4">
-            <div className="glass-card p-2 rounded-3xl flex flex-col sm:flex-row relative">
-              {TYPES.map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setActiveType(type)}
-                  className={`flex-1 py-4 px-6 rounded-2xl text-lg font-bold transition-colors relative z-10 ${activeType === type ? "text-white" : "text-[var(--text-muted)] hover:text-white/80"
-                    }`}
-                >
-                  {activeType === type && (
-                    <motion.div
-                      layoutId="activeTypeBg"
-                      className="absolute inset-0 bg-white/10 rounded-2xl -z-10 border border-white/10"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    />
-                  )}
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
+      <CareerNetworkGraph />
+
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-12 pb-24">
+        
+        {/* Large Prominent Tabs */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className="transition-all duration-200"
+                style={{
+                  background: isActive ? "rgba(200,241,53,0.06)" : "#111111",
+                  border: `1px solid ${isActive ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.07)'}`,
+                  borderRadius: "10px",
+                  padding: "12px 24px",
+                  fontFamily: "var(--font-syne), sans-serif",
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  color: isActive ? "#c8f135" : "#6b6b6b",
+                  cursor: "pointer"
+                }}
+              >
+                {tab}
+              </button>
+            )
+          })}
         </div>
-      </section>
 
-      {/* Main Content */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6">
-        <div className="flex flex-col lg:flex-row gap-8">
+        {/* Two Column Layout */}
+        <div className="flex flex-col lg:flex-row gap-12">
+          
+          {/* Left Sidebar Filters (260px) */}
+          <div className="w-full lg:w-[260px] shrink-0 space-y-8">
+            <div>
+              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "12px", letterSpacing: "0.05em" }}>Domain</div>
+              <div className="space-y-3">
+                {["AI/ML", "Fintech", "HealthTech", "DevTools", "SaaS"].map(d => (
+                  <label key={d} className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center w-4 h-4 border border-white/20 rounded-[4px] bg-transparent group-hover:border-white/40 transition-colors">
+                      <input type="checkbox" className="opacity-0 absolute inset-0 cursor-pointer peer" />
+                      <div className="hidden peer-checked:block w-2 h-2 bg-[#c8f135] rounded-[2px]" />
+                    </div>
+                    <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#a1a1a1" }} className="group-hover:text-white transition-colors">{d}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
 
-          {/* Filters Sidebar */}
-          <div className="w-full lg:w-64 shrink-0 space-y-6">
-            <div className="sticky top-24 space-y-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-                <input
-                  type="text"
-                  placeholder="Search roles..."
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-[var(--accent-primary)] transition-colors text-white"
+            <div>
+              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "12px", letterSpacing: "0.05em" }}>Location</div>
+              <input
+                type="text"
+                placeholder="e.g. Bengaluru, Remote"
+                className="w-full bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 outline-none focus:border-[#c8f135]/40 focus:shadow-[0_0_0_3px_rgba(200,241,53,0.08)] transition-all"
+                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#e4e4e4" }}
+              />
+            </div>
+            
+            <div>
+              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "12px", letterSpacing: "0.05em" }}>Type</div>
+              <div className="flex flex-wrap gap-2">
+                {["In-office", "Hybrid", "Remote"].map(t => (
+                  <button 
+                    key={t}
+                    className="px-3 py-1.5 rounded-full"
+                    style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)", color: "#a1a1a1", fontSize: "13px", fontFamily: "var(--font-inter), sans-serif" }}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-12">
+                <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Min Stipend/Salary</div>
+                <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#c8f135" }}>₹{stipendValue}k+</div>
+              </div>
+              <div className="relative w-full h-1 bg-white/10 rounded-full">
+                <div className="absolute top-0 left-0 h-full bg-[#c8f135] rounded-full" style={{ width: `${stipendValue}%` }} />
+                <input 
+                  type="range" 
+                  min="0" max="100" 
+                  value={stipendValue} 
+                  onChange={(e) => setStipendValue(parseInt(e.target.value))}
+                  className="absolute inset-0 w-full opacity-0 cursor-pointer"
+                />
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full pointer-events-none shadow-md"
+                  style={{ left: `calc(${stipendValue}% - 8px)` }}
                 />
               </div>
-
-              <div>
-                <h3 className="font-semibold mb-3">Domain</h3>
-                <div className="space-y-2">
-                  {["Engineering", "Design", "Product", "Marketing", "Sales"].map(d => (
-                    <label key={d} className="flex items-center gap-3 text-sm text-[var(--text-muted)] hover:text-white cursor-pointer">
-                      <input type="checkbox" className="rounded border-white/20 bg-transparent text-[var(--accent-primary)] focus:ring-[var(--accent-primary)]" />
-                      {d}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-3">Location</h3>
-                <div className="space-y-2">
-                  {["Remote Only", "Bengaluru", "Delhi NCR", "Mumbai"].map(l => (
-                    <label key={l} className="flex items-center gap-3 text-sm text-[var(--text-muted)] hover:text-white cursor-pointer">
-                      <input type="checkbox" className="rounded border-white/20 bg-transparent text-[var(--accent-primary)] focus:ring-[var(--accent-primary)]" />
-                      {l}
-                    </label>
-                  ))}
-                </div>
-              </div>
             </div>
+
+            <button 
+              className="mt-4 bg-transparent border-none text-[#6b6b6b] hover:text-[#e4e4e4] transition-colors cursor-pointer"
+              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
+            >
+              Clear All Filters
+            </button>
           </div>
 
-          {/* Job Listings & Resume Drop */}
-          <div className="flex-1 space-y-6">
+          {/* Right Content */}
+          <div className="flex-1 flex flex-col gap-4">
+            <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#6b6b6b", marginBottom: "8px" }}>
+              4 opportunities found
+            </div>
 
-            {/* Resume Dropzone */}
-            <div className="border-2 border-dashed border-white/20 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors p-8 flex flex-col items-center justify-center text-center group cursor-pointer relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] opacity-0 group-hover:opacity-5 transition-opacity" />
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <UploadCloud className="w-8 h-8 text-[var(--text-muted)] group-hover:text-white transition-colors" />
+            {/* Job List */}
+            {JOBS.map((job) => {
+              const isInternship = job.type === "Internship";
+              const isRemote = job.location === "Remote";
+              const badgeColor = isInternship ? "#fb923c" : (isRemote ? "#38bdf8" : "#c8f135");
+
+              return (
+                <div
+                  key={job.id}
+                  onClick={() => setSelectedJob(job)}
+                  className="group relative flex flex-col sm:flex-row sm:items-center gap-4 bg-[#111111] border border-white/5 rounded-[12px] p-5 cursor-pointer transition-all duration-200 hover:border-white/15 hover:translate-x-1"
+                >
+                  <div className="absolute left-[-1px] top-4 bottom-4 w-[4px] bg-[#c8f135] rounded-r-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                  
+                  <div className="w-[40px] h-[40px] bg-[#0a0a0a] rounded-[10px] flex items-center justify-center shrink-0 border border-white/10">
+                    <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "16px", fontWeight: 700, color: "#fff" }}>{job.logo}</span>
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                      <h4 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "15px", fontWeight: 700, color: "#fff" }}>
+                        {job.role}
+                      </h4>
+                      <span 
+                        className="px-2 py-0.5 rounded-[4px]"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", color: badgeColor, fontSize: "11px", fontFamily: "var(--font-inter), sans-serif" }}
+                      >
+                        {job.type}
+                      </span>
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-2" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b" }}>
+                      <span>{job.company}</span>
+                      <span>·</span>
+                      <span>{job.location}</span>
+                      <span>·</span>
+                      <span style={{ color: "#a1a1a1" }}>{job.stipend}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 mt-4 sm:mt-0">
+                    <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#3d3d3d" }}>
+                      {job.date}
+                    </div>
+                    <button 
+                      className="px-3.5 py-1.5 bg-[#c8f135] text-black font-semibold rounded-[6px]"
+                      style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
+                      onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}
+                    >
+                      Quick Apply
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Resume Upload bottom card */}
+            <div className="mt-16 bg-[#0f0f0f] border border-dashed rounded-[16px] p-12 text-center flex flex-col items-center" style={{ borderColor: "rgba(200,241,53,0.2)" }}>
+              <Upload className="w-8 h-8 mb-4" style={{ color: "#c8f135" }} />
+              <h3 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "22px", color: "#fff", marginBottom: "8px" }}>
+                Let startups find you
+              </h3>
+              <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px", color: "#6b6b6b", marginBottom: "24px", maxWidth: "400px" }}>
+                Upload your resume and get discovered by ecosystem founders actively hiring.
+              </p>
+              <button 
+                className="px-6 py-3 bg-[#c8f135] text-black font-semibold rounded-[8px] mb-3"
+                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
+              >
+                Upload Resume
+              </button>
+              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#3d3d3d" }}>
+                PDF, up to 5MB
               </div>
-              <h3 className="text-xl font-bold mb-2">Drop your resume here</h3>
-              <p className="text-[var(--text-muted)] mb-4">Let top startups in the ecosystem find you.</p>
-              <Button variant="outline" size="sm">Browse Files</Button>
             </div>
-
-            {/* Job Cards */}
-            <div className="space-y-4">
-              <AnimatePresence>
-                {JOBS.map((job) => (
-                  <motion.div
-                    key={job.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                  >
-                    <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 group hover:border-[var(--accent-primary)]/50 transition-colors">
-                      <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${job.color} flex items-center justify-center font-bold text-xl text-white shrink-0`}>
-                          {job.logo}
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold group-hover:text-[var(--accent-primary)] transition-colors">
-                            {job.role || job.content}
-                          </h3>
-                          <div className="text-[var(--text-muted)] text-sm mb-3">{job.company}</div>
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--text-muted)]">
-                            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {job.location}</span>
-                            <span className="flex items-center gap-1"><IndianRupee className="w-3 h-3" /> {job.stipend}</span>
-                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {job.date}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex sm:flex-col items-center sm:items-end justify-between gap-4">
-                        <Badge variant="secondary">{job.type}</Badge>
-                        <Button variant="primary" size="sm">Quick Apply</Button>
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-
+            
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* Job Slide-up Panel */}
+      <AnimatePresence>
+        {selectedJob && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+              onClick={() => setSelectedJob(null)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-[#0a0a0a] border-t border-white/10 rounded-t-[24px] z-50 overflow-y-auto"
+              style={{ boxShadow: "0 -20px 40px rgba(0,0,0,0.5)" }}
+            >
+              <div className="max-w-3xl mx-auto p-6 md:p-10 relative">
+                <button 
+                  onClick={() => setSelectedJob(null)}
+                  className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-[#6b6b6b] hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-[56px] h-[56px] bg-[#111111] rounded-[12px] flex items-center justify-center shrink-0 border border-white/10">
+                    <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "24px", fontWeight: 700, color: "#fff" }}>{selectedJob.logo}</span>
+                  </div>
+                  <div>
+                    <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "24px", fontWeight: 700, color: "#fff", marginBottom: "4px" }}>
+                      {selectedJob.role}
+                    </h2>
+                    <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#a1a1a1" }}>
+                      {selectedJob.company} · {selectedJob.location}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="prose prose-invert max-w-none mb-10" style={{ fontFamily: "var(--font-inter), sans-serif", color: "#a1a1a1" }}>
+                  <h3 style={{ color: "#fff", fontFamily: "var(--font-syne), sans-serif" }}>About the role</h3>
+                  <p>
+                    We are looking for an experienced engineer to join our core team. You will be responsible for building the foundation of our application, optimizing performance, and ensuring a seamless user experience.
+                  </p>
+                  <h3 style={{ color: "#fff", fontFamily: "var(--font-syne), sans-serif" }}>Requirements</h3>
+                  <ul className="text-[14px]">
+                    <li>Strong proficiency in React and modern TypeScript.</li>
+                    <li>Experience with WebGL or Three.js is a huge plus.</li>
+                    <li>Ability to write clean, maintainable, and performant code.</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-[#111111] border border-white/5 rounded-[16px] p-6 mb-6">
+                  <h3 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "18px", color: "#fff", marginBottom: 16 }}>Apply for this role</h3>
+                  
+                  <div className="space-y-4 mt-4">
+                    <div>
+                      <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Cover Note (Optional)</label>
+                      <textarea 
+                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-4 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors resize-none h-[100px]"
+                        placeholder="Why are you a good fit?"
+                      />
+                    </div>
+                    
+                    <button className="w-full py-3 bg-[#c8f135] text-black font-semibold rounded-[10px] transition-transform hover:scale-[1.01]">
+                      Submit Application (Uses profile resume)
+                    </button>
+                  </div>
+                </div>
+                
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

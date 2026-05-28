@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Cpu, Brain, Palette, TrendingUp, Scale, Compass, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 const NAV_LINKS = [
@@ -15,6 +15,10 @@ const NAV_LINKS = [
   { name: "Build With Us", path: "/build-with-devup", hasMegaMenu: true },
   { name: "Apply", path: "/apply" },
 ];
+
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
+  Cpu, Brain, Palette, TrendingUp, Scale, Compass,
+};
 
 const MEGA_MENU_CATEGORIES = [
   { title: "Tech & Infra", desc: "GPUs, Backend, Cloud", icon: "Cpu" },
@@ -76,23 +80,27 @@ export function Navbar() {
                   <div className="absolute top-[100%] left-1/2 -translate-x-1/2 w-[600px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                     <div className="mt-2 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl p-6">
                       <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-                        {MEGA_MENU_CATEGORIES.map((cat, idx) => (
-                          <Link href="/build-with-devup" key={idx} className="group/item flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/60 group-hover/item:bg-[var(--accent-primary)]/20 group-hover/item:text-[var(--accent-primary)] transition-colors">
-                              {/* Using simple div placeholders if dynamic icons aren't perfectly aligned, but we know these categories map directly to our design */}
-                              <span className="text-xl">✨</span>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-bold text-white group-hover/item:text-[var(--accent-primary)] transition-colors">{cat.title}</h4>
-                              <p className="text-xs text-white/50 mt-1">{cat.desc}</p>
-                            </div>
-                          </Link>
-                        ))}
+                        {MEGA_MENU_CATEGORIES.map((cat, idx) => {
+                          const IconComponent = ICON_MAP[cat.icon];
+                          return (
+                            <Link href="/build-with-devup" key={idx} className="group/item flex items-start gap-4">
+                              <div
+                                className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[#a1a1a1] group-hover/item:bg-[rgba(200,241,53,0.08)] group-hover/item:text-[#c8f135] transition-all duration-150"
+                              >
+                                {IconComponent && <IconComponent size={16} />}
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-white group-hover/item:text-[#c8f135] transition-colors">{cat.title}</h4>
+                                <p className="text-xs text-white/50 mt-1">{cat.desc}</p>
+                              </div>
+                            </Link>
+                          );
+                        })}
                       </div>
                       <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center">
                         <p className="text-xs text-white/50">Everything your startup needs.</p>
-                        <Link href="/build-with-devup" className="text-xs text-[var(--accent-primary)] font-bold flex items-center gap-1 hover:underline">
-                          View all 30+ services <Menu size={12} />
+                        <Link href="/build-with-devup" className="text-xs text-[#c8f135] font-bold flex items-center gap-1 hover:underline">
+                          View all 30+ services <ArrowRight size={12} />
                         </Link>
                       </div>
                     </div>

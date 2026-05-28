@@ -1,78 +1,137 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useInView, animate } from "framer-motion";
-import { Rocket, IndianRupee, Users, Code, MapPin, GraduationCap } from "lucide-react";
-import { Card } from "@/components/ui/Card";
+import { useEffect, useState, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 
-interface StatItemProps {
-  icon: React.ComponentType<any>;
-  value: number;
-  suffix: string;
-  prefix?: string;
-  label: string;
-  delay: number;
-}
-
-function StatItem({ icon: Icon, value, suffix, prefix = "", label, delay }: StatItemProps) {
-  const ref = useRef<HTMLDivElement>(null);
+function CountUp({ end, duration = 2 }: { end: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
-    if (isInView) {
-      const controls = animate(0, value, {
-        duration: 2,
-        ease: "easeOut",
-        onUpdate: (v) => setDisplayValue(Math.floor(v)),
-      });
-      return controls.stop;
-    }
-  }, [isInView, value]);
+    if (!isInView) return;
 
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, x: -20 }}
-      animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-      transition={{ duration: 0.6, delay, ease: "easeOut" }}
-    >
-      <Card className="flex flex-col items-center text-center group h-full">
-        <div className="w-12 h-12 rounded-full bg-[rgba(99,102,241,0.1)] text-[var(--accent-primary)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-          <Icon className="w-6 h-6" />
-        </div>
-        <h3 className="text-3xl md:text-4xl font-mono font-bold mb-2">
-          {prefix}{displayValue}{suffix}
-        </h3>
-        <p className="text-[var(--text-muted)] font-medium text-sm md:text-base">
-          {label}
-        </p>
-      </Card>
-    </motion.div>
-  );
+    let startTime: number;
+    let animationFrame: number;
+
+    const easeOutExpo = (t: number) => {
+      return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    };
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = (timestamp - startTime) / (duration * 1000);
+
+      if (progress < 1) {
+        setCount(Math.floor(end * easeOutExpo(progress)));
+        animationFrame = requestAnimationFrame(animate);
+      } else {
+        setCount(end);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [end, duration, isInView]);
+
+  return <span ref={ref}>{count}</span>;
 }
 
 export default function LiveStats() {
   const stats = [
-    { icon: Rocket, value: 23, suffix: "+", label: "Startups in Ecosystem" },
-    { icon: IndianRupee, value: 4, suffix: "Cr+", label: "Funding Unlocked" },
-    { icon: Users, value: 1200, suffix: "+", label: "Student Builders" },
-    { icon: Code, value: 38, suffix: "+", label: "Projects Shipped" },
-    { icon: MapPin, value: 6, suffix: "", label: "Cities Represented" },
-    { icon: GraduationCap, value: 3, suffix: "", label: "Cohorts Completed" },
+    { value: 23, prefix: "", suffix: "+", label: "Active Startups" },
+    { value: 4, prefix: "₹", suffix: "Cr+", label: "Funding Unlocked" },
+    { value: 1200, prefix: "", suffix: "+", label: "Student Builders" },
+    { value: 48, prefix: "", suffix: "hr", label: "Average Response" },
   ];
 
   return (
-    <section className="py-24 px-4 relative z-10">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+    <section 
+      className="w-full flex justify-center items-center overflow-hidden relative"
+      style={{
+        padding: "100px 0",
+        background: "var(--bg-base)"
+      }}
+    >
+      <div className="max-w-[1200px] w-full mx-auto px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-0 relative">
+          
           {stats.map((stat, index) => (
-            <StatItem
+            <motion.div
               key={index}
-              {...stat}
-              delay={index * 0.1}
-            />
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.5, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center justify-center text-center relative py-8 md:py-0"
+              style={{
+                // Add vertical lines between columns for desktop
+                borderRight: index < stats.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none"
+              }}
+            >
+              <div className="flex items-baseline mb-2">
+                {stat.prefix && (
+                  <span 
+                    style={{
+                      fontFamily: "var(--font-syne), sans-serif",
+                      fontSize: "32px",
+                      fontWeight: 400,
+                      color: "#ffffff"
+                    }}
+                  >
+                    {stat.prefix}
+                  </span>
+                )}
+                <span
+                  style={{
+                    fontFamily: "var(--font-syne), sans-serif",
+                    fontSize: "clamp(48px, 5vw, 64px)",
+                    fontWeight: 800,
+                    color: "#ffffff",
+                    lineHeight: 1
+                  }}
+                >
+                  <CountUp end={stat.value} duration={2} />
+                </span>
+                {stat.suffix && (
+                  <span 
+                    style={{
+                      fontFamily: "var(--font-syne), sans-serif",
+                      fontSize: "32px",
+                      fontWeight: 400,
+                      color: "#c8f135",
+                      marginLeft: "2px"
+                    }}
+                  >
+                    {stat.suffix}
+                  </span>
+                )}
+              </div>
+              <span
+                style={{
+                  fontFamily: "var(--font-inter), sans-serif",
+                  fontSize: "14px",
+                  color: "#6b6b6b",
+                  maxWidth: "140px",
+                  lineHeight: 1.4
+                }}
+              >
+                {stat.label}
+              </span>
+              
+              {/* Fix border logic for mobile (2x2 grid) */}
+              <style jsx>{`
+                @media (max-width: 768px) {
+                  div {
+                    border-right: ${index % 2 === 0 ? "1px solid rgba(255,255,255,0.08)" : "none"} !important;
+                    border-bottom: ${index < 2 ? "1px solid rgba(255,255,255,0.08)" : "none"};
+                  }
+                }
+              `}</style>
+            </motion.div>
           ))}
+
         </div>
       </div>
     </section>

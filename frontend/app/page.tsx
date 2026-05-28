@@ -1,217 +1,167 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
 import FloatingSymbols from "@/components/FloatingSymbols";
+import HeroBeacon from "@/components/HeroBeacon";
 import HeroTypography from "@/components/HeroTypography";
+import HeroDashboardPreview from "@/components/HeroDashboardPreview";
+import LogoStrip from "@/components/LogoStrip";
 import LiveStats from "@/components/LiveStats";
-import HowWeHelp from "@/components/HowWeHelp";
+import HowItWorks from "@/components/HowItWorks";
 import StartupShowcase from "@/components/StartupShowcase";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import BentoServices from "@/components/BentoServices";
+import Testimonials from "@/components/Testimonials";
+import FinalCTA from "@/components/FinalCTA";
 
-const EcosystemGlobe = dynamic(
-  () => import("@/components/EcosystemGlobe"),
+// Dynamically import EcosystemOrbit3D with no SSR
+const EcosystemOrbit3D = dynamic(
+  () => import("@/components/EcosystemOrbit3D"),
   {
     ssr: false,
     loading: () => (
-      <div className="w-[400px] h-[400px] rounded-full 
-        bg-indigo-500/5 border border-indigo-500/10 
-        animate-pulse flex items-center justify-center max-w-full">
-        <div className="w-32 h-32 rounded-full bg-indigo-500/10 animate-ping" />
+      <div className="w-full h-[700px] flex items-center justify-center relative">
+         <div className="w-32 h-32 rounded-full border border-[rgba(200,241,53,0.1)] animate-ping" />
       </div>
     ),
   }
 );
 
-function ScrollIndicator() {
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setVisible(window.scrollY < 100);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  return (
-    <div
-      className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 transition-opacity duration-500"
-      style={{ opacity: visible ? 1 : 0 }}
-    >
-      <span className="text-zinc-500 text-xs tracking-widest uppercase">
-        Scroll to explore
-      </span>
-      <ChevronDown className="w-5 h-5 text-zinc-500 animate-bounce" />
-    </div>
-  );
-}
-
 export default function Home() {
   return (
     <>
-      <FloatingSymbols opacity={1} />
+      {/* 1. Ambient Background Layer */}
+      <FloatingSymbols />
+      <div className="fixed inset-0 bg-noise pointer-events-none z-50 mix-blend-overlay" />
 
-      {/* Background depth blobs */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          top: "-20%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "800px",
-          height: "600px",
-          background:
-            "radial-gradient(ellipse, rgba(99,102,241,0.08) 0%, transparent 70%)",
-          filter: "blur(40px)",
-          zIndex: 1,
-        }}
-      />
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          bottom: "10%",
-          right: "0",
-          width: "600px",
-          height: "400px",
-          background:
-            "radial-gradient(ellipse, rgba(168,85,247,0.06) 0%, transparent 70%)",
-          filter: "blur(40px)",
-          zIndex: 1,
-        }}
-      />
-
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center pt-20 pb-12 overflow-hidden z-10">
-        <div className="max-w-7xl mx-auto w-full px-4 md:px-6 flex flex-col lg:flex-row items-center gap-12">
-          {/* Left side — 60% */}
-          <div className="w-full lg:w-[60%]">
-            <HeroTypography />
-          </div>
-          {/* Right side — 40% */}
-          <div className="w-full lg:w-[40%] flex items-center justify-center">
-            <EcosystemGlobe />
-          </div>
-        </div>
-        <ScrollIndicator />
+      {/* 2. Hero Section */}
+      <section className="relative min-h-screen flex flex-col items-center pt-20 overflow-hidden z-10 pb-24">
+        <HeroBeacon />
+        <HeroTypography />
+        <HeroDashboardPreview />
       </section>
 
-      {/* Live Stats Section */}
+      {/* 3. Social Proof Strip */}
+      <LogoStrip />
+
+      {/* 4. Stats Section */}
       <div className="relative z-10">
         <LiveStats />
       </div>
 
-      {/* How We Help Section */}
+      {/* 5. How It Works (Process) */}
       <div className="relative z-10">
-        <HowWeHelp />
+        <HowItWorks />
       </div>
 
-      {/* Startup Showcase Section */}
+      {/* 6. Orbital Ecosystem 3D */}
+      <section className="relative w-full z-10 flex flex-col xl:flex-row items-center max-w-[1400px] mx-auto min-h-[700px] overflow-hidden">
+        {/* Left Text content */}
+        <div className="w-full xl:w-[40%] px-6 xl:pl-16 xl:pr-0 pt-24 xl:pt-0 z-20 flex flex-col pointer-events-none">
+          <span 
+            style={{
+              fontFamily: "var(--font-inter), sans-serif",
+              fontSize: "11px",
+              fontWeight: 500,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "#6b6b6b",
+              marginBottom: "16px"
+            }}
+          >
+            THE ECOSYSTEM
+          </span>
+          <h2 
+            className="whitespace-pre-line mb-6"
+            style={{
+              fontFamily: "var(--font-syne), sans-serif",
+              fontSize: "clamp(32px, 4vw, 52px)",
+              fontWeight: 700,
+              letterSpacing: "-0.025em",
+              lineHeight: 1.1,
+              color: "#ffffff"
+            }}
+          >
+            {"One signal.\nEvery resource\nyou need."}
+          </h2>
+          <p 
+            className="mb-8"
+            style={{
+              fontFamily: "var(--font-inter), sans-serif",
+              fontSize: "16px",
+              lineHeight: 1.65,
+              color: "#a1a1a1",
+              maxWidth: "480px"
+            }}
+          >
+            DevUp connects student founders with mentors, investors, compute, legal, design, and a community that moves fast.
+          </p>
+          
+          {/* Categories Pills */}
+          <div className="flex flex-wrap gap-2 pointer-events-auto max-w-[480px]">
+            {[
+              { label: "Tech", color: "#6366f1" },
+              { label: "AI", color: "#c8f135" },
+              { label: "Design", color: "#ec4899" },
+              { label: "Marketing", color: "#22c55e" },
+              { label: "Legal", color: "#94a3b8" },
+              { label: "Mission", color: "#f97316" }
+            ].map((cat) => (
+              <div 
+                key={cat.label}
+                className="group flex items-center gap-2"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "100px",
+                  padding: "6px 12px",
+                  fontFamily: "var(--font-inter), sans-serif",
+                  fontSize: "12px",
+                  color: "#a1a1a1",
+                  transition: "all 0.2s ease",
+                  cursor: "default"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(200,241,53,0.3)";
+                  e.currentTarget.style.color = "#c8f135";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                  e.currentTarget.style.color = "#a1a1a1";
+                }}
+              >
+                <div className="w-[10px] h-[10px] rounded-full" style={{ backgroundColor: cat.color }} />
+                {cat.label}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right 3D Scene */}
+        <div className="w-full xl:w-[60%] h-[500px] xl:h-[700px] absolute xl:relative top-0 left-0 xl:left-auto opacity-30 xl:opacity-100 -z-10 xl:z-10">
+          <EcosystemOrbit3D />
+        </div>
+      </section>
+
+      {/* 7. Startup Showcase */}
       <div className="relative z-10">
         <StartupShowcase />
       </div>
 
-      {/* Testimonials Section */}
-      <section className="py-24 px-4 relative z-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              What Founders Say
-            </h2>
-            <p className="text-[var(--text-muted)] text-xl max-w-2xl mx-auto">
-              Don't just take our word for it.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="h-full flex flex-col justify-between">
-              <p className="text-lg mb-6 leading-relaxed">
-                "The DevUp ecosystem gave us the exact environment we needed to
-                turn our side project into a fully funded startup. The legal
-                onboarding alone saved us weeks of headaches."
-              </p>
-              <div className="flex items-center gap-4 mt-auto">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500" />
-                <div>
-                  <h4 className="font-bold">Rahul Sharma</h4>
-                  <p className="text-sm text-[var(--text-muted)]">
-                    Co-founder, NexusAI
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="h-full flex flex-col justify-between">
-              <p className="text-lg mb-6 leading-relaxed">
-                "I found my co-founder through the DevUp matching program. Two
-                months later, we raised our pre-seed round directly from a VC in
-                the network."
-              </p>
-              <div className="flex items-center gap-4 mt-auto">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500" />
-                <div>
-                  <h4 className="font-bold">Priya Patel</h4>
-                  <p className="text-sm text-[var(--text-muted)]">
-                    CEO, VoltSpace
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="h-full flex flex-col justify-between">
-              <p className="text-lg mb-6 leading-relaxed">
-                "The hackathons here aren't just for building toys. They are
-                structured to build actual MVPs. The energy and talent density is
-                unmatched."
-              </p>
-              <div className="flex items-center gap-4 mt-auto">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-pink-500" />
-                <div>
-                  <h4 className="font-bold">Arjun Reddy</h4>
-                  <p className="text-sm text-[var(--text-muted)]">
-                    Founder, Synth
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Ready to Build CTA */}
-      <section className="relative py-32 px-4 z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] opacity-90" />
-        <div className="absolute inset-0 bg-noise opacity-30 mix-blend-overlay" />
-
-        <div className="max-w-4xl mx-auto text-center relative z-20">
-          <h2 className="text-5xl md:text-7xl font-bold text-white mb-8">
-            Ready to Build?
-          </h2>
-          <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-2xl mx-auto">
-            Join the ecosystem today and accelerate your startup journey from
-            dorm room to boardroom.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              variant="primary"
-              size="lg"
-              className="bg-white text-black hover:bg-white/90 shadow-xl group"
-            >
-              Apply to DevUp
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-white/30 hover:bg-white/10 text-white"
-            >
-              View Startups
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* 8. Bento Services Preview */}
+      <div className="relative z-10">
+        <BentoServices />
+      </div>
+      
+      {/* 9. Testimonials */}
+      <div className="relative z-10">
+        <Testimonials />
+      </div>
+      
+      {/* 10. Final CTA */}
+      <div className="relative z-10">
+        <FinalCTA />
+      </div>
+      
     </>
   );
 }

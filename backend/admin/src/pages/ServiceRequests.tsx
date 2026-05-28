@@ -5,7 +5,7 @@ import { Table } from '@/components/ui/Table'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
-import { api } from '@/config/api'
+import api from '@/config/api'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -28,14 +28,14 @@ export default function ServiceRequests() {
   const { data: requests, isLoading } = useQuery({
     queryKey: ['service-requests'],
     queryFn: async () => {
-      const res = await api.get('/services/requests')
+      const res = await api.get('/api/services/requests')
       return res.data.data as ServiceRequest[]
     }
   })
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string, status: string }) => {
-      const res = await api.patch(`/services/requests/${id}`, { status })
+      const res = await api.patch(`/api/services/requests/${id}`, { status })
       return res.data.data
     },
     onSuccess: () => {
@@ -55,18 +55,21 @@ export default function ServiceRequests() {
 
   const columns = [
     {
+      key: 'date',
       header: 'Date',
-      accessor: (req: ServiceRequest) => format(new Date(req.createdAt), 'MMM d, yyyy'),
+      render: (req: ServiceRequest) => format(new Date(req.createdAt), 'MMM d, yyyy'),
     },
     {
+      key: 'service',
       header: 'Service',
-      accessor: (req: ServiceRequest) => (
+      render: (req: ServiceRequest) => (
         <span className="font-medium text-white">{req.serviceName}</span>
       ),
     },
     {
+      key: 'client',
       header: 'Client / Company',
-      accessor: (req: ServiceRequest) => (
+      render: (req: ServiceRequest) => (
         <div className="flex flex-col">
           <span className="text-sm font-medium text-white">{req.name}</span>
           <span className="text-xs text-gray-500">{req.company}</span>
@@ -74,8 +77,9 @@ export default function ServiceRequests() {
       ),
     },
     {
+      key: 'status',
       header: 'Status',
-      accessor: (req: ServiceRequest) => {
+      render: (req: ServiceRequest) => {
         const colors: Record<string, 'warning' | 'primary' | 'success' | 'danger' | 'default'> = {
           PENDING: 'warning',
           REVIEWING: 'primary',
@@ -87,8 +91,9 @@ export default function ServiceRequests() {
       },
     },
     {
+      key: 'actions',
       header: 'Action',
-      accessor: (req: ServiceRequest) => (
+      render: (req: ServiceRequest) => (
         <Button variant="outline" size="sm" onClick={() => setSelectedRequest(req)}>
           View Details
         </Button>
@@ -106,6 +111,7 @@ export default function ServiceRequests() {
           columns={columns}
           isLoading={isLoading}
           emptyMessage="No service requests found."
+          keyExtractor={(req) => req.id}
         />
       </div>
 
