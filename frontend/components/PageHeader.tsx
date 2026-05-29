@@ -22,9 +22,9 @@ export default function PageHeader({
   children,
 }: PageHeaderProps) {
   
-  // Helper to format headline: split on \n for line breaks, highlight accentWord
+  // Helper to format headline: split on \n or literal '\n' for line breaks, highlight accentWord
   const renderHeadline = () => {
-    return headline.split('\n').map((line, i) => (
+    return headline.split(/\\n|\n/).map((line, i) => (
       <span key={i} style={{ display: 'block' }}>
         {accentWord
           ? line.split(accentWord).map((part, j, pArr) => (
