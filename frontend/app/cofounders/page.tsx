@@ -3,7 +3,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, X } from "lucide-react";
+import { Search, UserPlus, X, Code2, Palette, Megaphone, Settings, Briefcase, Box } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 
 const CofounderField = dynamic(
@@ -22,6 +22,12 @@ export default function CoFoundersPage() {
   const [showForm, setShowForm] = useState(false);
   const [formStep, setFormStep] = useState(1);
   const [formDirection, setFormDirection] = useState(1); // 1 = forward, -1 = backward
+  
+  // Form State
+  const [bringRole, setBringRole] = useState("");
+  const [buildStage, setBuildStage] = useState("I have an idea");
+  const [needRoles, setNeedRoles] = useState<string[]>([]);
+  const [availability, setAvailability] = useState<string[]>([]);
 
   const goToStep = (step: number) => {
     setFormDirection(step > formStep ? 1 : -1);
@@ -278,15 +284,33 @@ export default function CoFoundersPage() {
                           What do you bring?
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          {["Developer", "Designer", "Marketer", "Operator", "Sales", "Product"].map(r => (
-                            <div 
-                              key={r}
-                              className="w-full aspect-square bg-[#111111] border border-white/10 rounded-[12px] flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-white/30 transition-colors"
-                            >
-                              <div className="w-8 h-8 rounded-full bg-white/5" />
-                              <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#e4e4e4" }}>{r}</span>
-                            </div>
-                          ))}
+                          {[
+                            { label: "Developer", icon: Code2 },
+                            { label: "Designer", icon: Palette },
+                            { label: "Marketer", icon: Megaphone },
+                            { label: "Operator", icon: Settings },
+                            { label: "Sales", icon: Briefcase },
+                            { label: "Product", icon: Box }
+                          ].map((r) => {
+                            const isSelected = bringRole === r.label;
+                            const Icon = r.icon;
+                            return (
+                              <div 
+                                key={r.label}
+                                onClick={() => setBringRole(r.label)}
+                                className="w-full aspect-square border rounded-[12px] flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors"
+                                style={{
+                                  background: isSelected ? "rgba(200,241,53,0.04)" : "#111111",
+                                  borderColor: isSelected ? "rgba(200,241,53,0.5)" : "rgba(255,255,255,0.1)",
+                                }}
+                              >
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: isSelected ? "rgba(200,241,53,0.1)" : "rgba(255,255,255,0.05)", color: isSelected ? "#c8f135" : "#a1a1a1" }}>
+                                  <Icon size={20} />
+                                </div>
+                                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: isSelected ? "#c8f135" : "#e4e4e4", fontWeight: isSelected ? 600 : 400 }}>{r.label}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -297,18 +321,25 @@ export default function CoFoundersPage() {
                           What are you building?
                         </h2>
                         <div className="flex flex-col gap-4">
-                          {["I have an idea", "Building an MVP", "Already Launched"].map((s, i) => (
-                            <div 
-                              key={s}
-                              className="w-full p-5 bg-[#111111] border border-white/10 rounded-[12px] flex items-center gap-4 cursor-pointer hover:border-white/30 transition-colors"
-                              style={{ borderColor: i === 0 ? "rgba(200,241,53,0.5)" : "rgba(255,255,255,0.1)", background: i === 0 ? "rgba(200,241,53,0.04)" : "#111111" }}
-                            >
-                              <div className={`w-5 h-5 rounded-full border-2 ${i === 0 ? "border-[#c8f135] flex items-center justify-center" : "border-white/20"}`}>
-                                {i === 0 && <div className="w-2.5 h-2.5 bg-[#c8f135] rounded-full" />}
+                          {["I have an idea", "Building an MVP", "Already Launched"].map((s) => {
+                            const isSelected = buildStage === s;
+                            return (
+                              <div 
+                                key={s}
+                                onClick={() => setBuildStage(s)}
+                                className="w-full p-5 border rounded-[12px] flex items-center gap-4 cursor-pointer transition-colors"
+                                style={{ 
+                                  borderColor: isSelected ? "rgba(200,241,53,0.5)" : "rgba(255,255,255,0.1)", 
+                                  background: isSelected ? "rgba(200,241,53,0.04)" : "#111111" 
+                                }}
+                              >
+                                <div className={`w-5 h-5 rounded-full border-2 ${isSelected ? "border-[#c8f135] flex items-center justify-center" : "border-white/20"}`}>
+                                  {isSelected && <div className="w-2.5 h-2.5 bg-[#c8f135] rounded-full" />}
+                                </div>
+                                <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "16px", color: "#fff" }}>{s}</span>
                               </div>
-                              <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "16px", color: "#fff" }}>{s}</span>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                         <div>
                           <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>
@@ -332,20 +363,24 @@ export default function CoFoundersPage() {
                             Co-founder role (select multiple)
                           </label>
                           <div className="flex flex-wrap gap-3">
-                            {["Developer", "Designer", "Marketer", "Operator", "Sales", "Product"].map((r, i) => (
-                              <div 
-                                key={r}
-                                className="px-4 py-2 border rounded-[8px] cursor-pointer"
-                                style={{ 
-                                  background: i === 0 ? "rgba(200,241,53,0.04)" : "#111111", 
-                                  borderColor: i === 0 ? "rgba(200,241,53,0.5)" : "rgba(255,255,255,0.1)",
-                                  color: i === 0 ? "#c8f135" : "#a1a1a1",
-                                  fontFamily: "var(--font-inter), sans-serif", fontSize: "14px"
-                                }}
-                              >
-                                {r}
-                              </div>
-                            ))}
+                            {["Developer", "Designer", "Marketer", "Operator", "Sales", "Product"].map((r) => {
+                              const isSelected = needRoles.includes(r);
+                              return (
+                                <div 
+                                  key={r}
+                                  onClick={() => setNeedRoles(prev => isSelected ? prev.filter(x => x !== r) : [...prev, r])}
+                                  className="px-4 py-2 border rounded-[8px] cursor-pointer select-none transition-colors"
+                                  style={{ 
+                                    background: isSelected ? "rgba(200,241,53,0.04)" : "#111111", 
+                                    borderColor: isSelected ? "rgba(200,241,53,0.5)" : "rgba(255,255,255,0.1)",
+                                    color: isSelected ? "#c8f135" : "#a1a1a1",
+                                    fontFamily: "var(--font-inter), sans-serif", fontSize: "14px"
+                                  }}
+                                >
+                                  {r}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
 
@@ -354,20 +389,24 @@ export default function CoFoundersPage() {
                             Your Availability
                           </label>
                           <div className="flex flex-wrap gap-3">
-                            {["Full-time", "Part-time", "Weekends"].map((t, i) => (
-                              <div 
-                                key={t}
-                                className="px-4 py-2 border rounded-[8px] cursor-pointer"
-                                style={{ 
-                                  background: i === 0 ? "rgba(255,255,255,0.05)" : "#111111", 
-                                  borderColor: i === 0 ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)",
-                                  color: i === 0 ? "#fff" : "#a1a1a1",
-                                  fontFamily: "var(--font-inter), sans-serif", fontSize: "14px"
-                                }}
-                              >
-                                {t}
-                              </div>
-                            ))}
+                            {["Full-time", "Part-time", "Weekends"].map((t) => {
+                              const isSelected = availability.includes(t);
+                              return (
+                                <div 
+                                  key={t}
+                                  onClick={() => setAvailability(prev => isSelected ? prev.filter(x => x !== t) : [...prev, t])}
+                                  className="px-4 py-2 border rounded-[8px] cursor-pointer select-none transition-colors"
+                                  style={{ 
+                                    background: isSelected ? "rgba(255,255,255,0.05)" : "#111111", 
+                                    borderColor: isSelected ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)",
+                                    color: isSelected ? "#fff" : "#a1a1a1",
+                                    fontFamily: "var(--font-inter), sans-serif", fontSize: "14px"
+                                  }}
+                                >
+                                  {t}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
 
