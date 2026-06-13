@@ -4,17 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"No backend tests configured yet\"",
+    "postinstall": "prisma generate",
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "lint": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@asteasolutions/zod-to-openapi": "^8.5.0",
     "@prisma/client": "^6.4.0",
     "@supabase/supabase-js": "^2.106.1",
     "bullmq": "^5.77.0",
@@ -44,8 +48,7 @@
     "nodemon": "^3.1.14",
     "prisma": "^6.4.0",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.7"
+  "typescript": "^6.0.3"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

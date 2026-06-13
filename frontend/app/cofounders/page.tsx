@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, UserPlus, X, Code2, Palette, Megaphone, Settings, Briefcase, Box } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const CofounderField = dynamic(
   () => import("@/components/3d/CofounderField"),
@@ -28,6 +29,46 @@ export default function CoFoundersPage() {
   const [buildStage, setBuildStage] = useState("I have an idea");
   const [needRoles, setNeedRoles] = useState<string[]>([]);
   const [availability, setAvailability] = useState<string[]>([]);
+
+  const getStageStyles = (stageClass: string) => {
+    if (stageClass === "idea") {
+      return {
+        background: "#1a1a1a",
+        border: "1px solid rgba(255,255,255,0.08)",
+        color: "#a1a1a1",
+      };
+    }
+    if (stageClass === "mvp") {
+      return {
+        background: "rgba(200,241,53,0.08)",
+        border: "1px solid rgba(200,241,53,0.15)",
+        color: "#c8f135",
+      };
+    }
+    return {
+      background: "rgba(34,197,94,0.08)",
+      border: "1px solid rgba(34,197,94,0.15)",
+      color: "#4ade80",
+    };
+  };
+
+  const getStepStyles = (isCompleted: boolean, isActive: boolean) => {
+    if (isCompleted) {
+      return { background: "#fff", border: "none" };
+    }
+    if (isActive) {
+      return { background: "#c8f135", border: "none" };
+    }
+    return { background: "#0a0a0a", border: "2px solid rgba(255,255,255,0.15)" };
+  };
+
+  const toggleNeedRole = (role: string) => {
+    setNeedRoles((prev) => (prev.includes(role) ? prev.filter((x) => x !== role) : [...prev, role]));
+  };
+
+  const toggleAvailability = (time: string) => {
+    setAvailability((prev) => (prev.includes(time) ? prev.filter((x) => x !== time) : [...prev, time]));
+  };
 
   const goToStep = (step: number) => {
     setFormDirection(step > formStep ? 1 : -1);
@@ -53,7 +94,9 @@ export default function CoFoundersPage() {
         variant="rings"
       />
 
-      <CofounderField />
+      <ErrorBoundary>
+        <CofounderField />
+      </ErrorBoundary>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-8 relative z-10">
         
@@ -99,8 +142,8 @@ export default function CoFoundersPage() {
           {/* Filter Bar */}
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 mb-8">
             <div className="flex flex-col w-full md:w-auto">
-              <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Role</label>
-              <select className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+              <label htmlFor="filterRole" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Role</label>
+              <select id="filterRole" className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
                 <option>All Roles</option>
                 <option>Developer</option>
                 <option>Designer</option>
@@ -110,8 +153,8 @@ export default function CoFoundersPage() {
               </select>
             </div>
             <div className="flex flex-col w-full md:w-auto">
-              <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Stage</label>
-              <select className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+              <label htmlFor="filterStage" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Stage</label>
+              <select id="filterStage" className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
                 <option>All Stages</option>
                 <option>Idea</option>
                 <option>MVP</option>
@@ -119,8 +162,8 @@ export default function CoFoundersPage() {
               </select>
             </div>
             <div className="flex flex-col w-full md:w-auto">
-              <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Availability</label>
-              <select className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+              <label htmlFor="filterAvailability" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Availability</label>
+              <select id="filterAvailability" className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
                 <option>Any</option>
                 <option>Full-time</option>
                 <option>Part-time</option>
@@ -128,8 +171,8 @@ export default function CoFoundersPage() {
               </select>
             </div>
             <div className="flex flex-col w-full md:flex-1 max-w-[240px]">
-              <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Location</label>
-              <input type="text" placeholder="e.g. Bengaluru" className="w-full bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px]" style={{ fontFamily: "var(--font-inter), sans-serif" }} />
+              <label htmlFor="filterLocation" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Location</label>
+              <input id="filterLocation" type="text" placeholder="e.g. Bengaluru" className="w-full bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px]" style={{ fontFamily: "var(--font-inter), sans-serif" }} />
             </div>
           </div>
 
@@ -188,10 +231,9 @@ export default function CoFoundersPage() {
                   <div 
                     className="px-2 py-1 rounded-[4px]"
                     style={{
-                      fontFamily: "var(--font-inter), sans-serif", fontSize: "10px",
-                      background: p.stageClass === "idea" ? "#1a1a1a" : (p.stageClass === "mvp" ? "rgba(200,241,53,0.08)" : "rgba(34,197,94,0.08)"),
-                      border: p.stageClass === "idea" ? "1px solid rgba(255,255,255,0.08)" : (p.stageClass === "mvp" ? "1px solid rgba(200,241,53,0.15)" : "1px solid rgba(34,197,94,0.15)"),
-                      color: p.stageClass === "idea" ? "#a1a1a1" : (p.stageClass === "mvp" ? "#c8f135" : "#4ade80")
+                      fontFamily: "var(--font-inter), sans-serif",
+                      fontSize: "10px",
+                      ...getStageStyles(p.stageClass),
                     }}
                   >
                     {p.stage}
@@ -252,10 +294,7 @@ export default function CoFoundersPage() {
                     <div 
                       key={step} 
                       className="w-6 h-6 rounded-full flex items-center justify-center relative z-10 transition-colors duration-300"
-                      style={{
-                        background: isCompleted ? "#fff" : (isActive ? "#c8f135" : "#0a0a0a"),
-                        border: isCompleted || isActive ? "none" : "2px solid rgba(255,255,255,0.15)",
-                      }}
+                      style={getStepStyles(isCompleted, isActive)}
                     >
                       {isCompleted ? <span style={{ color: "#000", fontSize: "12px", fontWeight: "bold" }}>✓</span> : null}
                     </div>
@@ -295,20 +334,22 @@ export default function CoFoundersPage() {
                             const isSelected = bringRole === r.label;
                             const Icon = r.icon;
                             return (
-                              <div 
+                              <button
                                 key={r.label}
+                                type="button"
                                 onClick={() => setBringRole(r.label)}
                                 className="w-full aspect-square border rounded-[12px] flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors"
                                 style={{
                                   background: isSelected ? "rgba(200,241,53,0.04)" : "#111111",
                                   borderColor: isSelected ? "rgba(200,241,53,0.5)" : "rgba(255,255,255,0.1)",
                                 }}
+                                aria-pressed={isSelected}
                               >
                                 <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: isSelected ? "rgba(200,241,53,0.1)" : "rgba(255,255,255,0.05)", color: isSelected ? "#c8f135" : "#a1a1a1" }}>
                                   <Icon size={20} />
                                 </div>
                                 <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: isSelected ? "#c8f135" : "#e4e4e4", fontWeight: isSelected ? 600 : 400 }}>{r.label}</span>
-                              </div>
+                              </button>
                             );
                           })}
                         </div>
@@ -324,28 +365,31 @@ export default function CoFoundersPage() {
                           {["I have an idea", "Building an MVP", "Already Launched"].map((s) => {
                             const isSelected = buildStage === s;
                             return (
-                              <div 
+                              <button
                                 key={s}
+                                type="button"
                                 onClick={() => setBuildStage(s)}
                                 className="w-full p-5 border rounded-[12px] flex items-center gap-4 cursor-pointer transition-colors"
                                 style={{ 
                                   borderColor: isSelected ? "rgba(200,241,53,0.5)" : "rgba(255,255,255,0.1)", 
                                   background: isSelected ? "rgba(200,241,53,0.04)" : "#111111" 
                                 }}
+                                aria-pressed={isSelected}
                               >
                                 <div className={`w-5 h-5 rounded-full border-2 ${isSelected ? "border-[#c8f135] flex items-center justify-center" : "border-white/20"}`}>
                                   {isSelected && <div className="w-2.5 h-2.5 bg-[#c8f135] rounded-full" />}
                                 </div>
                                 <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "16px", color: "#fff" }}>{s}</span>
-                              </div>
+                              </button>
                             );
                           })}
                         </div>
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>
+                          <label htmlFor="ideaSummary" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>
                             Describe your idea in one sentence
                           </label>
                           <textarea 
+                            id="ideaSummary"
                             className="w-full h-[80px] resize-none bg-[#111111] border border-white/10 rounded-[10px] p-4 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors"
                             placeholder="e.g. A marketplace for unused compute power."
                           />
@@ -359,16 +403,17 @@ export default function CoFoundersPage() {
                           What do you need?
                         </h2>
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "12px" }}>
+                          <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "12px" }}>
                             Co-founder role (select multiple)
-                          </label>
+                          </div>
                           <div className="flex flex-wrap gap-3">
                             {["Developer", "Designer", "Marketer", "Operator", "Sales", "Product"].map((r) => {
                               const isSelected = needRoles.includes(r);
                               return (
-                                <div 
+                                <button
                                   key={r}
-                                  onClick={() => setNeedRoles(prev => isSelected ? prev.filter(x => x !== r) : [...prev, r])}
+                                  type="button"
+                                  onClick={() => toggleNeedRole(r)}
                                   className="px-4 py-2 border rounded-[8px] cursor-pointer select-none transition-colors"
                                   style={{ 
                                     background: isSelected ? "rgba(200,241,53,0.04)" : "#111111", 
@@ -376,25 +421,27 @@ export default function CoFoundersPage() {
                                     color: isSelected ? "#c8f135" : "#a1a1a1",
                                     fontFamily: "var(--font-inter), sans-serif", fontSize: "14px"
                                   }}
+                                  aria-pressed={isSelected}
                                 >
                                   {r}
-                                </div>
+                                </button>
                               );
                             })}
                           </div>
                         </div>
 
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "12px" }}>
+                          <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "12px" }}>
                             Your Availability
-                          </label>
+                          </div>
                           <div className="flex flex-wrap gap-3">
                             {["Full-time", "Part-time", "Weekends"].map((t) => {
                               const isSelected = availability.includes(t);
                               return (
-                                <div 
+                                <button
                                   key={t}
-                                  onClick={() => setAvailability(prev => isSelected ? prev.filter(x => x !== t) : [...prev, t])}
+                                  type="button"
+                                  onClick={() => toggleAvailability(t)}
                                   className="px-4 py-2 border rounded-[8px] cursor-pointer select-none transition-colors"
                                   style={{ 
                                     background: isSelected ? "rgba(255,255,255,0.05)" : "#111111", 
@@ -402,19 +449,21 @@ export default function CoFoundersPage() {
                                     color: isSelected ? "#fff" : "#a1a1a1",
                                     fontFamily: "var(--font-inter), sans-serif", fontSize: "14px"
                                   }}
+                                  aria-pressed={isSelected}
                                 >
                                   {t}
-                                </div>
+                                </button>
                               );
                             })}
                           </div>
                         </div>
 
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>
+                          <label htmlFor="founderCity" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>
                             City
                           </label>
                           <input 
+                            id="founderCity"
                             type="text"
                             className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-4 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors"
                             placeholder="e.g. Bengaluru / Remote"
@@ -430,23 +479,23 @@ export default function CoFoundersPage() {
                         </h2>
                         
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Full Name</label>
-                          <input type="text" className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
+                          <label htmlFor="fullName" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Full Name</label>
+                          <input id="fullName" type="text" className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
                         </div>
                         
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>College / Background</label>
-                          <input type="text" className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
+                          <label htmlFor="collegeBackground" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>College / Background</label>
+                          <input id="collegeBackground" type="text" className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
                         </div>
 
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>LinkedIn URL</label>
-                          <input type="url" className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
+                          <label htmlFor="linkedinUrl" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>LinkedIn URL</label>
+                          <input id="linkedinUrl" type="url" className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
                         </div>
 
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Short Bio</label>
-                          <textarea className="w-full h-[80px] resize-none bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
+                          <label htmlFor="shortBio" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Short Bio</label>
+                          <textarea id="shortBio" className="w-full h-[80px] resize-none bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
                         </div>
                       </div>
                     )}

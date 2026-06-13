@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Syne, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import LayoutClient from "@/components/LayoutClient";
+import BackendWakeUp from "@/components/BackendWakeUp";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,6 +33,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} h-full antialiased dark`}>
       <body className="min-h-full flex flex-col selection:bg-white/20">
         <LayoutClient>{children}</LayoutClient>
+        <BackendWakeUp />
       </body>
     </html>
   );

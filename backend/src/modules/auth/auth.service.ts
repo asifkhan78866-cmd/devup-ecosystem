@@ -7,13 +7,13 @@ import jwt from "jsonwebtoken";
 
 export class AuthService {
   async register(data: any) {
-    const { email, password, role, adminSecret } = data;
+    const { email, password, role, adminSecret, name, college, city } = data;
 
     // Validate admin secret
     let finalRole = role;
     if (adminSecret) {
-      if (adminSecret !== env.ADMIN_SECRET_KEY) {
-        throw new AppError(403, "Invalid admin secret key");
+      if (adminSecret !== env.ADMIN_REGISTRATION_SECRET) {
+        throw new AppError(403, "Invalid admin secret key", "INVALID_ADMIN_SECRET");
       }
       finalRole = Role.ADMIN;
     }
@@ -21,7 +21,7 @@ export class AuthService {
     // Check if user exists in DB
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      throw new AppError(400, "User already exists");
+      throw new AppError(400, "User already exists", "USER_EXISTS");
     }
 
     // Register with Supabase Auth
@@ -32,7 +32,7 @@ export class AuthService {
     });
 
     if (error || !authData.user) {
-      throw new AppError(500, error?.message || "Failed to create user in Supabase");
+      throw new AppError(500, error?.message || "Failed to create user in Supabase", "SUPABASE_CREATE_FAILED");
     }
 
     // Create user in Prisma
@@ -41,7 +41,17 @@ export class AuthService {
         id: authData.user.id,
         email,
         role: finalRole,
+        profile: {
+          create: {
+            name: name || email.split('@')[0],
+            college: college || null,
+            city: city || null,
+          }
+        }
       },
+      include: {
+        profile: true
+      }
     });
 
     return user;
@@ -54,7 +64,11 @@ export class AuthService {
     if (email === "admin@devup.in" && password === "admin123") {
       const user = await prisma.user.findUnique({ where: { email } });
       if (user) {
-        const token = jwt.sign({ sub: user.id }, env.SUPABASE_JWT_SECRET, { expiresIn: "1d" });
+        const token = jwt.sign(
+          { sub: user.id },
+          env.JWT_SECRET as jwt.Secret,
+          { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
+        );
         return { user, token };
       }
     }
@@ -65,17 +79,22 @@ export class AuthService {
     });
 
     if (error || !authData.session) {
-      throw new AppError(401, "Invalid credentials");
+      throw new AppError(401, "Invalid credentials", "INVALID_CREDENTIALS");
     }
 
     const user = await prisma.user.findUnique({ where: { id: authData.user.id } });
     if (!user) {
-      throw new AppError(404, "User record not found");
+      throw new AppError(404, "User record not found", "USER_NOT_FOUND");
     }
 
+    const token = jwt.sign(
+      { sub: user.id },
+      env.JWT_SECRET as jwt.Secret,
+      { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
+    );
     return {
       user,
-      token: authData.session.access_token,
+      token,
     };
   }
 

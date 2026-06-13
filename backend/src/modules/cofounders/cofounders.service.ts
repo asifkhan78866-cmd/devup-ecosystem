@@ -23,7 +23,11 @@ export class CofoundersService {
       prisma.cofounderProfile.count({ where })
     ]);
 
-    return { data, meta: { total, page: Number(page), limit: Number(limit) } };
+    const pageNumber = Number(page);
+    const pageLimit = Number(limit);
+    const totalPages = Math.ceil(total / pageLimit);
+
+    return { data, meta: { total, page: pageNumber, limit: pageLimit, totalPages } };
   }
 
   async getProfileByUserId(userId: string) {

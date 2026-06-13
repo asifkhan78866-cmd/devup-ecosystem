@@ -22,7 +22,11 @@ export class HackathonsService {
       prisma.hackathon.count({ where })
     ]);
 
-    return { data, meta: { total, page: Number(page), limit: Number(limit) } };
+  const pageNumber = Number(page);
+  const pageLimit = Number(limit);
+  const totalPages = Math.ceil(total / pageLimit);
+
+  return { data, meta: { total, page: pageNumber, limit: pageLimit, totalPages } };
   }
 
   async getHackathon(id: string) {
@@ -56,7 +60,9 @@ export class HackathonsService {
 
   async register(id: string, userId: string, data: any) {
     const hackathon = await prisma.hackathon.findUnique({ where: { id } });
-    if (!hackathon || !hackathon.isActive) throw new AppError(404, "Hackathon not found or inactive");
+    if (!hackathon?.isActive) {
+      throw new AppError(404, "Hackathon not found or inactive", "HACKATHON_NOT_FOUND");
+    }
 
     if (hackathon.registrationDeadline < new Date()) {
       throw new AppError(400, "Registration deadline has passed");

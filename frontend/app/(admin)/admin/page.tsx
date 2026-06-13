@@ -19,7 +19,7 @@ export default function AdminDashboard() {
     return <div className="p-8 text-red-500">Failed to load stats. Ensure backend is running.</div>;
   }
 
-  const stats = data?.data || {};
+  const stats = data || {};
 
   const statCards = [
     { label: "Total Users", value: stats.totalUsers || 0, icon: Users, color: "text-blue-500" },

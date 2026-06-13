@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: devup-api
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      # All other env vars set manually in Render dashboard
+      # See backend/.env.example for full list

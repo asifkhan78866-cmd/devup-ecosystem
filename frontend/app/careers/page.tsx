@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const CareerNetworkGraph = dynamic(
   () => import("@/components/3d/CareerNetworkGraph"),
@@ -35,7 +36,9 @@ export default function CareersPage() {
         variant="grid"
       />
 
-      <CareerNetworkGraph />
+      <ErrorBoundary>
+        <CareerNetworkGraph />
+      </ErrorBoundary>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-12 pb-24">
         
@@ -122,7 +125,7 @@ export default function CareersPage() {
                   type="range" 
                   min="0" max="100" 
                   value={stipendValue} 
-                  onChange={(e) => setStipendValue(parseInt(e.target.value))}
+                  onChange={(e) => setStipendValue(Number.parseInt(e.target.value, 10))}
                   className="absolute inset-0 w-full opacity-0 cursor-pointer"
                 />
                 <div 
@@ -150,11 +153,17 @@ export default function CareersPage() {
             {JOBS.map((job) => {
               const isInternship = job.type === "Internship";
               const isRemote = job.location === "Remote";
-              const badgeColor = isInternship ? "#fb923c" : (isRemote ? "#38bdf8" : "#c8f135");
+              let badgeColor = "#c8f135";
+              if (isInternship) {
+                badgeColor = "#fb923c";
+              } else if (isRemote) {
+                badgeColor = "#38bdf8";
+              }
 
               return (
-                <div
+                <button
                   key={job.id}
+                  type="button"
                   onClick={() => setSelectedJob(job)}
                   className="group relative flex flex-col sm:flex-row sm:items-center gap-4 bg-[#111111] border border-white/5 rounded-[12px] p-5 cursor-pointer transition-all duration-200 hover:border-white/15 hover:translate-x-1"
                 >
@@ -190,15 +199,14 @@ export default function CareersPage() {
                     <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#3d3d3d" }}>
                       {job.date}
                     </div>
-                    <button 
+                    <span
                       className="px-3.5 py-1.5 bg-[#c8f135] text-black font-semibold rounded-[6px]"
                       style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
-                      onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}
                     >
                       Quick Apply
-                    </button>
+                    </span>
                   </div>
-                </div>
+                </button>
               );
             })}
 
@@ -285,8 +293,9 @@ export default function CareersPage() {
                   
                   <div className="space-y-4 mt-4">
                     <div>
-                      <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Cover Note (Optional)</label>
+                      <label htmlFor="coverNote" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Cover Note (Optional)</label>
                       <textarea 
+                        id="coverNote"
                         className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-4 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors resize-none h-[100px]"
                         placeholder="Why are you a good fit?"
                       />

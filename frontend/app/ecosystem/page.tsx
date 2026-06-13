@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ShieldCheck, MapPin, Briefcase, FilterX } from "lucide-react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Dynamically import 3D element with ssr: false
 const EcosystemConstellation = dynamic(
@@ -13,76 +14,61 @@ const EcosystemConstellation = dynamic(
   { ssr: false }
 );
 
-const CATEGORIES = ["All", "AI/ML", "Fintech", "HealthTech", "DevTools", "SaaS", "EdTech", "Web3"];
+const CATEGORIES = ["All", "AI/ML", "FinTech", "HealthTech", "DevTools", "SaaS", "EdTech", "Web3", "E-commerce", "CleanTech", "DeepTech", "Other"];
 
-const STARTUPS = [
-  {
-    id: "nexus-ai",
-    name: "NexusAI",
-    tagline: "Next-gen LLM orchestration for enterprise.",
-    stage: "Seed",
-    domain: "AI/ML",
-    roles: 3,
-    verified: true,
-    location: "Bengaluru",
-  },
-  {
-    id: "volt-space",
-    name: "VoltSpace",
-    tagline: "Decentralized energy trading protocol.",
-    stage: "Series A",
-    domain: "Web3",
-    roles: 5,
-    verified: true,
-    location: "Delhi NCR",
-  },
-  {
-    id: "synth",
-    name: "Synth",
-    tagline: "Generative audio synthesis engine.",
-    stage: "Pre-seed",
-    domain: "AI/ML",
-    roles: 1,
-    verified: false,
-    location: "Remote",
-  },
-  {
-    id: "blockchain-x",
-    name: "BlockChainX",
-    tagline: "Zero-knowledge proof infrastructure.",
-    stage: "Seed",
-    domain: "Web3",
-    roles: 2,
-    verified: true,
-    location: "Pune",
-  },
-  {
-    id: "med-sync",
-    name: "MedSync",
-    tagline: "Unified patient record platform.",
-    stage: "Seed",
-    domain: "HealthTech",
-    roles: 4,
-    verified: true,
-    location: "Hyderabad",
-  },
-  {
-    id: "dev-flow",
-    name: "DevFlow",
-    tagline: "Automated CI/CD pipeline generator.",
-    stage: "Pre-seed",
-    domain: "DevTools",
-    roles: 2,
-    verified: false,
-    location: "Remote",
-  }
-];
+const DOMAIN_MAP: Record<string, string> = {
+  AI_ML: "AI/ML",
+  FINTECH: "FinTech",
+  HEALTHTECH: "HealthTech",
+  DEVTOOLS: "DevTools",
+  SAAS: "SaaS",
+  EDTECH: "EdTech",
+  WEB3: "Web3",
+  E_COMMERCE: "E-commerce",
+  CLEANTECH: "CleanTech",
+  DEEPTECH: "DeepTech",
+  OTHER: "Other"
+};
+
+const STAGE_MAP: Record<string, string> = {
+  IDEA: "Idea",
+  MVP: "MVP",
+  PRE_SEED: "Pre-seed",
+  SEED: "Seed",
+  SERIES_A: "Series A",
+  SERIES_B: "Series B",
+  GROWTH: "Growth"
+};
 
 export default function EcosystemPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [startups, setStartups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredStartups = STARTUPS.filter((s) => {
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          const formatted = data.data.map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            tagline: s.tagline || s.description || "",
+            stage: STAGE_MAP[s.stage] || s.stage || "Seed",
+            domain: DOMAIN_MAP[s.domain] || s.domain || "Tech",
+            roles: s._count?.jobs || 0,
+            verified: s.isVerified || false,
+            location: s.location || s.city || "Global",
+          }));
+          setStartups(formatted);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredStartups = startups.filter((s) => {
     const matchesCategory = activeCategory === "All" || s.domain === activeCategory;
     const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.tagline.toLowerCase().includes(searchQuery.toLowerCase());
@@ -99,7 +85,9 @@ export default function EcosystemPage() {
         variant="rings"
       />
 
-      <EcosystemConstellation />
+      <ErrorBoundary>
+        <EcosystemConstellation />
+      </ErrorBoundary>
 
       {/* Sticky Search & Filter Bar */}
       <div 
@@ -191,7 +179,7 @@ export default function EcosystemPage() {
                       <div 
                         className="h-24 w-full opacity-80" 
                         style={{
-                          background: `linear-gradient(135deg, hsl(${startup.name.charCodeAt(0) * 10}, 70%, 20%), hsl(${startup.name.charCodeAt(startup.name.length-1) * 10}, 70%, 10%))`
+                          background: `linear-gradient(135deg, hsl(${(startup.name.codePointAt(0) ?? 0) * 10}, 70%, 20%), hsl(${(startup.name.codePointAt(startup.name.length - 1) ?? 0) * 10}, 70%, 10%))`
                         }} 
                       />
 

@@ -1,59 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-
-const STARTUPS = [
-  {
-    name: "NexusAI",
-    domain: "AI/ML",
-    tagline: "Autonomous customer success agents for high-growth B2B SaaS.",
-    stage: "Seed",
-    roles: 3,
-    logoSeed: "nexus",
-  },
-  {
-    name: "BuildSpace",
-    domain: "DevTools",
-    tagline: "The open protocol for decentralized continuous integration.",
-    stage: "Series A",
-    roles: 8,
-    logoSeed: "build",
-  },
-  {
-    name: "FinEdge",
-    domain: "FinTech",
-    tagline: "API-first infrastructure for cross-border student payments.",
-    stage: "Pre-seed",
-    roles: 1,
-    logoSeed: "finedge",
-  },
-  {
-    name: "MedFlow",
-    domain: "HealthTech",
-    tagline: "Predictive resource allocation for tier-2 hospital networks.",
-    stage: "Seed",
-    roles: 2,
-    logoSeed: "med",
-  },
-  {
-    name: "AeroDynamics",
-    domain: "DeepTech",
-    tagline: "Lightweight propulsion systems for urban air mobility.",
-    stage: "Pre-seed",
-    roles: 0,
-    logoSeed: "aero",
-  },
-  {
-    name: "Synth",
-    domain: "Creator Economy",
-    tagline: "Royalty-free generative audio engine for indie game devs.",
-    stage: "Seed",
-    roles: 4,
-    logoSeed: "synth",
-  },
-];
 
 // Simple hash function to generate a unique HSL hue from string
 function getHueFromString(str: string) {
@@ -65,6 +15,27 @@ function getHueFromString(str: string) {
 }
 
 export default function StartupShowcase() {
+  const [startups, setStartups] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          const formatted = data.data.map((s: any) => ({
+            name: s.name,
+            domain: s.domain || "Tech",
+            tagline: s.tagline || s.description || "Innovating the future.",
+            stage: s.stage || "Seed",
+            roles: s._count?.jobs || 0,
+            logoSeed: s.slug || s.name,
+          }));
+          setStartups(formatted);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
   return (
     <section className="py-24 px-6 max-w-[1200px] mx-auto w-full relative z-10">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
@@ -113,7 +84,7 @@ export default function StartupShowcase() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[16px]">
-        {STARTUPS.map((startup, index) => {
+        {startups.map((startup, index) => {
           const hue = getHueFromString(startup.name);
           const bannerBg = `hsl(${hue}, 70%, 12%)`;
           

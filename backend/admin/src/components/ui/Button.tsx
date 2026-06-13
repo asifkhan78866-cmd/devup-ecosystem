@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 const variants = {
   primary: 'bg-indigo-600 hover:bg-indigo-500 text-white',
@@ -20,6 +20,7 @@ export function Button({
   size = 'md',
   className = '',
   disabled,
+  isLoading = false,
   onClick,
   type = 'button',
 }: {
@@ -28,13 +29,14 @@ export function Button({
   size?: keyof typeof sizes
   className?: string
   disabled?: boolean
+  isLoading?: boolean
   onClick?: () => void
   type?: 'button' | 'submit'
 }) {
   return (
     <button
       type={type}
-      disabled={disabled}
+      disabled={disabled || isLoading}
       onClick={onClick}
       className={`
         inline-flex items-center justify-center rounded-lg font-medium
@@ -43,7 +45,7 @@ export function Button({
         ${variants[variant]} ${sizes[size]} ${className}
       `}
     >
-      {children}
+      {isLoading ? 'Loading...' : children}
     </button>
   )
 }

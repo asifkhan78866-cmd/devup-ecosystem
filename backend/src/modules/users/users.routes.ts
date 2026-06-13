@@ -14,6 +14,7 @@ const upload = multer({
   limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
 });
 
+router.get("/", controller.getUsers);
 router.get("/:id", controller.getUser);
 router.patch("/:id", requireAuth, validate(updateUserSchema), controller.updateUser);
 router.post("/:id/resume", requireAuth, upload.single("resume"), controller.uploadResume);

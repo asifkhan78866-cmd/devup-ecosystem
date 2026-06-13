@@ -12,6 +12,7 @@ import StartupShowcase from "@/components/StartupShowcase";
 import BentoServices from "@/components/BentoServices";
 import Testimonials from "@/components/Testimonials";
 import FinalCTA from "@/components/FinalCTA";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Dynamically import EcosystemOrbit3D with no SSR
 const EcosystemOrbit3D = dynamic(
@@ -106,9 +107,10 @@ export default function Home() {
               { label: "Legal", color: "#94a3b8" },
               { label: "Mission", color: "#f97316" }
             ].map((cat) => (
-              <div 
+              <button
                 key={cat.label}
-                className="group flex items-center gap-2"
+                type="button"
+                className="group flex items-center gap-2 hover:text-[#c8f135] hover:border-[rgba(200,241,53,0.3)]"
                 style={{
                   background: "rgba(255,255,255,0.04)",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -120,25 +122,19 @@ export default function Home() {
                   transition: "all 0.2s ease",
                   cursor: "default"
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(200,241,53,0.3)";
-                  e.currentTarget.style.color = "#c8f135";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                  e.currentTarget.style.color = "#a1a1a1";
-                }}
               >
-                <div className="w-[10px] h-[10px] rounded-full" style={{ backgroundColor: cat.color }} />
+                <span className="w-[10px] h-[10px] rounded-full" style={{ backgroundColor: cat.color }} />
                 {cat.label}
-              </div>
+              </button>
             ))}
           </div>
         </div>
 
         {/* Right 3D Scene */}
         <div className="w-full xl:w-[60%] h-[500px] xl:h-[700px] absolute xl:relative top-0 left-0 xl:left-auto opacity-30 xl:opacity-100 -z-10 xl:z-10">
-          <EcosystemOrbit3D />
+          <ErrorBoundary>
+            <EcosystemOrbit3D />
+          </ErrorBoundary>
         </div>
       </section>
 

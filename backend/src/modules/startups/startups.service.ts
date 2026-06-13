@@ -12,8 +12,8 @@ export class StartupsService {
     const where: Prisma.StartupWhereInput = {
       isActive: true,
       isVerified: true,
-      ...(domain && { domain: domain as any }),
-      ...(stage && { stage: stage as any }),
+  ...(domain && { domain }),
+  ...(stage && { stage }),
       ...(search && {
         OR: [
           { name: { contains: search, mode: "insensitive" } },
@@ -28,12 +28,16 @@ export class StartupsService {
         skip,
         take: Number(limit),
         orderBy: { createdAt: "desc" },
-        include: { primaryFounder: { select: { id: true, email: true, profile: { select: { name: true, avatarUrl: true } } } } }
+        include: { primaryFounder: { select: { id: true, email: true, profile: { select: { name: true } } } } }
       }),
       prisma.startup.count({ where })
     ]);
 
-    return { data, meta: { total, page: Number(page), limit: Number(limit) } };
+  const pageNumber = Number(page);
+  const pageLimit = Number(limit);
+  const totalPages = Math.ceil(total / pageLimit);
+
+  return { data, meta: { total, page: pageNumber, limit: pageLimit, totalPages } };
   }
 
   async getFeatured() {
@@ -44,9 +48,14 @@ export class StartupsService {
     });
   }
 
-  async getBySlug(slug: string) {
-    const startup = await prisma.startup.findUnique({
-      where: { slug },
+  async getBySlug(slugOrId: string) {
+    const startup = await prisma.startup.findFirst({
+      where: {
+        OR: [
+          { slug: slugOrId },
+          { id: slugOrId }
+        ]
+      },
       include: {
         founders: { include: { profile: true } },
         jobs: { where: { isActive: true } }
@@ -61,6 +70,7 @@ export class StartupsService {
     return await prisma.startup.create({
       data: {
         ...data,
+        isVerified: true,
         founders: { connect: [{ id: data.founderId }] }
       }
     });

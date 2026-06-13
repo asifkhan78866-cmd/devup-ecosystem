@@ -9,12 +9,34 @@ import type { Startup } from '@/types'
 import { ShieldCheck, Shield } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const DOMAINS = ['AI/ML', 'Fintech', 'EdTech', 'HealthTech', 'SaaS', 'Web3', 'E-commerce', 'CleanTech', 'DeepTech', 'Other']
-const STAGES = ['Idea', 'MVP', 'Pre-Seed', 'Seed', 'Series A', 'Growth']
+const DOMAINS = [
+  { label: 'AI/ML', value: 'AI_ML' },
+  { label: 'FinTech', value: 'FINTECH' },
+  { label: 'EdTech', value: 'EDTECH' },
+  { label: 'HealthTech', value: 'HEALTHTECH' },
+  { label: 'DevTools', value: 'DEVTOOLS' },
+  { label: 'SaaS', value: 'SAAS' },
+  { label: 'Web3', value: 'WEB3' },
+  { label: 'E-commerce', value: 'E_COMMERCE' },
+  { label: 'CleanTech', value: 'CLEANTECH' },
+  { label: 'DeepTech', value: 'DEEPTECH' },
+  { label: 'Other', value: 'OTHER' }
+]
+
+const STAGES = [
+  { label: 'Idea', value: 'IDEA' },
+  { label: 'MVP', value: 'MVP' },
+  { label: 'Pre-Seed', value: 'PRE_SEED' },
+  { label: 'Seed', value: 'SEED' },
+  { label: 'Series A', value: 'SERIES_A' },
+  { label: 'Series B', value: 'SERIES_B' },
+  { label: 'Growth', value: 'GROWTH' }
+]
+
 const HEADCOUNTS = ['1-5', '6-15', '16-50', '51-100', '100+']
 
 const emptyForm = {
-  name: '', slug: '', tagline: '', description: '', domain: 'AI/ML', stage: 'MVP',
+  name: '', slug: '', tagline: '', description: '', domain: 'AI_ML', stage: 'MVP',
   foundedYear: new Date().getFullYear(), headcount: '1-5', location: '', website: '', githubUrl: '',
 }
 
@@ -225,7 +247,7 @@ export default function Startups() {
                 value={form.domain} onChange={(e) => handleChange('domain', e.target.value)}
                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
               >
-                {DOMAINS.map(d => <option key={d} value={d} className="bg-[#0d0d0d]">{d}</option>)}
+                {DOMAINS.map(d => <option key={d.value} value={d.value} className="bg-[#0d0d0d]">{d.label}</option>)}
               </select>
             </div>
             <div>
@@ -234,7 +256,7 @@ export default function Startups() {
                 value={form.stage} onChange={(e) => handleChange('stage', e.target.value)}
                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
               >
-                {STAGES.map(s => <option key={s} value={s} className="bg-[#0d0d0d]">{s}</option>)}
+                {STAGES.map(s => <option key={s.value} value={s.value} className="bg-[#0d0d0d]">{s.label}</option>)}
               </select>
             </div>
             <div>

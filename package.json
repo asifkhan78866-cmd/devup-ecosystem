@@ -1,0 +1,36 @@
+{
+  "name": "devup-ecosystem",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:admin\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:admin": "cd backend/admin && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend && npm run build:admin",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:admin": "cd backend/admin && npm run build",
+    "lint": "npm run lint:frontend && npm run lint:backend && npm run lint:admin",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:admin": "cd backend/admin && npm run lint",
+    "type-check": "npm run type-check:frontend && npm run type-check:backend && npm run type-check:admin",
+    "type-check:frontend": "cd frontend && npx tsc --noEmit",
+    "type-check:backend": "cd backend && npx tsc --noEmit",
+    "type-check:admin": "cd backend/admin && npx tsc --noEmit",
+    "test": "npm run test:backend",
+    "test:backend": "cd backend && npm test",
+    "db:migrate": "cd backend && npx prisma migrate dev",
+    "db:migrate:prod": "cd backend && npx prisma migrate deploy",
+    "db:seed": "cd backend && npx prisma db seed",
+    "db:studio": "cd backend && npx prisma studio",
+    "db:generate": "cd backend && npx prisma generate",
+    "setup": "npm run setup:frontend && npm run setup:backend && npm run setup:admin",
+    "setup:frontend": "cd frontend && npm install && cp .env.local.example .env.local",
+    "setup:backend": "cd backend && npm install && cp .env.example .env && npx prisma generate",
+    "setup:admin": "cd backend/admin && npm install && cp .env.example .env"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

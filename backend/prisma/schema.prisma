@@ -70,15 +70,20 @@ enum Domain {
   SAAS
   EDTECH
   WEB3
+  E_COMMERCE
+  CLEANTECH
+  DEEPTECH
   OTHER
 }
 
 enum Stage {
   IDEA
+  MVP
   PRE_SEED
   SEED
   SERIES_A
   SERIES_B
+  GROWTH
 }
 
 model Startup {

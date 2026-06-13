@@ -26,7 +26,7 @@ export class AiService {
       throw new AppError(500, "Failed to call AI service");
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     return data.choices[0].message.content;
   }
 

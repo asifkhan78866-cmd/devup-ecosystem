@@ -7,6 +7,8 @@ import { morganMiddleware } from "./middleware/logger";
 import { errorHandler } from "./middleware/errorHandler";
 import { globalLimiter } from "./middleware/rateLimit";
 import { setupSwagger } from "./lib/swagger";
+import { prisma } from "./lib/prisma";
+import { redis } from "./config/redis";
 
 // Import routers
 import authRoutes from "./modules/auth/auth.routes";
@@ -24,20 +26,83 @@ import servicesRoutes from "./modules/services/services.routes";
 
 export const app = express();
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_URL,
+  ...env.CORS_ORIGINS.split(',').map((o) => o.trim()),
+].filter(Boolean) as string[];
+
 // Security and utility middlewares
 app.use(helmet());
-app.use(cors({ origin: env.CORS_ORIGINS.split(",") }));
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile, Postman, curl)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked: ${origin}`));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(morganMiddleware);
 app.use(globalLimiter);
 
 // Setup Swagger UI
 setupSwagger(app);
 
+// Root info route
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).json({
+    name: 'DevUp Ecosystem API',
+    version: '1.0.0',
+    status: 'running',
+    docs: '/api-docs',
+  });
+});
+
 // Routes
-app.get("/health", (req: Request, res: Response) => {
-  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+app.get("/health", async (req: Request, res: Response) => {
+  const checks = {
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || "1.0.0",
+    environment: env.NODE_ENV,
+    services: {
+      database: "unknown",
+      redis: "unknown",
+    },
+  };
+
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    checks.services.database = "ok";
+  } catch {
+    checks.services.database = "error";
+    checks.status = "degraded";
+  }
+
+  try {
+    await redis.ping();
+    checks.services.redis = "ok";
+  } catch {
+    checks.services.redis = "error";
+    checks.status = "degraded";
+  }
+
+  const statusCode = checks.status === "ok" ? 200 : 503;
+  res.status(statusCode).json(checks);
 });
 
 app.use("/api/auth", authRoutes);

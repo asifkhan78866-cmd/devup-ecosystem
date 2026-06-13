@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Users } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const HackathonArena = dynamic(
   () => import("@/components/3d/HackathonArena"),
@@ -167,7 +168,9 @@ export default function HackathonsPage() {
         </div>
       </div>
 
-      <HackathonArena />
+      <ErrorBoundary>
+        <HackathonArena />
+      </ErrorBoundary>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-12 pb-24">
         
@@ -203,6 +206,12 @@ export default function HackathonsPage() {
               let modeColor = "#38bdf8"; // Online
               if (hackathon.mode === "Offline") modeColor = "#fb923c";
               if (hackathon.mode === "Hybrid") modeColor = "#a78bfa";
+              let statusColor = "#a1a1a1";
+              if (isClosed) {
+                statusColor = "#6b6b6b";
+              } else if (hackathon.daysLeft <= 7) {
+                statusColor = "#fb923c";
+              }
 
               return (
                 <motion.div
@@ -249,7 +258,7 @@ export default function HackathonsPage() {
 
                       <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
                         <div 
-                          style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: isClosed ? "#6b6b6b" : (hackathon.daysLeft <= 7 ? "#fb923c" : "#a1a1a1") }}
+                          style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: statusColor }}
                         >
                           {isClosed ? "Registration closed" : `${hackathon.daysLeft}d left to register`}
                         </div>

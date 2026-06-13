@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthContext } from "./AuthProvider";
+import { useAuth } from "./AuthProvider";
 
 export function ProtectedRoute({
   children,
@@ -11,20 +11,20 @@ export function ProtectedRoute({
   children: React.ReactNode;
   requireAdmin?: boolean;
 }) {
-  const { user, isLoading } = useAuthContext();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!loading) {
       if (!user) {
         router.push("/login");
       } else if (requireAdmin && user.role !== "ADMIN") {
         router.push("/unauthorized");
       }
     }
-  }, [user, isLoading, requireAdmin, router]);
+  }, [user, loading, requireAdmin, router]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />

@@ -8,36 +8,43 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new AppError(401, "Not authorized, no token");
+      throw new AppError(401, "Not authorized, no token", "MISSING_TOKEN");
     }
 
-    const token = authHeader.split(" ")[1];
-    
-    // Verify Supabase JWT
-    const decoded = jwt.verify(token, env.SUPABASE_JWT_SECRET) as { sub: string };
+  const token = authHeader.split(" ")[1];
+
+  const decoded = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload;
     
     // Fetch user from our DB
-    const user = await prisma.user.findUnique({ where: { id: decoded.sub } });
-    
-    if (!user) {
-      throw new AppError(401, "Not authorized, user not found");
+    if (!decoded?.sub) {
+      throw new AppError(401, "Invalid token", "INVALID_TOKEN");
     }
 
-    (req as any).user = user;
+  const userId = String(decoded.sub);
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+    
+    if (!user) {
+      throw new AppError(401, "Not authorized, user not found", "USER_NOT_FOUND");
+    }
+
+    req.user = user;
     next();
   } catch (error) {
-    next(new AppError(401, "Not authorized, token failed"));
+    if (error instanceof jwt.TokenExpiredError) {
+      return next(new AppError(401, "Token expired", "TOKEN_EXPIRED"));
+    }
+    return next(new AppError(401, "Invalid token", "INVALID_TOKEN"));
   }
 };
 
 export const requireRole = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!(req as any).user) {
-      return next(new AppError(401, "Not authorized"));
+    if (!req.user) {
+      return next(new AppError(401, "Not authorized", "UNAUTHORIZED"));
     }
     
-    if (!roles.includes((req as any).user.role)) {
-      return next(new AppError(403, "Forbidden, insufficient permissions"));
+    if (!roles.includes(req.user.role)) {
+      return next(new AppError(403, "Forbidden, insufficient permissions", "FORBIDDEN"));
     }
     
     next();

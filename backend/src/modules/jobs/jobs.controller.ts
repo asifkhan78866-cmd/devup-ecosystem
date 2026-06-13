@@ -5,8 +5,8 @@ const jobsService = new JobsService();
 
 export class JobsController {
   async getJobs(req: Request, res: Response) {
-    const data = await jobsService.getJobs(req.query);
-    res.status(200).json({ success: true, ...data });
+    const { data, meta } = await jobsService.getJobs(req.query);
+    res.status(200).json({ success: true, data, meta });
   }
 
   async getJob(req: Request, res: Response) {

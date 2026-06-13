@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, UploadCloud, CheckCircle } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import confetti from "canvas-confetti";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const ApplicationRocket = dynamic(
   () => import("@/components/3d/ApplicationRocket"),
@@ -23,7 +24,16 @@ export default function ApplyPage() {
   const [formStep, setFormStep] = useState(1);
   const [formDirection, setFormDirection] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
+  const confettiFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (confettiFrameRef.current !== null) {
+        cancelAnimationFrame(confettiFrameRef.current);
+      }
+    };
+  }, []);
 
   const goToStep = (step: number) => {
     setFormDirection(step > formStep ? 1 : -1);
@@ -57,7 +67,7 @@ export default function ApplyPage() {
       });
 
       if (Date.now() < end) {
-        requestAnimationFrame(frame);
+        confettiFrameRef.current = requestAnimationFrame(frame);
       }
     };
     frame();
@@ -73,11 +83,30 @@ export default function ApplyPage() {
         variant="grid"
       />
 
-      <ApplicationRocket isLaunched={isSubmitted} />
+      <ErrorBoundary>
+        <ApplicationRocket isLaunched={isSubmitted} />
+      </ErrorBoundary>
 
       <div className="max-w-4xl mx-auto px-4 md:px-8 mt-12 pb-24 relative z-10">
         
-        {!isSubmitted ? (
+        {isSubmitted ? (
+          <div className="bg-[#111111] border border-[#1a1a1a] rounded-[16px] p-12 text-center mb-16 shadow-2xl">
+            <CheckCircle className="w-16 h-16 mx-auto mb-6 text-[#c8f135]" />
+            <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "36px", fontWeight: 800, color: "#fff", marginBottom: "16px" }}>
+              Application Received.
+            </h2>
+            <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "16px", color: "#a1a1a1", maxWidth: "480px", margin: "0 auto", lineHeight: 1.6, marginBottom: "32px" }}>
+              Your application for Cohort 4 has been successfully submitted. Our partner team will review your profile and get back to you within 48 hours. Keep building.
+            </p>
+            <button 
+              onClick={() => { globalThis.location.href = "/"; }}
+              className="px-8 py-3 bg-transparent border border-white/10 text-white font-semibold rounded-[8px] hover:bg-white/5 transition-colors"
+              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
+            >
+              Return to Home
+            </button>
+          </div>
+        ) : (
           <div className="bg-[#111111] border border-[#1a1a1a] rounded-[16px] overflow-hidden shadow-2xl mb-16">
             
             {/* Top Progress Bar */}
@@ -116,23 +145,23 @@ export default function ApplyPage() {
                       <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
-                            <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Primary Founder Name</label>
-                            <input type="text" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="John Doe" />
+                            <label htmlFor="founderName" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Primary Founder Name</label>
+                            <input id="founderName" type="text" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="John Doe" />
                           </div>
                           <div>
-                            <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Email Address</label>
-                            <input type="email" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="john@example.com" />
+                            <label htmlFor="founderEmail" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Email Address</label>
+                            <input id="founderEmail" type="email" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="john@example.com" />
                           </div>
                         </div>
 
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>LinkedIn Profile</label>
-                          <input type="url" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="https://linkedin.com/in/..." />
+                          <label htmlFor="founderLinkedin" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>LinkedIn Profile</label>
+                          <input id="founderLinkedin" type="url" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="https://linkedin.com/in/..." />
                         </div>
 
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Do you have co-founders?</label>
-                          <select className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors">
+                          <label htmlFor="cofounders" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Do you have co-founders?</label>
+                          <select id="cofounders" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors">
                             <option>No, I am a solo founder</option>
                             <option>Yes, 1 co-founder</option>
                             <option>Yes, 2+ co-founders</option>
@@ -145,12 +174,12 @@ export default function ApplyPage() {
                       <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
-                            <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Startup Name</label>
-                            <input type="text" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="e.g. Acme Corp" />
+                            <label htmlFor="startupName" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Startup Name</label>
+                            <input id="startupName" type="text" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="e.g. Acme Corp" />
                           </div>
                           <div>
-                            <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Primary Domain</label>
-                            <select className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors">
+                            <label htmlFor="startupDomain" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Primary Domain</label>
+                            <select id="startupDomain" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors">
                               <option>AI / Machine Learning</option>
                               <option>Fintech</option>
                               <option>Developer Tools</option>
@@ -163,13 +192,13 @@ export default function ApplyPage() {
                         </div>
 
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>One-sentence Pitch</label>
-                          <input type="text" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="We are building X for Y to solve Z." />
+                          <label htmlFor="startupPitch" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>One-sentence Pitch</label>
+                          <input id="startupPitch" type="text" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="We are building X for Y to solve Z." />
                         </div>
 
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Current Stage</label>
-                          <select className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors">
+                          <label htmlFor="startupStage" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Current Stage</label>
+                          <select id="startupStage" className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3.5 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors">
                             <option>Idea (No code yet)</option>
                             <option>Building MVP (Pre-launch)</option>
                             <option>Launched (Beta users)</option>
@@ -182,16 +211,17 @@ export default function ApplyPage() {
                     {formStep === 3 && (
                       <div className="space-y-6">
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Why are you building this? (The Problem)</label>
-                          <textarea className="w-full h-[100px] resize-none bg-[#0a0a0a] border border-white/10 rounded-[10px] p-4 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="What specific problem are you solving and how do you know it's a real problem?" />
+                          <label htmlFor="startupProblem" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Why are you building this? (The Problem)</label>
+                          <textarea id="startupProblem" className="w-full h-[100px] resize-none bg-[#0a0a0a] border border-white/10 rounded-[10px] p-4 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" placeholder="What specific problem are you solving and how do you know it's a real problem?" />
                         </div>
 
                         <div>
-                          <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Pitch Deck (Optional)</label>
-                          <div className="w-full border-2 border-dashed border-white/10 rounded-[10px] p-6 flex flex-col items-center justify-center cursor-pointer hover:border-[#c8f135]/40 hover:bg-[#c8f135]/5 transition-colors">
+                          <label htmlFor="pitchDeck" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Pitch Deck (Optional)</label>
+                          <label htmlFor="pitchDeck" className="w-full border-2 border-dashed border-white/10 rounded-[10px] p-6 flex flex-col items-center justify-center cursor-pointer hover:border-[#c8f135]/40 hover:bg-[#c8f135]/5 transition-colors">
                             <UploadCloud className="w-6 h-6 mb-2 text-[#6b6b6b]" />
                             <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1" }}>Click to upload PDF (Max 10MB)</span>
-                          </div>
+                            <input id="pitchDeck" type="file" className="sr-only" accept="application/pdf" />
+                          </label>
                         </div>
                       </div>
                     )}
@@ -232,23 +262,6 @@ export default function ApplyPage() {
               </div>
             </div>
           </div>
-        ) : (
-          <div className="bg-[#111111] border border-[#1a1a1a] rounded-[16px] p-12 text-center mb-16 shadow-2xl">
-            <CheckCircle className="w-16 h-16 mx-auto mb-6 text-[#c8f135]" />
-            <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "36px", fontWeight: 800, color: "#fff", marginBottom: "16px" }}>
-              Application Received.
-            </h2>
-            <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "16px", color: "#a1a1a1", maxWidth: "480px", margin: "0 auto", lineHeight: 1.6, marginBottom: "32px" }}>
-              Your application for Cohort 4 has been successfully submitted. Our partner team will review your profile and get back to you within 48 hours. Keep building.
-            </p>
-            <button 
-              onClick={() => window.location.href = '/'}
-              className="px-8 py-3 bg-transparent border border-white/10 text-white font-semibold rounded-[8px] hover:bg-white/5 transition-colors"
-              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
-            >
-              Return to Home
-            </button>
-          </div>
         )}
 
         {/* FAQ Accordion */}
@@ -258,12 +271,12 @@ export default function ApplyPage() {
           </h3>
           
           <div className="space-y-0">
-            {FAQS.map((faq, idx) => {
-              const isOpen = openFaq === idx;
+            {FAQS.map((faq) => {
+              const isOpen = openFaq === faq.q;
               return (
-                <div key={idx} className="border-b border-white/5">
+                <div key={faq.q} className="border-b border-white/5">
                   <button 
-                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    onClick={() => setOpenFaq(isOpen ? null : faq.q)}
                     className="w-full py-6 flex items-center justify-between text-left group"
                   >
                     <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "16px", color: isOpen ? "#c8f135" : "#e4e4e4", fontWeight: 500 }} className="group-hover:text-[#c8f135] transition-colors">

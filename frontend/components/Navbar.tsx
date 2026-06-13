@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Cpu, Brain, Palette, TrendingUp, Scale, Compass, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { useAuth } from '@/lib/auth/AuthProvider';
 
 const NAV_LINKS = [
   { name: "Ecosystem", path: "/ecosystem" },
@@ -33,6 +34,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { user, signOut, loading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -113,11 +115,63 @@ export function Navbar() {
 
         {/* CTA Button */}
         <div className="hidden md:block">
-          <Link href="/apply">
-            <Button variant="primary" size="sm" withShimmer>
-              Join Ecosystem
-            </Button>
-          </Link>
+          {loading ? null : user ? (
+            // Logged in state
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{
+                fontFamily: 'Inter', fontSize: 13,
+                color: '#6b6b6b',
+              }}>
+                {user.name.split(' ')[0]}
+              </span>
+              <a href="/dashboard" style={{
+                padding: '8px 16px',
+                background: 'rgba(200,241,53,0.1)',
+                border: '1px solid rgba(200,241,53,0.2)',
+                borderRadius: 8, color: '#c8f135',
+                fontFamily: 'Inter', fontSize: 13,
+                fontWeight: 600, textDecoration: 'none',
+              }}>
+                Dashboard
+              </a>
+              <button
+                onClick={signOut}
+                style={{
+                  padding: '8px 16px',
+                  background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 8, color: '#6b6b6b',
+                  fontFamily: 'Inter', fontSize: 13,
+                  cursor: 'pointer',
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+          ) : (
+            // Logged out state
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <a href="/login" style={{
+                padding: '8px 16px',
+                background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 8, color: '#a1a1a1',
+                fontFamily: 'Inter', fontSize: 13,
+                fontWeight: 500, textDecoration: 'none',
+              }}>
+                Sign in
+              </a>
+              <a href="/signup" style={{
+                padding: '8px 16px',
+                background: '#c8f135', color: '#000000',
+                borderRadius: 8,
+                fontFamily: 'Inter', fontSize: 13,
+                fontWeight: 700, textDecoration: 'none',
+              }}>
+                Join Ecosystem
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}

@@ -13,6 +13,15 @@ export class UsersService {
     return user;
   }
 
+  async getAllUsers(limit: number = 100) {
+    const users = await prisma.user.findMany({
+      take: limit,
+      include: { profile: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    return users;
+  }
+
   async updateUser(id: string, requesterId: string, data: any) {
     if (id !== requesterId) {
       const requester = await prisma.user.findUnique({ where: { id: requesterId } });

@@ -12,7 +12,7 @@ router.get("/:id", controller.getJob);
 
 router.post("/", requireAuth, requireRole(["ADMIN", "FOUNDER"]), validate(jobSchema), controller.createJob);
 router.patch("/:id", requireAuth, requireRole(["ADMIN", "FOUNDER"]), validate(updateJobSchema), controller.updateJob);
-router.delete("/:id", requireAuth, requireRole(["ADMIN", "FOUNDER"]), controller.deleteJob);
+router.delete("/:id", requireAuth, requireRole(["ADMIN"]), controller.deleteJob);
 
 router.post("/:id/apply", requireAuth, requireRole(["STUDENT", "FOUNDER"]), validate(applyJobSchema), controller.applyForJob);
 

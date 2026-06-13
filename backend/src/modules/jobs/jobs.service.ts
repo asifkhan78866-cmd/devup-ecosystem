@@ -23,7 +23,11 @@ export class JobsService {
       prisma.job.count({ where })
     ]);
 
-    return { data, meta: { total, page: Number(page), limit: Number(limit) } };
+  const pageNumber = Number(page);
+  const pageLimit = Number(limit);
+  const totalPages = Math.ceil(total / pageLimit);
+
+  return { data, meta: { total, page: pageNumber, limit: pageLimit, totalPages } };
   }
 
   async getJob(id: string) {
@@ -67,7 +71,9 @@ export class JobsService {
 
   async applyForJob(jobId: string, userId: string, data: any) {
     const job = await prisma.job.findUnique({ where: { id: jobId }, include: { startup: { include: { primaryFounder: true } } } });
-    if (!job || !job.isActive) throw new AppError(404, "Job not found or inactive");
+    if (!job?.isActive) {
+      throw new AppError(404, "Job not found or inactive", "JOB_NOT_FOUND");
+    }
 
     const profile = await prisma.profile.findUnique({ where: { userId } });
     if (!profile?.resumeUrl) throw new AppError(400, "Please upload a resume to your profile before applying");

@@ -1,116 +1,199 @@
-"use client";
+'use client'
+import { 
+  createContext, useContext, useEffect, 
+  useState, useCallback 
+} from 'react'
+import { createClient } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+import type { User, Session } from '@supabase/supabase-js'
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
-import { supabase } from "@/lib/supabase";
-import type { User, Session } from "@supabase/supabase-js";
-
-interface AuthUser {
-  id: string;
-  email: string;
-  role: string;
-  name?: string;
-  avatarUrl?: string;
+interface UserProfile {
+  id: string
+  email: string
+  name: string
+  role: 'ADMIN' | 'FOUNDER' | 'STUDENT' | 'INVESTOR'
+  avatarUrl?: string
+  college?: string
+  city?: string
 }
 
 interface AuthContextType {
-  user: AuthUser | null;
-  session: Session | null;
-  isLoading: boolean;
-  isAdmin: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => Promise<void>;
+  user: UserProfile | null
+  session: Session | null
+  loading: boolean
+  signUp: (data: SignUpData) => Promise<{ error?: string }>
+  signIn: (email: string, password: string) => Promise<{ error?: string }>
+  signOut: () => Promise<void>
+  updateProfile: (data: Partial<UserProfile>) => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface SignUpData {
+  email: string
+  password: string
+  name: string
+  role: 'FOUNDER' | 'STUDENT' | 'INVESTOR'
+  college?: string
+  city?: string
+}
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+const AuthContext = createContext<AuthContextType | null>(null)
 
-  const mapUser = useCallback((supaUser: User | null, sess: Session | null): AuthUser | null => {
-    if (!supaUser) return null;
-    return {
-      id: supaUser.id,
-      email: supaUser.email || "",
-      role: supaUser.user_metadata?.role || "STUDENT",
-      name: supaUser.user_metadata?.name,
-      avatarUrl: supaUser.user_metadata?.avatar_url,
-    };
-  }, []);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const supabase = createClient()
+
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession())
+              .data.session?.access_token}`
+          }
+        }
+      )
+      if (response.ok) {
+        const { data: userData } = await response.json()
+        // Map Prisma User + Profile to the UserProfile interface expected by frontend
+        const mappedUser: UserProfile = {
+          id: userData.id,
+          email: userData.email,
+          role: userData.role,
+          name: userData.profile?.name || 'User',
+          avatarUrl: userData.avatarUrl || userData.profile?.avatarUrl,
+          college: userData.profile?.college,
+          city: userData.profile?.city,
+        }
+        setUser(mappedUser)
+      }
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error)
+    }
+  }, [supabase])
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session: sess } }) => {
-      setSession(sess);
-      setUser(mapUser(sess?.user ?? null, sess));
-      setIsLoading(false);
-    });
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, sess) => {
-        setSession(sess);
-        setUser(mapUser(sess?.user ?? null, sess));
-        setIsLoading(false);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      if (session?.user) {
+        fetchUserProfile(session.user.id)
+      } else {
+        setLoading(false)
       }
-    );
+    })
 
-    return () => subscription.unsubscribe();
-  }, [mapUser]);
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session)
+        if (session?.user) {
+          await fetchUserProfile(session.user.id)
+        } else {
+          setUser(null)
+        }
+        setLoading(false)
+        
+        if (event === 'SIGNED_OUT') {
+          router.push('/')
+        }
+      }
+    )
 
-  const login = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-  }, []);
+    return () => subscription.unsubscribe()
+  }, [fetchUserProfile, router, supabase.auth])
 
-  const signup = useCallback(async (email: string, password: string, name: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name, role: "STUDENT" },
-      },
-    });
-    if (error) throw error;
-  }, []);
+  const signUp = async (data: SignUpData) => {
+    try {
+      // Register via backend (creates Supabase user + DB profile)
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }
+      )
+      
+      const result = await response.json()
+      
+      if (!response.ok) {
+        return { error: result.error || result.message || 'Registration failed' }
+      }
 
-  const logout = useCallback(async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    setUser(null);
-    setSession(null);
-  }, []);
+      // Sign in with Supabase after registration
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      })
+
+      if (error) return { error: error.message }
+      
+      router.push('/dashboard')
+      return {}
+    } catch {
+      return { error: 'Something went wrong. Please try again.' }
+    }
+  }
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      
+      if (error) return { error: error.message }
+      
+      router.push('/dashboard')
+      return {}
+    } catch {
+      return { error: 'Something went wrong. Please try again.' }
+    }
+  }
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    setSession(null)
+  }
+
+  const updateProfile = async (data: Partial<UserProfile>) => {
+    if (!user || !session) return
+    
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/users/${user.id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(data),
+      }
+    )
+    
+    if (response.ok) {
+      const result = await response.json()
+      setUser(result.data)
+    }
+  }
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        isLoading,
-        isAdmin: user?.role === "ADMIN",
-        login,
-        signup,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, session, loading,
+      signUp, signIn, signOut, updateProfile
+    }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
-export function useAuthContext() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuthContext must be used within an AuthProvider");
-  }
-  return context;
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (!context) throw new Error('useAuth must be used within AuthProvider')
+  return context
 }

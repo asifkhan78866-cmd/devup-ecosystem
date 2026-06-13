@@ -5,12 +5,14 @@ import dynamic from "next/dynamic";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
-import { Providers } from "@/components/providers/QueryProvider";
+import { Providers } from "@/lib/providers";
 
 const IntroAnimation = dynamic(
   () => import("@/components/IntroAnimation"),
   { ssr: false }
 );
+
+import { AuthProvider } from "@/lib/auth/AuthProvider";
 
 export default function LayoutClient({
   children,
@@ -40,19 +42,21 @@ export default function LayoutClient({
 
   return (
     <Providers>
-      {showIntro && (
-        <IntroAnimation
-          onComplete={() => {
-            setShowIntro(false);
-            sessionStorage.setItem("devup_intro_seen", "true");
-          }}
-        />
-      )}
-      <SmoothScrollProvider>
-        <Navbar />
-        <main className="flex-1 relative z-10">{children}</main>
-        <Footer />
-      </SmoothScrollProvider>
+      <AuthProvider>
+        {showIntro && (
+          <IntroAnimation
+            onComplete={() => {
+              setShowIntro(false);
+              sessionStorage.setItem("devup_intro_seen", "true");
+            }}
+          />
+        )}
+        <SmoothScrollProvider>
+          <Navbar />
+          <main className="flex-1 relative z-10">{children}</main>
+          <Footer />
+        </SmoothScrollProvider>
+      </AuthProvider>
     </Providers>
   );
 }

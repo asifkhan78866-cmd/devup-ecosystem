@@ -10,6 +10,12 @@ export class UsersController {
     res.status(200).json({ success: true, data: user });
   }
 
+  async getUsers(req: Request, res: Response) {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+    const users = await usersService.getAllUsers(limit);
+    res.status(200).json({ success: true, data: users });
+  }
+
   async updateUser(req: Request, res: Response) {
     const profile = await usersService.updateUser(req.params.id as string, (req as any).user!.id, req.body);
     res.status(200).json({ success: true, data: profile });

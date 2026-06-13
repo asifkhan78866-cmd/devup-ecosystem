@@ -7,6 +7,7 @@ import { services } from "@/data/services";
 import type { Service } from "@/data/services";
 import PageHeader from "@/components/PageHeader";
 import FloatingSymbols from "@/components/FloatingSymbols";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const ServiceOrbit3D = dynamic(
   () => import("@/components/build-with-devup/ServiceOrbit3D"),
@@ -1464,7 +1465,9 @@ export default function BuildWithDevUp() {
           marginBottom: 80,
         }}
       >
-        <ServiceOrbit3D />
+            <ErrorBoundary>
+              <ServiceOrbit3D />
+            </ErrorBoundary>
 
         <div
           style={{

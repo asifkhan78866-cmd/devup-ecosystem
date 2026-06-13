@@ -127,6 +127,7 @@ export interface AdminStats {
   totalUsers: number
   totalStartups: number
   totalApplications: number
+  pendingServiceRequests?: number
   totalJobs: number
   activeHackathons: number
   totalFunding: string
