@@ -8,9 +8,9 @@ export const globalLimiter = rateLimit({
   max: env.RATE_LIMIT_MAX_REQUESTS,
   standardHeaders: true,
   legacyHeaders: false,
-  store: new RedisStore({
-    sendCommand: (...args: string[]) => redis.call(args[0], ...args.slice(1)) as any,
-  }),
+  store: redis ? new RedisStore({
+    sendCommand: (...args: string[]) => redis!.call(args[0], ...args.slice(1)) as any,
+  }) : undefined,
   message: {
     success: false,
     error: "Too many requests, please try again later.",
@@ -23,9 +23,9 @@ export const aiLimiter = rateLimit({
   max: env.AI_RATE_LIMIT_MAX, // 20
   standardHeaders: true,
   legacyHeaders: false,
-  store: new RedisStore({
-    sendCommand: (...args: string[]) => redis.call(args[0], ...args.slice(1)) as any,
-  }),
+  store: redis ? new RedisStore({
+    sendCommand: (...args: string[]) => redis!.call(args[0], ...args.slice(1)) as any,
+  }) : undefined,
   message: {
     success: false,
     error: "AI rate limit exceeded. Please try again next hour.",

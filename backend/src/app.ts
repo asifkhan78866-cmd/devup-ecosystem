@@ -66,39 +66,28 @@ setupSwagger(app);
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
     name: 'DevUp Ecosystem API',
-    version: '1.0.0',
     status: 'running',
-    docs: '/api-docs',
   });
 });
 
 // Routes
-app.get("/health", async (req: Request, res: Response) => {
+app.get(["/health", "/api/health"], async (req: Request, res: Response) => {
   const checks = {
     status: "ok",
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || "1.0.0",
-    environment: env.NODE_ENV,
-    services: {
-      database: "unknown",
-      redis: "unknown",
-    },
   };
 
   try {
     await prisma.$queryRaw`SELECT 1`;
-    checks.services.database = "ok";
   } catch {
-    checks.services.database = "error";
     checks.status = "degraded";
   }
 
-  try {
-    await redis.ping();
-    checks.services.redis = "ok";
-  } catch {
-    checks.services.redis = "error";
-    checks.status = "degraded";
+  if (redis) {
+    try {
+      await redis.ping();
+    } catch {
+      checks.status = "degraded";
+    }
   }
 
   const statusCode = checks.status === "ok" ? 200 : 503;

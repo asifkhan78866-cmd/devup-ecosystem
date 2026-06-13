@@ -1,21 +1,24 @@
 import { Queue, Worker } from "bullmq";
 import { redis } from "../config/redis";
 
-export const documentQueue = new Queue("documentQueue", { connection: redis });
+export const documentQueue = redis ? new Queue("documentQueue", { connection: redis }) : null;
 
-const worker = new Worker("documentQueue", async (job) => {
-  const { documentId, action } = job.data;
-  
-  if (action === "GENERATE_PDF") {
-    // Logic to generate PDF from HTML template and upload to Supabase
-    console.log(`Generating PDF for document ${documentId}`);
-  }
-}, { connection: redis });
+let worker: Worker | null = null;
 
-worker.on("completed", (job) => {
-  console.log(`Document job ${job.id} completed.`);
-});
+if (redis) {
+  worker = new Worker("documentQueue", async (job) => {
+    const { documentId, type } = job.data;
+    // Process document logic (e.g., convert, thumbnail, watermark)
+    console.log(`Processing document ${documentId} of type ${type}`);
+  }, { connection: redis });
 
-worker.on("failed", (job, err) => {
+  worker.on("completed", (job) => {
+    console.log(`Document job ${job.id} completed.`);
+  });
+} else {
+  console.log("Document queue disabled because Redis is unavailable");
+}
+
+worker?.on("failed", (job, err) => {
   console.error(`Document job ${job?.id} failed with error:`, err);
 });

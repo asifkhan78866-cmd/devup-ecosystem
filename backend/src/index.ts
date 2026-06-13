@@ -27,7 +27,7 @@ const startServer = async () => {
       server.close(async () => {
         logger.info("HTTP server closed.");
         await prisma.$disconnect();
-        await redis.quit();
+        if (redis) await redis.quit();
         process.exit(0);
       });
     };
