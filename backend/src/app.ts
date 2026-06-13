@@ -30,6 +30,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3002',
+  'https://devup-ecosystem.vercel.app',
+  'https://devupecosystem.com',
   process.env.FRONTEND_URL,
   process.env.ADMIN_URL,
   ...env.CORS_ORIGINS.split(',').map((o) => o.trim()),
