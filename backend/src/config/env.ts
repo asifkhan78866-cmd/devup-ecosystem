@@ -58,11 +58,17 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 });
 
-const _env = envSchema.safeParse(process.env);
+let env: z.infer<typeof envSchema>;
 
-if (!_env.success) {
-  console.error("❌ Invalid environment variables:", _env.error.issues);
+try {
+  env = envSchema.parse(process.env);
+} catch (err) {
+  if (err instanceof z.ZodError) {
+    console.error("❌ Invalid environment variables:", err.issues);
+  } else {
+    console.error("❌ Failed to parse environment variables:", err);
+  }
   process.exit(1);
 }
 
-export const env = _env.data;
+export { env };
