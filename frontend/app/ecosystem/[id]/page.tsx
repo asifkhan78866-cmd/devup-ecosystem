@@ -37,7 +37,7 @@ export default function StartupProfilePage() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups/${id}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/startups/${id}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) {

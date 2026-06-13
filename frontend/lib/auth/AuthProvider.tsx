@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUserProfile = useCallback(async (userId: string) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`,
+        `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/users/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${(await supabase.auth.getSession())
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // Register via backend (creates Supabase user + DB profile)
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
+        `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/auth/register`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -165,7 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user || !session) return
     
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/users/${user.id}`,
+      `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/users/${user.id}`,
       {
         method: 'PATCH',
         headers: {

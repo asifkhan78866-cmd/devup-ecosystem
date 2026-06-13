@@ -35,7 +35,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://devup-api.onrender.com/api/:path*"
+      "destination": "https://devup-eco.onrender.com/api/:path*"
     }
   ]
 }

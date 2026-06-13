@@ -18,7 +18,7 @@ export default function StartupShowcase() {
   const [startups, setStartups] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/startups`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) {
