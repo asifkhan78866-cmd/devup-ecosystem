@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Cpu, Brain, Palette, TrendingUp, Scale, Compass, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { useAuth } from '@/lib/auth/AuthProvider';
 
 const NAV_LINKS = [
@@ -191,7 +190,7 @@ export function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-black/95 backdrop-blur-3xl z-40 flex flex-col items-center justify-center gap-8"
+              className="fixed inset-0 bg-black/95 backdrop-blur-3xl z-40 flex flex-col items-center justify-center gap-6"
             >
               {NAV_LINKS.map((link, idx) => (
                 <motion.div
@@ -209,15 +208,52 @@ export function Navbar() {
                   </Link>
                 </motion.div>
               ))}
+              
+              {/* Auth section in mobile menu */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="mt-4"
+                className="mt-4 flex flex-col items-center gap-3 w-full max-w-xs"
               >
-                <Button variant="primary" size="lg" withShimmer onClick={() => setMobileMenuOpen(false)}>
-                  Join Ecosystem
-                </Button>
+                {loading ? null : user ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full text-center py-3 bg-[#c8f135] text-black font-bold rounded-[10px]"
+                      style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: '15px' }}
+                    >
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={() => { signOut(); setMobileMenuOpen(false); }}
+                      className="w-full text-center py-3 border border-white/10 text-[#a1a1a1] rounded-[10px]"
+                      style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: '15px' }}
+                    >
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/signup"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full text-center py-3 bg-[#c8f135] text-black font-bold rounded-[10px]"
+                      style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: '15px' }}
+                    >
+                      Join Ecosystem
+                    </Link>
+                    <Link
+                      href="/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full text-center py-3 border border-white/10 text-[#a1a1a1] rounded-[10px]"
+                      style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: '15px' }}
+                    >
+                      Sign in
+                    </Link>
+                  </>
+                )}
               </motion.div>
             </motion.div>
           )}

@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Html, Line } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import * as THREE from "three";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 // Pre-define domains and colors
 const DOMAINS = {
@@ -170,16 +171,18 @@ function ConstellationGroup() {
 }
 
 export default function EcosystemConstellation() {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="w-full h-[340px] relative">
+    <div className={`w-full relative ${isMobile ? 'h-[220px]' : 'h-[340px]'}`}>
       <Canvas
         camera={{ position: [0, 0, 8], fov: 60 }}
-        dpr={[1, 2]}
+        dpr={isMobile ? [1, 1.5] : [1, 2]}
       >
         <ambientLight intensity={0.2} />
         <pointLight position={[10, 10, 10]} intensity={1} />
         <ConstellationGroup />
-        <OrbitControls enableZoom={false} enablePan={false} enableDamping dampingFactor={0.05} />
+        <OrbitControls enableZoom={false} enablePan={false} enableRotate={!isMobile} enableDamping dampingFactor={0.05} />
       </Canvas>
     </div>
   );

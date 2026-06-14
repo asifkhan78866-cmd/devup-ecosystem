@@ -126,3 +126,23 @@ code, pre, .text-mono {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-disabled);
 }
+
+/* Prevent horizontal overflow on mobile */
+body {
+  overflow-x: hidden;
+}
+
+/* Hide scrollbar utility for filter bars */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Intro animation: instantly hide overlay for returning visitors
+   The inline script in layout.tsx sets data-skip-intro before paint */
+html[data-skip-intro="true"] #intro-overlay {
+  display: none;
+}

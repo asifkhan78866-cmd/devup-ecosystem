@@ -4,6 +4,7 @@ import { useRef, useMemo, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Html, CatmullRomLine, Line } from "@react-three/drei";
 import * as THREE from "three";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 const NODES = [
   { id: "tech", label: "Tech", color: "#6366f1", ring: 0, angle: 0 },
@@ -16,12 +17,12 @@ const NODES = [
   { id: "startup", label: "Startup", color: "#ffffff", ring: 1, angle: Math.PI * 0.75 },
 ];
 
-function ParticleField() {
+function ParticleField({ count = 2000 }: { count?: number }) {
   const pointsRef = useRef<THREE.Points>(null);
   
   const particles = useMemo(() => {
-    const temp = new Float32Array(2000 * 3);
-    for (let i = 0; i < 2000; i++) {
+    const temp = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
       const theta = Math.random() * 2 * Math.PI;
       const phi = Math.acos(Math.random() * 2 - 1);
       const r = 8 * Math.cbrt(Math.random());
@@ -31,7 +32,7 @@ function ParticleField() {
       temp[i * 3 + 2] = r * Math.cos(phi);
     }
     return temp;
-  }, []);
+  }, [count]);
 
   useFrame(() => {
     if (pointsRef.current) {
@@ -209,11 +210,14 @@ function CentralNode() {
 }
 
 export default function EcosystemOrbit3D() {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="w-full h-full min-h-[700px] relative cursor-pointer">
+    <div className={`w-full relative cursor-pointer ${isMobile ? 'h-[350px]' : 'h-full min-h-[700px]'}`}>
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: !isMobile, alpha: true }}
+        dpr={isMobile ? [1, 1.5] : [1, 2]}
       >
         <ambientLight intensity={0.2} />
         <pointLight position={[3, 3, 3]} color="#6366f1" intensity={3} />
@@ -221,16 +225,13 @@ export default function EcosystemOrbit3D() {
         
         <CentralNode />
         
-        {/* Ring 1 (equatorial) */}
         <OrbitalRing index={0} tilt={0} speed={0.004} nodes={NODES} />
-        {/* Ring 2 (60 deg tilt) */}
         <OrbitalRing index={1} tilt={Math.PI / 3} speed={-0.003} nodes={NODES} />
-        {/* Ring 3 (-45 deg tilt) */}
         <OrbitalRing index={2} tilt={-Math.PI / 4} speed={0.002} nodes={NODES} />
 
-        <ParticleField />
+        <ParticleField count={isMobile ? 800 : 2000} />
         
-        <OrbitControls enableZoom={false} enablePan={false} enableDamping dampingFactor={0.05} autoRotate={false} />
+        <OrbitControls enableZoom={false} enablePan={false} enableRotate={!isMobile} enableDamping dampingFactor={0.05} autoRotate={false} />
       </Canvas>
     </div>
   );

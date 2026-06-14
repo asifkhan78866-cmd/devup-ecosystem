@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -19,13 +19,7 @@ export default function LayoutClient({
 }: {
   children: React.ReactNode;
 }) {
-  const [showIntro, setShowIntro] = useState(false);
-
   useEffect(() => {
-    // Check if intro has been seen
-    const seen = sessionStorage.getItem("devup_intro_seen");
-    if (!seen) setShowIntro(true);
-
     // Suppress THREE.Clock deprecation warning caused by @react-three/fiber internals
     const originalWarn = console.warn;
     console.warn = (...args) => {
@@ -43,14 +37,7 @@ export default function LayoutClient({
   return (
     <Providers>
       <AuthProvider>
-        {showIntro && (
-          <IntroAnimation
-            onComplete={() => {
-              setShowIntro(false);
-              sessionStorage.setItem("devup_intro_seen", "true");
-            }}
-          />
-        )}
+        <IntroAnimation />
         <SmoothScrollProvider>
           <Navbar />
           <main className="flex-1 relative z-10">{children}</main>

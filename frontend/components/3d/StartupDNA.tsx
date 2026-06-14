@@ -4,6 +4,7 @@ import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Line } from "@react-three/drei";
 import * as THREE from "three";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface StartupDNAProps {
   color?: string;
@@ -98,7 +99,7 @@ function DNAHelix({ color = "#c8f135" }: { color: string }) {
 
 export default function StartupDNA({ color = "#c8f135" }: StartupDNAProps) {
   return (
-    <div className="w-full h-[500px] relative pointer-events-none">
+    <div className="w-full h-[280px] md:h-[500px] relative pointer-events-none">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
         dpr={[1, 2]}

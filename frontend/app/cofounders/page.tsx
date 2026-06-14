@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, X, Code2, Palette, Megaphone, Settings, Briefcase, Box } from "lucide-react";
+import { Search, UserPlus, X, Code2, Palette, Megaphone, Settings, Briefcase, Box, Loader2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -12,23 +12,58 @@ const CofounderField = dynamic(
   { ssr: false }
 );
 
-const PROFILES = [
-  { id: 1, name: "Arjun Mehta", college: "IIT Bombay", city: "Bengaluru", role: { label: "Developer", color: "#a78bfa", bg: "rgba(99,102,241,0.1)", border: "rgba(99,102,241,0.2)" }, stage: "Idea Phase", stageClass: "idea", idea: "An AI-powered devtool for automatic API generation.", needs: "Marketing / Sales", time: "Weekends", active: true, seed: "Arjun" },
-  { id: 2, name: "Priya Singh", college: "BITS Pilani", city: "Delhi NCR", role: { label: "Designer", color: "#f472b6", bg: "rgba(236,72,153,0.1)", border: "rgba(236,72,153,0.2)" }, stage: "Building MVP", stageClass: "mvp", idea: "A unified platform for managing decentralized identities.", needs: "Technical Lead", time: "Full-time", active: false, seed: "Priya" },
-  { id: 3, name: "Karan Patel", college: "IIM Ahmedabad", city: "Mumbai", role: { label: "Operator", color: "#fb923c", bg: "rgba(251,146,60,0.1)", border: "rgba(251,146,60,0.2)" }, stage: "Launched", stageClass: "launched", idea: "B2B procurement SaaS for restaurants.", needs: "Technical Co-founder", time: "Full-time", active: true, seed: "Karan" },
-  { id: 4, name: "Sneha Reddy", college: "NIT Warangal", city: "Hyderabad", role: { label: "Developer", color: "#a78bfa", bg: "rgba(99,102,241,0.1)", border: "rgba(99,102,241,0.2)" }, stage: "Building MVP", stageClass: "mvp", idea: "Zero-knowledge proof infrastructure layer.", needs: "Design / Ops", time: "Part-time", active: true, seed: "Sneha" },
-];
+const ROLE_STYLES: Record<string, { color: string; bg: string; border: string }> = {
+  Developer: { color: "#a78bfa", bg: "rgba(99,102,241,0.1)", border: "rgba(99,102,241,0.2)" },
+  Designer: { color: "#f472b6", bg: "rgba(236,72,153,0.1)", border: "rgba(236,72,153,0.2)" },
+  Marketer: { color: "#fb923c", bg: "rgba(251,146,60,0.1)", border: "rgba(251,146,60,0.2)" },
+  Operator: { color: "#fb923c", bg: "rgba(251,146,60,0.1)", border: "rgba(251,146,60,0.2)" },
+  Sales: { color: "#22c55e", bg: "rgba(34,197,94,0.1)", border: "rgba(34,197,94,0.2)" },
+  Product: { color: "#38bdf8", bg: "rgba(56,189,248,0.1)", border: "rgba(56,189,248,0.2)" },
+};
+const DEFAULT_ROLE_STYLE = { color: "#a1a1a1", bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.1)" };
 
 export default function CoFoundersPage() {
   const [showForm, setShowForm] = useState(false);
   const [formStep, setFormStep] = useState(1);
-  const [formDirection, setFormDirection] = useState(1); // 1 = forward, -1 = backward
+  const [formDirection, setFormDirection] = useState(1);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Form State
   const [bringRole, setBringRole] = useState("");
   const [buildStage, setBuildStage] = useState("I have an idea");
   const [needRoles, setNeedRoles] = useState<string[]>([]);
   const [availability, setAvailability] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/cofounders`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          const formatted = data.data.map((p: any) => {
+            const roleLabel = p.role || p.skills?.[0] || "Developer";
+            const roleStyle = ROLE_STYLES[roleLabel] || DEFAULT_ROLE_STYLE;
+            return {
+              id: p.id,
+              name: p.user?.name || p.name || "Anonymous",
+              college: p.user?.college || p.college || "",
+              city: p.city || p.user?.city || "Remote",
+              role: { label: roleLabel, ...roleStyle },
+              stage: p.stage || "Idea Phase",
+              stageClass: (p.stage || "").toLowerCase().includes("mvp") ? "mvp" : (p.stage || "").toLowerCase().includes("launch") ? "launched" : "idea",
+              idea: p.idea || p.bio || "",
+              needs: p.lookingFor || "Co-founder",
+              time: p.availability || "Part-time",
+              active: p.isActive ?? true,
+              seed: p.user?.name?.split(" ")[0] || p.name?.split(" ")[0] || "User",
+            };
+          });
+          setProfiles(formatted);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const getStageStyles = (stageClass: string) => {
     if (stageClass === "idea") {
@@ -178,7 +213,18 @@ export default function CoFoundersPage() {
 
           {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {PROFILES.map((p) => (
+            {loading && (
+              <div className="col-span-full flex items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-[#c8f135]" />
+              </div>
+            )}
+            {!loading && profiles.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+                <p style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "18px", color: "#fff", marginBottom: "8px" }}>No co-founder profiles yet</p>
+                <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#6b6b6b" }}>Be the first to create one!</p>
+              </div>
+            )}
+            {profiles.map((p) => (
               <div 
                 key={p.id}
                 className="group bg-[#111111] border border-white/5 rounded-[16px] p-6 flex flex-col transition-all duration-300 hover:border-white/15 hover:translate-y-[-4px]"

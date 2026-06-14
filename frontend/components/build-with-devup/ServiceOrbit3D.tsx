@@ -4,6 +4,7 @@ import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 function OrbitNode({ position, size = 0.15, color = "#c8f135" }: { position: [number, number, number]; size?: number; color?: string }) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -112,6 +113,7 @@ function Scene() {
 }
 
 export default function ServiceOrbit3D() {
+  const isMobile = useIsMobile();
   return (
     <div style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }}>
       <Canvas

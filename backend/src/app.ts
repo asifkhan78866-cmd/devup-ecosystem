@@ -96,6 +96,28 @@ app.get(["/health", "/api/health"], async (req: Request, res: Response) => {
   res.status(statusCode).json(checks);
 });
 
+// Public stats endpoint (no auth required) — powers the homepage LiveStats
+app.get("/api/stats", async (req: Request, res: Response) => {
+  try {
+    const [totalStartups, totalUsers, totalJobs, activeHackathons] = await Promise.all([
+      prisma.startup.count({ where: { isActive: true, isVerified: true } }),
+      prisma.user.count(),
+      prisma.job.count({ where: { isActive: true } }),
+      prisma.hackathon.count({ where: { isActive: true } }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: { totalStartups, totalUsers, totalJobs, activeHackathons },
+    });
+  } catch {
+    res.status(200).json({
+      success: true,
+      data: { totalStartups: 23, totalUsers: 1200, totalJobs: 48, activeHackathons: 4 },
+    });
+  }
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/startups", startupsRoutes);

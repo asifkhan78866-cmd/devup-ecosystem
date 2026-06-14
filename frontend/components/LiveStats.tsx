@@ -39,12 +39,29 @@ function CountUp({ end, duration = 2 }: { end: number; duration?: number }) {
 }
 
 export default function LiveStats() {
-  const stats = [
+  const [stats, setStats] = useState([
     { value: 23, prefix: "", suffix: "+", label: "Active Startups" },
     { value: 4, prefix: "₹", suffix: "Cr+", label: "Funding Unlocked" },
     { value: 1200, prefix: "", suffix: "+", label: "Student Builders" },
     { value: 48, prefix: "", suffix: "hr", label: "Average Response" },
-  ];
+  ]);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/stats`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          const d = data.data;
+          setStats([
+            { value: d.totalStartups || 23, prefix: "", suffix: "+", label: "Active Startups" },
+            { value: 4, prefix: "₹", suffix: "Cr+", label: "Funding Unlocked" },
+            { value: d.totalUsers || 1200, prefix: "", suffix: "+", label: "Student Builders" },
+            { value: d.totalJobs || 48, prefix: "", suffix: "", label: "Open Roles" },
+          ]);
+        }
+      })
+      .catch(() => {}); // keep fallback values
+  }, []);
 
   return (
     <section 

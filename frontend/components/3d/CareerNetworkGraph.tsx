@@ -4,6 +4,7 @@ import { useRef, useMemo, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html, Line } from "@react-three/drei";
 import * as THREE from "three";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 const DOMAINS = {
   "AI/ML": "#c8f135",
@@ -237,8 +238,9 @@ function DynamicLine({ company, job, opacity }: { company: any, job: any, opacit
 }
 
 export default function CareerNetworkGraph() {
+  const isMobile = useIsMobile();
   return (
-    <div className="w-full h-[300px] relative pointer-events-auto">
+    <div className="w-full h-[180px] md:h-[300px] relative pointer-events-auto">
       <Canvas
         camera={{ position: [0, 0, 8], fov: 60 }}
         dpr={[1, 2]}

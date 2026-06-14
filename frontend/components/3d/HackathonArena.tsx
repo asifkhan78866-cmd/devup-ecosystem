@@ -4,6 +4,7 @@ import { useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 const HEX_RADIUS = 0.4;
 const HEX_HEIGHT = 0.05;
@@ -185,8 +186,9 @@ function ArenaGroup() {
 }
 
 export default function HackathonArena() {
+  const isMobile = useIsMobile();
   return (
-    <div className="w-full h-[320px] relative pointer-events-auto">
+    <div className="w-full h-[200px] md:h-[320px] relative pointer-events-auto">
       <Canvas
         camera={{ position: [0, 4, 8], fov: 45 }}
         dpr={[1, 2]}

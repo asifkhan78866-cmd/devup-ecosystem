@@ -14,17 +14,45 @@ const HackathonArena = dynamic(
 
 const FILTERS = ["All", "Online", "Offline", "Hybrid", "Ecosystem-hosted", "External"];
 
-const HACKATHONS = [
-  { id: 1, name: "GenAI Builders Week", org: "DevUp", prize: "₹5,00,000", mode: "Online", type: "Ecosystem-hosted", date: "Oct 15 - Oct 22", daysLeft: 4, color: "#c8f135" },
-  { id: 2, name: "Web3 Protocol Hack", org: "Polygon", prize: "₹2,50,000", mode: "Offline", type: "External", date: "Nov 2 - Nov 4", daysLeft: 12, color: "#a78bfa" },
-  { id: 3, name: "Fintech Disrupt", org: "DevUp", prize: "₹1,00,000", mode: "Offline", type: "Ecosystem-hosted", date: "Dec 10 - Dec 12", daysLeft: 45, color: "#22c55e" },
-  { id: 4, name: "HealthTech Sprint", org: "MedSync", prize: "₹50,000", mode: "Online", type: "External", date: "Jan 5 - Jan 15", daysLeft: -1, color: "#38bdf8" }, // closed
-];
+const COLORS = ["#c8f135", "#a78bfa", "#22c55e", "#38bdf8", "#fb923c", "#f472b6"];
+
+function getDaysLeft(dateStr: string): number {
+  const end = new Date(dateStr).getTime();
+  const now = Date.now();
+  return Math.ceil((end - now) / 86400000);
+}
 
 export default function HackathonsPage() {
   const [activeFilter, setActiveFilter] = useState("All");
+  const [hackathons, setHackathons] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const [timeLeft, setTimeLeft] = useState({ days: 14, hours: 23, minutes: 59, seconds: 59 });
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/hackathons`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          const formatted = data.data.map((h: any, i: number) => ({
+            id: h.id,
+            name: h.title || h.name,
+            org: h.organizer || "DevUp",
+            prize: h.prizePool || "TBD",
+            mode: h.mode || "Online",
+            type: h.type || "Ecosystem-hosted",
+            date: h.startDate && h.endDate
+              ? `${new Date(h.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} - ${new Date(h.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}`
+              : "TBD",
+            daysLeft: h.registrationDeadline ? getDaysLeft(h.registrationDeadline) : (h.endDate ? getDaysLeft(h.endDate) : 30),
+            color: COLORS[i % COLORS.length],
+          }));
+          setHackathons(formatted);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -40,7 +68,7 @@ export default function HackathonsPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const filteredHackathons = HACKATHONS.filter(h => {
+  const filteredHackathons = hackathons.filter(h => {
     if (activeFilter === "All") return true;
     if (activeFilter === "Online") return h.mode === "Online";
     if (activeFilter === "Offline") return h.mode === "Offline";

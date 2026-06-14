@@ -4,6 +4,7 @@ import { useRef, useMemo, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 const ROLES = [
   { label: "Developer", color: "#a78bfa", bg: "rgba(99,102,241,0.1)", border: "rgba(99,102,241,0.2)" },
@@ -219,10 +220,11 @@ function ConnectionArcs({ profiles }: { profiles: any[] }) {
 }
 
 export default function CofounderField() {
+  const isMobile = useIsMobile();
   const profiles = useMemo(() => generateProfiles(12), []);
   
   return (
-    <div className="w-full h-[360px] relative pointer-events-none">
+    <div className="w-full h-[220px] md:h-[360px] relative pointer-events-none">
       <Canvas
         camera={{ position: [0, 0, 6], fov: 55 }}
         dpr={[1, 2]}

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Loader2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -14,17 +14,46 @@ const CareerNetworkGraph = dynamic(
 
 const TABS = ["Internships", "Full-time Jobs", "Remote Only"];
 
-const JOBS = [
-  { id: 1, role: "Senior Frontend Engineer", company: "NexusAI", type: "Full-time", location: "Bengaluru", stipend: "₹30-45 LPA", date: "2d ago", logo: "N" },
-  { id: 2, role: "Product Marketing Intern", company: "VoltSpace", type: "Internship", location: "Delhi NCR", stipend: "₹40k/mo", date: "5h ago", logo: "V" },
-  { id: 3, role: "Smart Contract Dev", company: "BlockChainX", type: "Contract", location: "Remote", stipend: "$5k/mo", date: "1w ago", logo: "B" },
-  { id: 4, role: "UX Researcher", company: "Synth", type: "Full-time", location: "Remote", stipend: "₹18-25 LPA", date: "3d ago", logo: "S" },
-];
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 1) return "Just now";
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  return `${weeks}w ago`;
+}
 
 export default function CareersPage() {
   const [activeTab, setActiveTab] = useState("Full-time Jobs");
   const [stipendValue, setStipendValue] = useState(50);
-  const [selectedJob, setSelectedJob] = useState<any>(null); // For slide-up panel
+  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/jobs`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          const formatted = data.data.map((j: any) => ({
+            id: j.id,
+            role: j.title,
+            company: j.startup?.name || "DevUp",
+            type: j.type || "Full-time",
+            location: j.location || "Remote",
+            stipend: j.salary || "",
+            date: timeAgo(j.createdAt),
+            logo: (j.startup?.name || "D")[0],
+            description: j.description,
+          }));
+          setJobs(formatted);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -146,11 +175,26 @@ export default function CareersPage() {
           {/* Right Content */}
           <div className="flex-1 flex flex-col gap-4">
             <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#6b6b6b", marginBottom: "8px" }}>
-              4 opportunities found
+              {loading ? "Loading..." : `${jobs.length} opportunities found`}
             </div>
 
+            {/* Loading State */}
+            {loading && (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-[#c8f135]" />
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && jobs.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <p style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "18px", color: "#fff", marginBottom: "8px" }}>No jobs posted yet</p>
+                <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#6b6b6b" }}>Check back soon — startups are always hiring.</p>
+              </div>
+            )}
+
             {/* Job List */}
-            {JOBS.map((job) => {
+            {jobs.map((job) => {
               const isInternship = job.type === "Internship";
               const isRemote = job.location === "Remote";
               let badgeColor = "#c8f135";
