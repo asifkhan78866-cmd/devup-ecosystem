@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef, useMemo, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { OrbitControls, Html, CatmullRomLine, Line } from "@react-three/drei";
 import * as THREE from "three";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import Canvas3DWrapper from "@/components/3d/Canvas3DWrapper";
 
 const NODES = [
   { id: "tech", label: "Tech", color: "#6366f1", ring: 0, angle: 0 },
@@ -214,7 +215,7 @@ export default function EcosystemOrbit3D() {
 
   return (
     <div className={`w-full relative cursor-pointer ${isMobile ? 'h-[350px]' : 'h-full min-h-[700px]'}`}>
-      <Canvas
+      <Canvas3DWrapper
         camera={{ position: [0, 0, 5], fov: 50 }}
         gl={{ antialias: !isMobile, alpha: true }}
         dpr={isMobile ? [1, 1.5] : [1, 2]}
@@ -232,7 +233,7 @@ export default function EcosystemOrbit3D() {
         <ParticleField count={isMobile ? 800 : 2000} />
         
         <OrbitControls enableZoom={false} enablePan={false} enableRotate={!isMobile} enableDamping dampingFactor={0.05} autoRotate={false} />
-      </Canvas>
+      </Canvas3DWrapper>
     </div>
   );
 }

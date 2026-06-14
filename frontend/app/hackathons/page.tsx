@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Users } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import PageControls from "@/components/PageControls";
 
 const HackathonArena = dynamic(
   () => import("@/components/3d/HackathonArena"),
@@ -202,31 +203,34 @@ export default function HackathonsPage() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-12 pb-24">
         
-        {/* Filters */}
-        <div className="flex overflow-x-auto gap-2 mb-10 pb-2 hide-scrollbar">
-          {FILTERS.map(f => {
-            const isActive = activeFilter === f;
-            return (
-              <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                className="whitespace-nowrap rounded-full transition-all duration-150"
-                style={{
-                  padding: "8px 16px",
-                  fontFamily: "var(--font-inter), sans-serif",
-                  fontSize: "14px",
-                  border: `1px solid ${isActive ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.08)'}`,
-                  background: isActive ? 'rgba(200,241,53,0.1)' : 'transparent',
-                  color: isActive ? '#c8f135' : '#6b6b6b',
-                }}
-              >
-                {f}
-              </button>
-            )
-          })}
-        </div>
+        <PageControls
+          filters={
+            <>
+              {FILTERS.map(f => {
+                const isActive = activeFilter === f;
+                return (
+                  <button
+                    key={f}
+                    onClick={() => setActiveFilter(f)}
+                    className="whitespace-nowrap rounded-full transition-all duration-150 flex-shrink-0"
+                    style={{
+                      padding: "8px 16px",
+                      fontFamily: "var(--font-inter), sans-serif",
+                      fontSize: "14px",
+                      border: `1px solid ${isActive ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                      background: isActive ? 'rgba(200,241,53,0.1)' : 'transparent',
+                      color: isActive ? '#c8f135' : '#6b6b6b',
+                    }}
+                  >
+                    {f}
+                  </button>
+                )
+              })}
+            </>
+          }
+          resultsCount={`${filteredHackathons.length} hackathons found`}
+        />
 
-        {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredHackathons.map((hackathon, idx) => {

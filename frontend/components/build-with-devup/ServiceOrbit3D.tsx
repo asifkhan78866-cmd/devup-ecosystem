@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber"
+import Canvas3DWrapper from "@/components/3d/Canvas3DWrapper";
 import { Float, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -116,13 +117,13 @@ export default function ServiceOrbit3D() {
   const isMobile = useIsMobile();
   return (
     <div style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }}>
-      <Canvas
+      <Canvas3DWrapper
         dpr={[1, 2]}
         camera={{ position: [0, 2, 5], fov: 45 }}
         style={{ background: "transparent" }}
       >
         <Scene />
-      </Canvas>
+      </Canvas3DWrapper>
     </div>
   );
 }

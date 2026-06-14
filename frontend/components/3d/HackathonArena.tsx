@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useMemo, useState, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber"
+import Canvas3DWrapper from "@/components/3d/Canvas3DWrapper";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -189,7 +190,7 @@ export default function HackathonArena() {
   const isMobile = useIsMobile();
   return (
     <div className="w-full h-[200px] md:h-[320px] relative pointer-events-auto">
-      <Canvas
+      <Canvas3DWrapper
         camera={{ position: [0, 4, 8], fov: 45 }}
         dpr={[1, 2]}
       >
@@ -197,7 +198,7 @@ export default function HackathonArena() {
         <pointLight position={[0, 5, 0]} intensity={1} color="#ffffff" />
         <pointLight position={[5, 2, 5]} intensity={0.5} color="#c8f135" />
         <ArenaGroup />
-      </Canvas>
+      </Canvas3DWrapper>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useMemo, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber"
+import Canvas3DWrapper from "@/components/3d/Canvas3DWrapper";
 import { Html, Line } from "@react-three/drei";
 import * as THREE from "three";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -241,13 +242,13 @@ export default function CareerNetworkGraph() {
   const isMobile = useIsMobile();
   return (
     <div className="w-full h-[180px] md:h-[300px] relative pointer-events-auto">
-      <Canvas
+      <Canvas3DWrapper
         camera={{ position: [0, 0, 8], fov: 60 }}
         dpr={[1, 2]}
       >
         <ambientLight intensity={0.5} />
         <GraphNetwork />
-      </Canvas>
+      </Canvas3DWrapper>
     </div>
   );
 }

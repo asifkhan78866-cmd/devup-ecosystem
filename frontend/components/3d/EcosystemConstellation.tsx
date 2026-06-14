@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useMemo, useState } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber"
+import Canvas3DWrapper from "@/components/3d/Canvas3DWrapper";
 import { OrbitControls, Html, Line } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import * as THREE from "three";
@@ -175,7 +176,7 @@ export default function EcosystemConstellation() {
 
   return (
     <div className={`w-full relative ${isMobile ? 'h-[220px]' : 'h-[340px]'}`}>
-      <Canvas
+      <Canvas3DWrapper
         camera={{ position: [0, 0, 8], fov: 60 }}
         dpr={isMobile ? [1, 1.5] : [1, 2]}
       >
@@ -183,7 +184,7 @@ export default function EcosystemConstellation() {
         <pointLight position={[10, 10, 10]} intensity={1} />
         <ConstellationGroup />
         <OrbitControls enableZoom={false} enablePan={false} enableRotate={!isMobile} enableDamping dampingFactor={0.05} />
-      </Canvas>
+      </Canvas3DWrapper>
     </div>
   );
 }

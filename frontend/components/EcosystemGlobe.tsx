@@ -1,6 +1,7 @@
 'use client'
 import { useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
+import Canvas3DWrapper from '@/components/3d/Canvas3DWrapper'
 import { Stars, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -91,7 +92,7 @@ export default function EcosystemGlobe() {
       <div className="absolute inset-0 rounded-full 
         bg-indigo-500/5 blur-3xl scale-110 pointer-events-none" />
       
-      <Canvas
+      <Canvas3DWrapper
         camera={{ position: [0, 0, 2.8], fov: 45 }}
         gl={{ 
           antialias: true, 
@@ -117,7 +118,7 @@ export default function EcosystemGlobe() {
           dampingFactor={0.08}
           enableDamping={true}
         />
-      </Canvas>
+      </Canvas3DWrapper>
     </div>
   )
 }

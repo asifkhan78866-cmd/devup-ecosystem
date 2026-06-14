@@ -7,6 +7,7 @@ import { Search, ShieldCheck, MapPin, Briefcase, FilterX } from "lucide-react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import PageControls from "@/components/PageControls";
 
 // Dynamically import 3D element with ssr: false
 const EcosystemConstellation = dynamic(
@@ -89,7 +90,7 @@ export default function EcosystemPage() {
         <EcosystemConstellation />
       </ErrorBoundary>
 
-      {/* Sticky Search & Filter Bar */}
+      {/* Search & Filter Bar */}
       <div 
         className="sticky top-[76px] z-40 w-full border-b border-white/5 px-4 py-4 md:px-8"
         style={{
@@ -97,66 +98,65 @@ export default function EcosystemPage() {
           backdropFilter: "blur(20px)",
         }}
       >
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center justify-between">
-          
-          <div className="relative w-full md:w-[320px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b6b6b]" />
-            <input
-              type="text"
-              placeholder="Search startups, founders, domains..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#111111] border border-white/10 rounded-lg py-2.5 pl-10 pr-4 outline-none transition-all focus:border-[#c8f135]/40 focus:shadow-[0_0_0_3px_rgba(200,241,53,0.08)]"
-              style={{
-                fontFamily: "var(--font-inter), sans-serif",
-                fontSize: "14px",
-                color: "#e4e4e4"
-              }}
-            />
-          </div>
-
-          <div className="flex overflow-x-auto gap-2 w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
-            {CATEGORIES.map((cat) => {
-              const isActive = activeCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className="whitespace-nowrap rounded-full transition-all duration-150"
+        <div className="max-w-7xl mx-auto">
+          <PageControls
+            search={
+              <div className="relative w-full md:w-[320px]">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b6b6b]" />
+                <input
+                  type="text"
+                  placeholder="Search startups, founders, domains..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#111111] border border-white/10 rounded-lg py-2.5 pl-10 pr-4 outline-none transition-all focus:border-[#c8f135]/40 focus:shadow-[0_0_0_3px_rgba(200,241,53,0.08)]"
                   style={{
-                    padding: "6px 14px",
                     fontFamily: "var(--font-inter), sans-serif",
-                    fontSize: "13px",
-                    border: `1px solid ${isActive ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.08)'}`,
-                    background: isActive ? 'rgba(200,241,53,0.1)' : 'transparent',
-                    color: isActive ? '#c8f135' : '#6b6b6b',
+                    fontSize: "14px",
+                    color: "#e4e4e4"
                   }}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
-          
+                />
+              </div>
+            }
+            filters={
+              <>
+                {CATEGORIES.map((cat) => {
+                  const isActive = activeCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      className="whitespace-nowrap rounded-full transition-all duration-150 flex-shrink-0"
+                      style={{
+                        padding: "6px 14px",
+                        fontFamily: "var(--font-inter), sans-serif",
+                        fontSize: "13px",
+                        border: `1px solid ${isActive ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                        background: isActive ? 'rgba(200,241,53,0.1)' : 'transparent',
+                        color: isActive ? '#c8f135' : '#6b6b6b',
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </>
+            }
+            resultsCount={`Showing ${filteredStartups.length} startups · ${new Set(filteredStartups.map(s => s.domain)).size} domains · ${filteredStartups.reduce((acc, curr) => acc + curr.roles, 0)} open roles`}
+            sort={
+              <select 
+                className="bg-transparent border-none text-[#6b6b6b] text-[13px] outline-none cursor-pointer"
+                style={{ fontFamily: "var(--font-inter), sans-serif" }}
+              >
+                <option>Latest</option>
+                <option>Stage</option>
+                <option>Most roles</option>
+              </select>
+            }
+          />
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        
-        {/* Stats Bar */}
-        <div className="flex justify-between items-center mb-6">
-          <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b" }}>
-            Showing {filteredStartups.length} startups · {new Set(filteredStartups.map(s => s.domain)).size} domains · {filteredStartups.reduce((acc, curr) => acc + curr.roles, 0)} open roles
-          </span>
-          <select 
-            className="bg-transparent border-none text-[#6b6b6b] text-[13px] outline-none cursor-pointer"
-            style={{ fontFamily: "var(--font-inter), sans-serif" }}
-          >
-            <option>Latest</option>
-            <option>Stage</option>
-            <option>Most roles</option>
-          </select>
-        </div>
 
         {/* Grid */}
         {filteredStartups.length > 0 ? (

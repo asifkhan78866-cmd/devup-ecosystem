@@ -6,13 +6,12 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import { Providers } from "@/lib/providers";
+import { AuthProvider } from "@/lib/auth/AuthProvider";
 
 const IntroAnimation = dynamic(
   () => import("@/components/IntroAnimation"),
   { ssr: false }
 );
-
-import { AuthProvider } from "@/lib/auth/AuthProvider";
 
 export default function LayoutClient({
   children,
@@ -37,8 +36,8 @@ export default function LayoutClient({
   return (
     <Providers>
       <AuthProvider>
-        <IntroAnimation />
         <SmoothScrollProvider>
+          <IntroAnimation />
           <Navbar />
           <main className="flex-1 relative z-10">{children}</main>
           <Footer />

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useMemo, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber"
+import Canvas3DWrapper from "@/components/3d/Canvas3DWrapper";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -225,7 +226,7 @@ export default function CofounderField() {
   
   return (
     <div className="w-full h-[220px] md:h-[360px] relative pointer-events-none">
-      <Canvas
+      <Canvas3DWrapper
         camera={{ position: [0, 0, 6], fov: 55 }}
         dpr={[1, 2]}
       >
@@ -236,7 +237,7 @@ export default function CofounderField() {
           ))}
           <ConnectionArcs profiles={profiles} />
         </group>
-      </Canvas>
+      </Canvas3DWrapper>
     </div>
   );
 }

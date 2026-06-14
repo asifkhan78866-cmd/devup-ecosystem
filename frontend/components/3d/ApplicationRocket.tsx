@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber"
+import Canvas3DWrapper from "@/components/3d/Canvas3DWrapper";
 import * as THREE from "three";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
@@ -205,7 +206,7 @@ function StarField({ isLaunched }: { isLaunched: boolean }) {
 export default function ApplicationRocket({ isLaunched = false }: ApplicationRocketProps) {
   return (
     <div className="w-full h-full min-h-[400px] relative pointer-events-none">
-      <Canvas
+      <Canvas3DWrapper
         camera={{ position: [0, 0, 5], fov: 45 }}
         dpr={[1, 2]}
       >
@@ -215,7 +216,7 @@ export default function ApplicationRocket({ isLaunched = false }: ApplicationRoc
         
         <Rocket isLaunched={isLaunched} />
         <StarField isLaunched={isLaunched} />
-      </Canvas>
+      </Canvas3DWrapper>
     </div>
   );
 }
