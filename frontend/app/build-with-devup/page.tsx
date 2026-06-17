@@ -66,31 +66,9 @@ function StatsStrip() {
     { value: "100%", label: "Ecosystem Support" },
   ];
   return (
-    <div
-      style={{
-        borderTop: "1px solid rgba(255,255,255,0.05)",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
-        padding: "32px 0",
-        display: "flex",
-        justifyContent: "center",
-        gap: 0,
-        marginBottom: 0,
-      }}
-    >
+    <div className="stats-strip-container">
       {stats.map((s, i) => (
-        <div
-          key={i}
-          style={{
-            flex: 1,
-            maxWidth: 200,
-            textAlign: "center",
-            borderRight:
-              i < stats.length - 1
-                ? "1px solid rgba(255,255,255,0.06)"
-                : "none",
-            padding: "0 40px",
-          }}
-        >
+        <div key={i} className="stats-strip-item">
           <div
             style={{
               fontFamily: "var(--font-syne), Syne, sans-serif",
@@ -656,12 +634,12 @@ function ServiceRequestForm({ service }: { service: Service }) {
     background: "#111111",
     border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: 10,
-    padding: "11px 14px",
+    padding: "14px 16px",
     fontFamily: "var(--font-inter), Inter, sans-serif",
-    fontSize: 14,
+    fontSize: 16,
     color: "#e4e4e4",
     outline: "none",
-    marginBottom: 12,
+    marginBottom: 16,
     transition: "border-color 0.15s",
     boxSizing: "border-box",
   };
@@ -688,7 +666,7 @@ function ServiceRequestForm({ service }: { service: Service }) {
       </h3>
       <form onSubmit={handleSubmit}>
         <label style={labelStyle}>Your Name</label>
-        <input name="name" required placeholder="Asif Khan" style={inputStyle} />
+        <input name="name" required placeholder="Asif Khan" style={inputStyle} autoComplete="name" />
 
         <label style={labelStyle}>Startup Name</label>
         <input
@@ -696,6 +674,7 @@ function ServiceRequestForm({ service }: { service: Service }) {
           required
           placeholder="NexusAI"
           style={inputStyle}
+          autoComplete="organization"
         />
 
         <label style={labelStyle}>Email</label>
@@ -705,6 +684,8 @@ function ServiceRequestForm({ service }: { service: Service }) {
           required
           placeholder="you@startup.com"
           style={inputStyle}
+          autoComplete="email"
+          inputMode="email"
         />
 
         <label style={labelStyle}>What do you need?</label>
@@ -717,14 +698,14 @@ function ServiceRequestForm({ service }: { service: Service }) {
         />
 
         <label style={labelStyle}>Timeline</label>
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
           {timelines.map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setTimeline(t)}
               style={{
-                padding: "7px 14px",
+                padding: "10px 16px",
                 borderRadius: 8,
                 border: "1px solid",
                 borderColor:
@@ -735,8 +716,9 @@ function ServiceRequestForm({ service }: { service: Service }) {
                   timeline === t ? "rgba(200,241,53,0.08)" : "transparent",
                 color: timeline === t ? "#c8f135" : "#6b6b6b",
                 fontFamily: "var(--font-inter), Inter, sans-serif",
-                fontSize: 13,
+                fontSize: 14,
                 cursor: "pointer",
+                flexGrow: 1,
               }}
             >
               {t}
@@ -749,17 +731,18 @@ function ServiceRequestForm({ service }: { service: Service }) {
           disabled={loading}
           style={{
             width: "100%",
-            padding: "13px 0",
+            padding: "14px 0",
+            minHeight: 48,
             background: loading ? "#6b6b6b" : "#c8f135",
             color: "#000000",
             border: "none",
             borderRadius: 10,
             fontFamily: "var(--font-inter), Inter, sans-serif",
-            fontSize: 15,
+            fontSize: 16,
             fontWeight: 700,
             cursor: loading ? "not-allowed" : "pointer",
             transition: "opacity 0.15s",
-            marginTop: 4,
+            marginTop: 8,
           }}
         >
           {loading ? "Sending..." : "Send Request"}
@@ -1088,14 +1071,12 @@ function ServiceDetailPanel({
 
           {/* Engagement info */}
           <div
+            className="engagement-grid"
             style={{
               background: "#111111",
               border: "1px solid rgba(255,255,255,0.07)",
               borderRadius: 12,
               padding: 20,
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: 16,
               marginBottom: 28,
             }}
           >
@@ -1392,6 +1373,7 @@ function WhyDevUp() {
       </h2>
 
       <div
+        className="why-devup-grid"
         style={{
           background: "#111111",
           border: "1px solid rgba(255,255,255,0.07)",
@@ -1401,6 +1383,7 @@ function WhyDevUp() {
       >
         {/* Header */}
         <div
+          className="why-devup-grid-header"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
@@ -1415,6 +1398,7 @@ function WhyDevUp() {
         {rows.map((row, i) => (
           <div
             key={i}
+            className="why-devup-row"
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr 1fr",
@@ -1458,7 +1442,7 @@ export default function BuildWithDevUp() {
       />
 
       {/* 3D Orbit */}
-      <section
+      <section className="orbit-container"
         style={{
           width: "100%",
           height: 500,
@@ -1470,16 +1454,7 @@ export default function BuildWithDevUp() {
               <ServiceOrbit3D />
             </ErrorBoundary>
 
-        <div
-          style={{
-            position: "absolute",
-            left: "8%",
-            top: "50%",
-            transform: "translateY(-50%)",
-            zIndex: 10,
-            maxWidth: 300,
-          }}
-        >
+        <div className="hero-text-overlay">
           <p
             style={{
               fontFamily: "var(--font-inter), Inter, sans-serif",
@@ -1569,9 +1544,101 @@ export default function BuildWithDevUp() {
 
       {/* Responsive overrides */}
       <style jsx global>{`
+        .stats-strip-container {
+          display: flex;
+          justify-content: center;
+          border-top: 1px solid rgba(255,255,255,0.05);
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+          padding: 32px 0;
+        }
+        .stats-strip-item {
+          flex: 1;
+          max-width: 200px;
+          text-align: center;
+          padding: 0 40px;
+          border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        .stats-strip-item:last-child {
+          border-right: none;
+        }
+        .hero-text-overlay {
+          position: absolute;
+          left: 8%;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 10;
+          max-width: 300px;
+        }
+        .engagement-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 16px;
+        }
+        
         @media (max-width: 1024px) {
           .service-bento-grid {
             grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .stats-strip-container {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 24px 0 !important;
+            padding: 32px 16px !important;
+          }
+          .stats-strip-item {
+            max-width: none !important;
+            padding: 0 16px !important;
+          }
+          .stats-strip-item:nth-child(2) {
+            border-right: none !important;
+          }
+          .stats-strip-item:nth-child(3),
+          .stats-strip-item:nth-child(4) {
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 24px !important;
+          }
+          .orbit-container {
+            height: auto !important;
+            display: flex;
+            flex-direction: column-reverse;
+          }
+          .hero-text-overlay {
+            position: relative !important;
+            left: 0 !important;
+            top: 0 !important;
+            transform: none !important;
+            padding: 0 32px !important;
+            margin: 0 auto 40px !important;
+            max-width: 100% !important;
+            text-align: center;
+          }
+          .why-devup-grid-header {
+            display: none !important;
+          }
+          .why-devup-row {
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+            padding: 24px !important;
+          }
+          .why-devup-row > div:nth-child(1) {
+            font-size: 18px !important;
+            color: #c8f135 !important;
+            margin-bottom: 8px !important;
+          }
+          .why-devup-row > div:nth-child(2)::before {
+            content: "DevUp: ";
+            color: #fff;
+            font-weight: 600;
+          }
+          .why-devup-row > div:nth-child(3)::before {
+            content: "Others: ";
+            color: #6b6b6b;
+            font-weight: 600;
+          }
+          .engagement-grid {
+            grid-template-columns: 1fr !important;
           }
         }
         @media (max-width: 640px) {

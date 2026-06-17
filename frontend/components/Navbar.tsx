@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -51,26 +50,11 @@ export function Navbar() {
       {/* Left: Logo */}
       <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
         <Link href="/" style={{
-          textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px'
+          fontFamily: 'var(--font-syne), Syne, sans-serif',
+          fontSize: 22, fontWeight: 800, letterSpacing: '-0.04em',
+          color: '#ffffff', textDecoration: 'none'
         }}>
-          <div className="nav-logo-image" style={{ position: 'relative' }}>
-            <Image 
-              src="/images/devup-logo.png" 
-              alt="DevUp Logo" 
-              width={896} 
-              height={558} 
-              priority
-              style={{ objectFit: 'contain', width: 'auto', height: '100%' }}
-            />
-          </div>
-          <div style={{
-            fontFamily: 'var(--font-syne), Syne, sans-serif',
-            fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em',
-            display: 'flex', alignItems: 'center'
-          }}>
-            <span style={{ color: '#ffffff' }}>Dev</span>
-            <span style={{ color: '#c8f135' }}>Up</span>
-          </div>
+          DevUp
         </Link>
       </div>
 
@@ -283,16 +267,7 @@ export function Navbar() {
         .mobile-nav-auth {
           display: none;
         }
-        .nav-logo-image {
-          height: 36px;
-          width: 58px;
-          flex-shrink: 0;
-        }
         @media (max-width: 1023px) {
-          .nav-logo-image {
-            height: 28px;
-            width: 45px;
-          }
           .desktop-nav-links {
             display: none !important;
           }
