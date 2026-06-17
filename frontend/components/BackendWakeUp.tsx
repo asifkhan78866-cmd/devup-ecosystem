@@ -38,7 +38,7 @@ export default function BackendWakeUp() {
   if (!waking) return null
 
   return (
-    <div style={{
+    <div className="backend-wakeup" style={{
       position: 'fixed',
       bottom: 24,
       left: '50%',
@@ -68,6 +68,11 @@ export default function BackendWakeUp() {
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.4; transform: scale(0.8); }
+        }
+        @media (max-width: 1023px) {
+          .backend-wakeup {
+            bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+          }
         }
       `}</style>
     </div>

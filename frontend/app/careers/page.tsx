@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, Search, Filter } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import PageControls from "@/components/PageControls";
+import MobileBottomSheet from "@/components/MobileBottomSheet";
 
 const CareerNetworkGraph = dynamic(
   () => import("@/components/3d/CareerNetworkGraph"),
@@ -31,6 +33,9 @@ export default function CareersPage() {
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/jobs`)
@@ -71,8 +76,60 @@ export default function CareersPage() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-12 pb-24">
         
-        {/* Large Prominent Tabs */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
+        {/* Mobile Page Controls (Search, Tabs, Filter Button) */}
+        <div className="md:hidden block mb-6">
+          <PageControls
+            search={
+              <div className="relative w-full">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b6b6b]" />
+                <input
+                  type="text"
+                  placeholder="Search roles or companies..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#111111] border border-white/10 rounded-lg py-3 pl-10 pr-4 outline-none transition-all focus:border-[#c8f135]/40"
+                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#e4e4e4" }}
+                />
+              </div>
+            }
+            filters={
+              <>
+                {TABS.map((tab) => {
+                  const isActive = activeTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className="whitespace-nowrap rounded-full transition-all duration-150 flex-shrink-0"
+                      style={{
+                        padding: "8px 16px",
+                        fontFamily: "var(--font-inter), sans-serif",
+                        fontSize: "14px",
+                        border: `1px solid ${isActive ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                        background: isActive ? 'rgba(200,241,53,0.1)' : 'transparent',
+                        color: isActive ? '#c8f135' : '#6b6b6b',
+                      }}
+                    >
+                      {tab}
+                    </button>
+                  )
+                })}
+              </>
+            }
+            sort={
+              <button
+                onClick={() => setBottomSheetOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-[#e4e4e4] transition-colors hover:bg-white/5"
+                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
+              >
+                Filters <Filter size={14} />
+              </button>
+            }
+          />
+        </div>
+
+        {/* Desktop Prominent Tabs (Hidden on mobile) */}
+        <div className="hidden md:flex flex-col sm:flex-row justify-center gap-4 mb-16">
           {TABS.map((tab) => {
             const isActive = activeTab === tab;
             return (
@@ -101,8 +158,8 @@ export default function CareersPage() {
         {/* Two Column Layout */}
         <div className="flex flex-col lg:flex-row gap-12">
           
-          {/* Left Sidebar Filters (260px) */}
-          <div className="w-full lg:w-[260px] shrink-0 space-y-8">
+          {/* Left Sidebar Filters (Desktop only) */}
+          <div className="hidden lg:block w-[260px] shrink-0 space-y-8">
             <div>
               <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "12px", letterSpacing: "0.05em" }}>Domain</div>
               <div className="space-y-3">
@@ -275,8 +332,93 @@ export default function CareersPage() {
             </div>
             
           </div>
-        </div>
       </div>
+
+      <MobileBottomSheet
+        isOpen={bottomSheetOpen}
+        onClose={() => setBottomSheetOpen(false)}
+        title="Filters"
+        footer={
+          <button
+            onClick={() => setBottomSheetOpen(false)}
+            className="w-full py-3 bg-[#c8f135] text-black font-bold rounded-xl"
+            style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: '15px' }}
+          >
+            Apply Filters
+          </button>
+        }
+      >
+        <div className="space-y-8">
+          <div>
+            <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "12px", letterSpacing: "0.05em" }}>Domain</div>
+            <div className="space-y-3">
+              {["AI/ML", "Fintech", "HealthTech", "DevTools", "SaaS"].map(d => (
+                <label key={d} className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center w-4 h-4 border border-white/20 rounded-[4px] bg-transparent group-hover:border-white/40 transition-colors">
+                    <input type="checkbox" className="opacity-0 absolute inset-0 cursor-pointer peer" />
+                    <div className="hidden peer-checked:block w-2 h-2 bg-[#c8f135] rounded-[2px]" />
+                  </div>
+                  <span style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#a1a1a1" }} className="group-hover:text-white transition-colors">{d}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "12px", letterSpacing: "0.05em" }}>Location</div>
+            <input
+              type="text"
+              placeholder="e.g. Bengaluru, Remote"
+              className="w-full bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 outline-none focus:border-[#c8f135]/40 transition-all"
+              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#e4e4e4" }}
+            />
+          </div>
+          
+          <div>
+            <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "12px", letterSpacing: "0.05em" }}>Type</div>
+            <div className="flex flex-wrap gap-2">
+              {["In-office", "Hybrid", "Remote"].map(t => (
+                <button 
+                  key={t}
+                  className="px-3 py-1.5 rounded-full"
+                  style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.08)", color: "#a1a1a1", fontSize: "13px", fontFamily: "var(--font-inter), sans-serif" }}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-12">
+              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Min Stipend/Salary</div>
+              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#c8f135" }}>₹{stipendValue}k+</div>
+            </div>
+            <div className="relative w-full h-1 bg-white/10 rounded-full">
+              <div className="absolute top-0 left-0 h-full bg-[#c8f135] rounded-full" style={{ width: `${stipendValue}%` }} />
+              <input 
+                type="range" 
+                min="0" max="100" 
+                value={stipendValue} 
+                onChange={(e) => setStipendValue(Number.parseInt(e.target.value, 10))}
+                className="absolute inset-0 w-full opacity-0 cursor-pointer"
+              />
+              <div 
+                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full pointer-events-none shadow-md"
+                style={{ left: `calc(${stipendValue}% - 8px)` }}
+              />
+            </div>
+          </div>
+
+          <button 
+            className="mt-4 bg-transparent border-none text-[#6b6b6b] hover:text-[#e4e4e4] transition-colors cursor-pointer"
+            style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
+          >
+            Clear All Filters
+          </button>
+        </div>
+      </MobileBottomSheet>
+    </div>
 
       {/* Job Slide-up Panel */}
       <AnimatePresence>
@@ -294,7 +436,7 @@ export default function CareersPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-[#0a0a0a] border-t border-white/10 rounded-t-[24px] z-50 overflow-y-auto"
+              className="fixed max-lg:bottom-[calc(64px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 max-h-[85vh] bg-[#0a0a0a] border-t border-white/10 rounded-t-[24px] z-50 overflow-y-auto"
               style={{ boxShadow: "0 -20px 40px rgba(0,0,0,0.5)" }}
             >
               <div className="max-w-3xl mx-auto p-6 md:p-10 relative">

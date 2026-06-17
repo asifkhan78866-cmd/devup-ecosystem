@@ -146,3 +146,29 @@ body {
 html[data-skip-intro="true"] #intro-overlay {
   display: none;
 }
+
+.mobile-bottom-nav,
+.mobile-nav-spacer {
+  display: none !important;
+}
+
+.desktop-nav-links {
+  display: flex;
+}
+
+@media (max-width: 1023px) {
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  .mobile-nav-spacer {
+    display: block !important;
+  }
+
+  .desktop-nav-links {
+    display: none !important;
+  }
+
+  footer {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+}

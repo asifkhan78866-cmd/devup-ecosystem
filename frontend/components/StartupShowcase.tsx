@@ -33,7 +33,10 @@ export default function StartupShowcase() {
           setStartups(formatted);
         }
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.warn('Backend unavailable (fetch failed):', err.message);
+        // Fallback or ignore quietly so Next.js doesn't throw a dev overlay
+      });
   }, []);
 
   return (

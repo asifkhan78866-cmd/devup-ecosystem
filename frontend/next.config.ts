@@ -26,6 +26,14 @@ const nextConfig: NextConfig = {
       '@react-three/drei',
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://devup-eco.onrender.com/api/:path*',
+      },
+    ]
+  },
   webpack: (config) => {
     config.externals = [...(config.externals || [])]
     return config

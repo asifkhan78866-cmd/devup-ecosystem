@@ -149,53 +149,53 @@ function FilterTabs({
         background: "rgba(10,10,10,0.95)",
         backdropFilter: "blur(20px)",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
-        padding: "0 32px",
       }}
+      className="px-4 md:px-8 py-3"
     >
-      <div
-        className="hide-scrollbar"
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          overflowX: "auto",
-          padding: "12px 0",
-        }}
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onChange(tab.id)}
-            style={{
-              padding: "7px 16px",
-              borderRadius: 100,
-              border: "1px solid",
-              borderColor:
-                active === tab.id
-                  ? "rgba(200,241,53,0.3)"
-                  : "rgba(255,255,255,0.08)",
-              background:
-                active === tab.id ? "rgba(200,241,53,0.08)" : "transparent",
-              color: active === tab.id ? "#c8f135" : "#6b6b6b",
-              fontFamily: "var(--font-inter), Inter, sans-serif",
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              transition: "all 0.15s",
-              flexShrink: 0,
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-        <div style={{ flex: 1 }} />
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center gap-4">
+        {/* Scrollable Tabs */}
+        <div
+          className="hide-scrollbar flex gap-2 overflow-x-auto"
+          style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => onChange(tab.id)}
+              style={{
+                padding: "7px 16px",
+                borderRadius: 100,
+                border: "1px solid",
+                borderColor:
+                  active === tab.id
+                    ? "rgba(200,241,53,0.3)"
+                    : "rgba(255,255,255,0.08)",
+                background:
+                  active === tab.id ? "rgba(200,241,53,0.08)" : "transparent",
+                color: active === tab.id ? "#c8f135" : "#6b6b6b",
+                fontFamily: "var(--font-inter), Inter, sans-serif",
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                transition: "all 0.15s",
+                flexShrink: 0,
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Spacer for desktop */}
+        <div className="hidden md:block flex-1" />
+
+        {/* Explore All Button */}
         <button
           onClick={onExplore}
+          className="w-full md:w-auto"
           style={{
-            padding: "7px 16px",
+            padding: "9px 16px",
             borderRadius: 8,
             border: "none",
             background: "#c8f135",
@@ -810,6 +810,7 @@ function ServiceDetailPanel({
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="max-lg:!bottom-[calc(64px+env(safe-area-inset-bottom,0px))]"
         style={{
           position: "fixed",
           top: 0,

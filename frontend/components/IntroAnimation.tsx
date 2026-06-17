@@ -11,15 +11,15 @@ export default function IntroAnimation() {
     const overlay = document.getElementById("intro-overlay");
 
     if (seen) {
-      // Returning visitor — remove the static overlay immediately
-      if (overlay) overlay.remove();
+      // Returning visitor — hide the static overlay immediately
+      if (overlay) overlay.style.display = 'none';
       setPhase("done");
       return;
     }
 
-    // First visit — remove the static overlay
+    // First visit — hide the static overlay
     // (this component renders its own animated version)
-    if (overlay) overlay.remove();
+    if (overlay) overlay.style.display = 'none';
     setPhase("playing");
 
     const timers = [

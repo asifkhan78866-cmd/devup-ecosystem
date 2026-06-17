@@ -12,49 +12,34 @@ export default function PageControls({
   search, filters, sort, resultsCount
 }: PageControlsProps) {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 16,
-      marginBottom: 32,
-    }}>
-      {/* Row 1: Search — always full width */}
-      {search && (
-        <div style={{ width: '100%' }}>
-          {search}
-        </div>
-      )}
+    <div className="flex flex-col gap-4 mb-8">
+      {/* Search & Filters Row */}
+      <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between w-full">
+        {/* Search */}
+        {search && (
+          <div className="w-full md:w-auto md:shrink-0">
+            {search}
+          </div>
+        )}
 
-      {/* Row 2: Filters — horizontal scroll on mobile,
-          wraps naturally on desktop */}
-      {filters && (
-        <div
-          style={{
-            display: 'flex',
-            gap: 8,
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch',
-            paddingBottom: 4,
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          } as React.CSSProperties}
-          className="hide-scrollbar"
-        >
-          {filters}
-        </div>
-      )}
+        {/* Filters */}
+        {filters && (
+          <div
+            className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto hide-scrollbar"
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
+            {filters}
+          </div>
+        )}
+      </div>
 
-      {/* Row 3: Results count + sort —
-          side by side on desktop, stacked on mobile */}
+      {/* Results count + sort */}
       {(resultsCount || sort) && (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 12,
-        }}>
+        <div className="flex flex-row justify-between items-center flex-wrap gap-3 mt-2 md:mt-4">
           {resultsCount && (
             <span style={{
               fontFamily: 'var(--font-inter), Inter, sans-serif',
@@ -65,7 +50,7 @@ export default function PageControls({
             </span>
           )}
           {sort && (
-            <div style={{ marginLeft: 'auto' }}>
+            <div className="ml-auto">
               {sort}
             </div>
           )}

@@ -174,11 +174,11 @@ export default function CoFoundersPage() {
 
         <div id="profiles-section" className="pb-24">
           
-          {/* Filter Bar */}
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 mb-8">
-            <div className="flex flex-col w-full md:w-auto">
+          {/* Filter Bar (Desktop) */}
+          <div className="hidden md:flex flex-row items-center gap-6 mb-8">
+            <div className="flex flex-col w-auto">
               <label htmlFor="filterRole" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Role</label>
-              <select id="filterRole" className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+              <select id="filterRole" className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium cursor-pointer" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
                 <option>All Roles</option>
                 <option>Developer</option>
                 <option>Designer</option>
@@ -187,27 +187,65 @@ export default function CoFoundersPage() {
                 <option>Sales</option>
               </select>
             </div>
-            <div className="flex flex-col w-full md:w-auto">
+            <div className="flex flex-col w-auto">
               <label htmlFor="filterStage" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Stage</label>
-              <select id="filterStage" className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+              <select id="filterStage" className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium cursor-pointer" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
                 <option>All Stages</option>
                 <option>Idea</option>
                 <option>MVP</option>
                 <option>Launched</option>
               </select>
             </div>
-            <div className="flex flex-col w-full md:w-auto">
+            <div className="flex flex-col w-auto">
               <label htmlFor="filterAvailability" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Availability</label>
-              <select id="filterAvailability" className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+              <select id="filterAvailability" className="bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px] font-medium cursor-pointer" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
                 <option>Any</option>
                 <option>Full-time</option>
                 <option>Part-time</option>
                 <option>Weekends</option>
               </select>
             </div>
-            <div className="flex flex-col w-full md:flex-1 max-w-[240px]">
+            <div className="flex flex-col flex-1 max-w-[240px]">
               <label htmlFor="filterLocation" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "6px" }}>Location</label>
               <input id="filterLocation" type="text" placeholder="e.g. Bengaluru" className="w-full bg-[#111111] border border-white/10 rounded-[8px] px-3 py-2 text-[#e4e4e4] outline-none text-[13px]" style={{ fontFamily: "var(--font-inter), sans-serif" }} />
+            </div>
+          </div>
+
+          {/* Filter Bar (Mobile - Horizontal Pills) */}
+          <div className="md:hidden flex flex-col gap-6 mb-8">
+            <div className="flex flex-col">
+              <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "8px", letterSpacing: "0.05em" }}>Role</label>
+              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+                {["All Roles", "Developer", "Designer", "Marketer", "Operator", "Sales"].map((opt, i) => (
+                  <button key={opt} className={`whitespace-nowrap rounded-full px-4 py-2 border flex-shrink-0 ${i === 0 ? 'bg-[rgba(200,241,53,0.1)] border-[rgba(200,241,53,0.3)] text-[#c8f135]' : 'bg-transparent border-white/10 text-[#6b6b6b]'}`} style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "8px", letterSpacing: "0.05em" }}>Stage</label>
+              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+                {["All Stages", "Idea", "MVP", "Launched"].map((opt, i) => (
+                  <button key={opt} className={`whitespace-nowrap rounded-full px-4 py-2 border flex-shrink-0 ${i === 0 ? 'bg-[rgba(200,241,53,0.1)] border-[rgba(200,241,53,0.3)] text-[#c8f135]' : 'bg-transparent border-white/10 text-[#6b6b6b]'}`} style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <label style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "8px", letterSpacing: "0.05em" }}>Availability</label>
+              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+                {["Any", "Full-time", "Part-time", "Weekends"].map((opt, i) => (
+                  <button key={opt} className={`whitespace-nowrap rounded-full px-4 py-2 border flex-shrink-0 ${i === 0 ? 'bg-[rgba(200,241,53,0.1)] border-[rgba(200,241,53,0.3)] text-[#c8f135]' : 'bg-transparent border-white/10 text-[#6b6b6b]'}`} style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col w-full">
+              <label htmlFor="filterLocationMobile" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", textTransform: "uppercase", marginBottom: "8px", letterSpacing: "0.05em" }}>Location</label>
+              <input id="filterLocationMobile" type="text" placeholder="e.g. Bengaluru" className="w-full bg-[#111111] border border-white/10 rounded-[8px] px-3 py-3 text-[#e4e4e4] outline-none text-[14px]" style={{ fontFamily: "var(--font-inter), sans-serif" }} />
             </div>
           </div>
 

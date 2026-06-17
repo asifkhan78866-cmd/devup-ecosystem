@@ -3,6 +3,7 @@ import { Inter, Syne, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import LayoutClient from "@/components/LayoutClient";
 import BackendWakeUp from "@/components/BackendWakeUp";
+import Script from "next/script";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,7 +36,8 @@ export default function RootLayout({
         {/* Synchronous script — runs BEFORE paint, before React hydrates.
             Tags <html> with data-skip-intro for returning visitors so CSS
             can instantly hide the overlay with zero flash. */}
-        <script
+        <script 
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

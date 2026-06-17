@@ -3,41 +3,32 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Cpu, Brain, Palette, TrendingUp, Scale, Compass, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Globe2, Briefcase, Trophy, Users, Sparkles, Rocket,
+  LayoutDashboard, LogIn, LogOut
+} from "lucide-react";
 
-const NAV_LINKS = [
-  { name: "Ecosystem", path: "/ecosystem" },
-  { name: "Careers", path: "/careers" },
-  { name: "Hackathons", path: "/hackathons" },
-  { name: "Co-Founders", path: "/cofounders" },
-  { name: "Build With Us", path: "/build-with-devup", hasMegaMenu: true },
-  { name: "Apply", path: "/apply" },
-];
-
-const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
-  Cpu, Brain, Palette, TrendingUp, Scale, Compass,
-};
-
-const MEGA_MENU_CATEGORIES = [
-  { title: "Tech & Infra", desc: "GPUs, Backend, Cloud", icon: "Cpu" },
-  { title: "AI & Data", desc: "Agents, RAG, Analytics", icon: "Brain" },
-  { title: "Creative", desc: "UI/UX, Video, Decks", icon: "Palette" },
-  { title: "Marketing", desc: "Ads, Social, SEO", icon: "TrendingUp" },
-  { title: "Legal", desc: "Incorporation, Patents", icon: "Scale" },
-  { title: "Mission", desc: "Mentors, VCs, Events", icon: "Compass" },
+const navLinks = [
+  { href: '/ecosystem', label: 'Ecosystem', icon: Globe2 },
+  { href: '/careers', label: 'Careers', icon: Briefcase },
+  { href: '/hackathons', label: 'Hackathons', icon: Trophy },
+  { href: '/cofounders', label: 'Co-Founders', icon: Users },
+  { href: '/build-with-devup', label: 'Build With Us', icon: Sparkles },
+  { href: '/apply', label: 'Apply', icon: Rocket },
 ];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { user, signOut, loading } = useAuth();
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 40);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -45,220 +36,271 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled
-          ? "bg-black/40 backdrop-blur-xl border-b border-white/5 py-3"
-          : "bg-transparent border-transparent py-5"
-        }`}
+      className="desktop-navbar"
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0,
+        height: 72, width: '100%', zIndex: 100,
+        background: scrolled ? 'rgba(10,10,10,0.85)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 32px'
+      }}
     >
-      <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="font-heading text-2xl font-bold tracking-tight z-50">
-          Dev<span className="text-gradient">Up</span>
+      {/* Left: Logo */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+        <Link href="/" style={{
+          textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px'
+        }}>
+          <div className="nav-logo-image" style={{ position: 'relative' }}>
+            <Image 
+              src="/images/devup-logo.png" 
+              alt="DevUp Logo" 
+              width={896} 
+              height={558} 
+              priority
+              style={{ objectFit: 'contain', width: 'auto', height: '100%' }}
+            />
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-syne), Syne, sans-serif',
+            fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em',
+            display: 'flex', alignItems: 'center'
+          }}>
+            <span style={{ color: '#ffffff' }}>Dev</span>
+            <span style={{ color: '#c8f135' }}>Up</span>
+          </div>
         </Link>
+      </div>
 
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => {
-            const isActive = pathname === link.path;
-
-            return (
-              <div key={link.name} className="relative group">
-                <Link
-                  href={link.path}
-                  className="relative text-sm font-medium text-[var(--text-primary)] transition-colors hover:text-white flex items-center gap-1 py-4"
-                >
-                  {link.name}
-                  {/* Hover underline */}
-                  <span className="absolute bottom-3 left-0 w-full h-[2px] bg-[var(--accent-primary)] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
-                  {/* Active dot */}
-                  {isActive && (
-                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]" />
-                  )}
-                </Link>
-
-                {/* Mega Menu Dropdown */}
-                {link.hasMegaMenu && (
-                  <div className="absolute top-[100%] left-1/2 -translate-x-1/2 w-[600px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                    <div className="mt-2 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl p-6">
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-                        {MEGA_MENU_CATEGORIES.map((cat, idx) => {
-                          const IconComponent = ICON_MAP[cat.icon];
-                          return (
-                            <Link href="/build-with-devup" key={idx} className="group/item flex items-start gap-4">
-                              <div
-                                className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[#a1a1a1] group-hover/item:bg-[rgba(200,241,53,0.08)] group-hover/item:text-[#c8f135] transition-all duration-150"
-                              >
-                                {IconComponent && <IconComponent size={16} />}
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-bold text-white group-hover/item:text-[#c8f135] transition-colors">{cat.title}</h4>
-                                <p className="text-xs text-white/50 mt-1">{cat.desc}</p>
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                      <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center">
-                        <p className="text-xs text-white/50">Everything your startup needs.</p>
-                        <Link href="/build-with-devup" className="text-xs text-[#c8f135] font-bold flex items-center gap-1 hover:underline">
-                          View all 30+ services <ArrowRight size={12} />
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </nav>
-
-        {/* CTA Button */}
-        <div className="hidden md:block">
-          {loading ? null : user ? (
-            // Logged in state
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{
-                fontFamily: 'Inter', fontSize: 13,
-                color: '#6b6b6b',
-              }}>
-                {user.name.split(' ')[0]}
-              </span>
-              <a href="/dashboard" style={{
-                padding: '8px 16px',
-                background: 'rgba(200,241,53,0.1)',
-                border: '1px solid rgba(200,241,53,0.2)',
-                borderRadius: 8, color: '#c8f135',
-                fontFamily: 'Inter', fontSize: 13,
-                fontWeight: 600, textDecoration: 'none',
-              }}>
-                Dashboard
-              </a>
-              <button
-                onClick={signOut}
-                style={{
-                  padding: '8px 16px',
-                  background: 'transparent',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 8, color: '#6b6b6b',
-                  fontFamily: 'Inter', fontSize: 13,
-                  cursor: 'pointer',
-                }}
-              >
-                Sign out
-              </button>
-            </div>
-          ) : (
-            // Logged out state
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <a href="/login" style={{
-                padding: '8px 16px',
-                background: 'transparent',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 8, color: '#a1a1a1',
-                fontFamily: 'Inter', fontSize: 13,
-                fontWeight: 500, textDecoration: 'none',
-              }}>
-                Sign in
-              </a>
-              <a href="/signup" style={{
-                padding: '8px 16px',
-                background: '#c8f135', color: '#000000',
-                borderRadius: 8,
-                fontFamily: 'Inter', fontSize: 13,
-                fontWeight: 700, textDecoration: 'none',
-              }}>
-                Join Ecosystem
-              </a>
-            </div>
-          )}
-        </div>
-
-        {/* Mobile Menu Toggle */}
-        <button
-          className="md:hidden z-50 p-2 -mr-2 text-white"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle Menu"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-
-        {/* Mobile Fullscreen Menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-black/95 backdrop-blur-3xl z-40 flex flex-col items-center justify-center gap-6"
+      {/* Middle: Desktop Nav Links */}
+      <nav className="desktop-nav-links" style={{ display: 'flex', alignItems: 'center', gap: 32, justifyContent: 'center' }}>
+        {navLinks.map((link) => {
+          const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+          return (
+            <Link key={link.href} href={link.href} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 0',
+              fontFamily: 'var(--font-inter), Inter, sans-serif', fontSize: 14, fontWeight: 500,
+              color: isActive ? '#ffffff' : '#888888',
+              textDecoration: 'none',
+              transition: 'color 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) {
+                e.currentTarget.style.color = '#e4e4e4';
+                const iconElement = e.currentTarget.querySelector('svg');
+                if (iconElement) iconElement.style.color = '#e4e4e4';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) {
+                e.currentTarget.style.color = '#888888';
+                const iconElement = e.currentTarget.querySelector('svg');
+                if (iconElement) iconElement.style.color = '#888888';
+              }
+            }}
             >
-              {NAV_LINKS.map((link, idx) => (
-                <motion.div
-                  key={link.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * idx }}
-                >
-                  <Link
-                    href={link.path}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-3xl font-heading font-bold hover:text-[var(--accent-primary)] transition-colors"
+              <link.icon size={16} 
+                color={isActive ? '#c8f135' : 'currentColor'} 
+                strokeWidth={1.75} 
+                style={{ transition: 'color 0.2s ease, transform 0.2s ease' }}
+              />
+              {link.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Right: Auth */}
+      <div className="desktop-nav-links" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 16 }}>
+        {loading ? null : user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 13, fontWeight: 500, color: '#888888' }}>
+              {user.name.split(' ')[0]}
+            </span>
+            <Link href="/dashboard" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 18px', background: 'rgba(200,241,53,0.08)',
+              border: '1px solid rgba(200,241,53,0.2)', borderRadius: 10,
+              color: '#c8f135', fontFamily: 'var(--font-inter), sans-serif', fontSize: 13,
+              fontWeight: 600, textDecoration: 'none',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(200,241,53,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(200,241,53,0.08)';
+            }}
+            >
+              <LayoutDashboard size={14} strokeWidth={2} />
+              Dashboard
+            </Link>
+            <button onClick={signOut} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 18px', background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10,
+              color: '#888888', fontFamily: 'var(--font-inter), sans-serif', fontSize: 13,
+              fontWeight: 500, cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+              e.currentTarget.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#888888';
+            }}
+            >
+              <LogOut size={14} strokeWidth={2} />
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Link href="/login" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 18px', background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10,
+              color: '#a1a1a1', fontFamily: 'var(--font-inter), sans-serif', fontSize: 13,
+              fontWeight: 500, textDecoration: 'none',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+              e.currentTarget.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#a1a1a1';
+            }}
+            >
+              <LogIn size={14} strokeWidth={2} />
+              Sign in
+            </Link>
+            <Link href="/signup" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 20px', background: '#c8f135', color: '#000000',
+              borderRadius: 10, fontFamily: 'var(--font-inter), sans-serif', fontSize: 13,
+              fontWeight: 700, textDecoration: 'none',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#d4f53f';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#c8f135';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+            >
+              Join Ecosystem
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Auth CTA (visible only below 1024px) */}
+      <div className="mobile-nav-auth">
+        {loading ? null : user ? (
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+              style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: 'rgba(200,241,53,0.15)', border: '1px solid rgba(200,241,53,0.3)',
+                color: '#c8f135', fontFamily: 'Inter', fontSize: 12, fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', padding: 0
+              }}
+            >
+              {user.name.charAt(0).toUpperCase()}
+            </button>
+            <AnimatePresence>
+              {mobileDropdownOpen && (
+                <>
+                  <div
+                    onClick={() => setMobileDropdownOpen(false)}
+                    style={{ position: 'fixed', inset: 0, zIndex: 101 }}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ duration: 0.15 }}
+                    style={{
+                      position: 'absolute', top: 36, right: 0,
+                      background: '#111111', border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: 12, padding: 8, minWidth: 160, zIndex: 102,
+                      display: 'flex', flexDirection: 'column', gap: 4,
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+                    }}
                   >
-                    {link.name}
-                  </Link>
-                </motion.div>
-              ))}
-              
-              {/* Auth section in mobile menu */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="mt-4 flex flex-col items-center gap-3 w-full max-w-xs"
-              >
-                {loading ? null : user ? (
-                  <>
                     <Link
                       href="/dashboard"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="w-full text-center py-3 bg-[#c8f135] text-black font-bold rounded-[10px]"
-                      style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: '15px' }}
+                      onClick={() => setMobileDropdownOpen(false)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '10px 12px', borderRadius: 8,
+                        background: 'rgba(200,241,53,0.1)', color: '#c8f135',
+                        fontFamily: 'Inter', fontSize: 13, fontWeight: 600,
+                        textDecoration: 'none'
+                      }}
                     >
-                      Dashboard
+                      <LayoutDashboard size={14} /> Dashboard
                     </Link>
                     <button
-                      onClick={() => { signOut(); setMobileMenuOpen(false); }}
-                      className="w-full text-center py-3 border border-white/10 text-[#a1a1a1] rounded-[10px]"
-                      style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: '15px' }}
+                      onClick={() => { signOut(); setMobileDropdownOpen(false); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '10px 12px', background: 'transparent', border: 'none',
+                        color: '#a1a1a1', fontFamily: 'Inter', fontSize: 13,
+                        cursor: 'pointer', textAlign: 'left', borderRadius: 8
+                      }}
                     >
-                      Sign out
+                      <LogOut size={14} /> Sign out
                     </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="/signup"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="w-full text-center py-3 bg-[#c8f135] text-black font-bold rounded-[10px]"
-                      style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: '15px' }}
-                    >
-                      Join Ecosystem
-                    </Link>
-                    <Link
-                      href="/login"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="w-full text-center py-3 border border-white/10 text-[#a1a1a1] rounded-[10px]"
-                      style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: '15px' }}
-                    >
-                      Sign in
-                    </Link>
-                  </>
-                )}
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <Link href="/signup" style={{
+            padding: '6px 12px', background: '#c8f135', color: '#000000',
+            borderRadius: 999, fontFamily: 'Inter', fontSize: 12,
+            fontWeight: 700, textDecoration: 'none'
+          }}>
+            Join
+          </Link>
+        )}
       </div>
+
+      <style jsx>{`
+        .mobile-nav-auth {
+          display: none;
+        }
+        .nav-logo-image {
+          height: 36px;
+        }
+        @media (max-width: 1023px) {
+          .nav-logo-image {
+            height: 28px;
+          }
+          .desktop-nav-links {
+            display: none !important;
+          }
+          .mobile-nav-auth {
+            display: block !important;
+          }
+          .desktop-navbar {
+            padding: 0 16px !important;
+          }
+        }
+      `}</style>
     </header>
   );
 }

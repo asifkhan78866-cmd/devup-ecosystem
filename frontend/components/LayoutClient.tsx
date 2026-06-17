@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Navbar } from "@/components/Navbar";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import { Footer } from "@/components/Footer";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import { Providers } from "@/lib/providers";
@@ -40,6 +41,7 @@ export default function LayoutClient({
           <IntroAnimation />
           <Navbar />
           <main className="flex-1 relative z-10">{children}</main>
+          <MobileBottomNav />
           <Footer />
         </SmoothScrollProvider>
       </AuthProvider>

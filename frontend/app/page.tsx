@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 import FloatingSymbols from "@/components/FloatingSymbols";
 import HeroBeacon from "@/components/HeroBeacon";
 import HeroTypography from "@/components/HeroTypography";
@@ -13,6 +14,14 @@ import BentoServices from "@/components/BentoServices";
 import Testimonials from "@/components/Testimonials";
 import FinalCTA from "@/components/FinalCTA";
 import ErrorBoundary from "@/components/ErrorBoundary";
+
+import HeroStatChips from "@/components/HeroStatChips";
+
+// Dynamically import HeroSignalNetwork
+const HeroSignalNetwork = dynamic(
+  () => import("@/components/HeroSignalNetwork"),
+  { ssr: false }
+);
 
 // Dynamically import EcosystemOrbit3D with no SSR
 const EcosystemOrbit3D = dynamic(
@@ -38,7 +47,24 @@ export default function Home() {
       <section className="relative min-h-screen flex flex-col items-center pt-20 overflow-hidden z-10 pb-24">
         <HeroBeacon />
         <HeroTypography />
-        <HeroDashboardPreview />
+        
+        <motion.div
+          initial={{ opacity: 0, y: 40, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="relative w-full max-w-[960px] mx-auto mt-[72px] mb-0"
+        >
+          <div style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: 680,
+            height: 440,
+            margin: '0 auto',
+          }}>
+            <HeroSignalNetwork />
+            <HeroStatChips />
+          </div>
+        </motion.div>
       </section>
 
       {/* 3. Social Proof Strip */}
