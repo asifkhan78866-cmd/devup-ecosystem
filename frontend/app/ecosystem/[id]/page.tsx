@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExternalLink, ShieldCheck } from "lucide-react";
-import Link from "next/link";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import AiAnalysisSection from "@/components/startup/AiAnalysisSection";
+import StartupGallery from "@/components/startup/StartupGallery";
 
 // Dynamic import for 3D element
 const StartupDNA = dynamic(
@@ -14,7 +15,7 @@ const StartupDNA = dynamic(
   { ssr: false }
 );
 
-const TABS = ["Overview", "Team", "Open Roles", "Updates"];
+const TABS = ["Overview", "Team", "Open Roles", "Gallery", "Updates"];
 
 const DOMAIN_MAP: Record<string, string> = {
   AI_ML: "AI/ML", FINTECH: "FinTech", HEALTHTECH: "HealthTech", DEVTOOLS: "DevTools",
@@ -56,6 +57,9 @@ export default function StartupProfilePage() {
             funding: s.fundingAmount || "Undisclosed",
             about: s.description,
             website: s.website,
+            logoUrl: s.logoUrl,
+            screenshotUrls: s.screenshotUrls || [],
+            aiAnalysis: s.aiAnalysis,
             github: s.githubUrl,
             linkedin: s.linkedinUrl,
             twitter: s.twitterUrl,
@@ -99,63 +103,80 @@ export default function StartupProfilePage() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-8">
   {/* Header Banner */}
-        <div className="relative w-full h-[280px] rounded-[16px] overflow-hidden mb-16 bg-[#111111]">
-          {/* Generative Banner background */}
-          <div 
-            className="absolute inset-0 opacity-20"
-            style={{
-              background: `linear-gradient(135deg, ${startup.color} 0%, transparent 100%)`
-            }}
-          />
-          {/* Grid Pattern overlay */}
-          <div 
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: "radial-gradient(circle at center, rgba(255,255,255,0.2) 1px, transparent 1px)",
-              backgroundSize: "16px 16px"
-            }}
-          />
-          {/* Ghost Watermark */}
-          <div 
-            className="absolute -bottom-8 -right-8 opacity-[0.06] select-none pointer-events-none whitespace-nowrap"
-            style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "120px", fontWeight: 800, color: "#fff" }}
-          >
-            {startup.name}
+        <div className="relative w-full h-[280px] mb-16">
+          {/* Inner wrapper for backgrounds with overflow-hidden for rounded corners */}
+          <div className="absolute inset-0 rounded-[16px] overflow-hidden bg-[#111111]">
+            {/* Banner background */}
+            {startup.screenshotUrls && startup.screenshotUrls.length > 0 ? (
+              <div 
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `url(${startup.screenshotUrls[0]})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  opacity: 0.6
+                }}
+              />
+            ) : (
+              <div 
+                className="absolute inset-0 opacity-20"
+                style={{
+                  background: `linear-gradient(135deg, ${startup.color} 0%, transparent 100%)`
+                }}
+              />
+            )}
+            {/* Grid Pattern overlay */}
+            <div 
+              className="absolute inset-0 opacity-20"
+              style={{
+                backgroundImage: "radial-gradient(circle at center, rgba(255,255,255,0.2) 1px, transparent 1px)",
+                backgroundSize: "16px 16px"
+              }}
+            />
+            {/* Ghost Watermark */}
+            <div 
+              className="absolute -bottom-8 -right-8 opacity-[0.06] select-none pointer-events-none whitespace-nowrap"
+              style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "120px", fontWeight: 800, color: "#fff" }}
+            >
+              {startup.name}
+            </div>
           </div>
 
           {/* Logo Card */}
           <div 
-            className="absolute -bottom-8 left-10 w-[72px] h-[72px] bg-[#111111] rounded-[16px] flex items-center justify-center"
+            className="absolute -bottom-8 left-10 w-[72px] h-[72px] bg-[#111111] rounded-[16px] flex items-center justify-center overflow-hidden"
             style={{ border: "3px solid #0a0a0a", boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}
           >
-            <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "28px", fontWeight: 700, color: "#fff" }}>
-              {startup.name[0]}
-            </span>
+            {startup.logoUrl ? (
+              <img src={startup.logoUrl} alt={startup.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "28px", fontWeight: 700, color: "#fff" }}>
+                {startup.name[0]}
+              </span>
+            )}
           </div>
 
+          {/* Verified Badge */}
           {startup.verified && (
             <div 
-              className="absolute flex items-center gap-1"
+              className="absolute flex items-center gap-1 z-10"
               style={{
-                bottom: "16px",
+                bottom: "-16px",
                 left: "124px",
-                background: "rgba(200,241,53,0.1)",
-                border: "1px solid rgba(200,241,53,0.2)",
+                background: "rgba(10,10,10,0.9)",
+                border: "1px solid rgba(200,241,53,0.3)",
                 color: "#c8f135",
                 fontFamily: "var(--font-inter), sans-serif",
                 fontSize: "11px",
-                padding: "3px 10px",
-                borderRadius: "100px"
+                padding: "4px 12px",
+                borderRadius: "100px",
+                backdropFilter: "blur(4px)"
               }}
             >
               <ShieldCheck className="w-[14px] h-[14px]" /> Verified Startup
             </div>
           )}
         </div>
-
-        <ErrorBoundary>
-          <StartupDNA />
-        </ErrorBoundary>
 
         {/* Content Layout */}
         <div className="flex flex-col lg:flex-row gap-12 mt-12">
@@ -221,6 +242,10 @@ export default function StartupProfilePage() {
                       <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px", color: "#a1a1a1", lineHeight: 1.6 }}>
                         {startup.about}
                       </p>
+                      
+                      {startup.aiAnalysis && (
+                        <AiAnalysisSection analysis={startup.aiAnalysis} />
+                      )}
                     </section>
 
                     {/* Stats 2x2 Grid */}
@@ -428,6 +453,12 @@ export default function StartupProfilePage() {
                         No open roles currently.
                       </div>
                     )}
+                  </div>
+                )}
+
+                {activeTab === "Gallery" && (
+                  <div className="space-y-4">
+                    <StartupGallery images={startup.screenshotUrls} />
                   </div>
                 )}
 

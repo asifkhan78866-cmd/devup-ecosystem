@@ -6,8 +6,296 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import type { Startup } from '@/types'
-import { ShieldCheck, Shield } from 'lucide-react'
+import { ShieldCheck, Shield, Upload, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+function LogoUpload({ value, onChange, error }: {
+  value: File | string | null
+  onChange: (file: File) => void
+  error?: string
+}) {
+  const [preview, setPreview] = useState<string | null>(
+    typeof value === 'string' ? value : value instanceof File ? URL.createObjectURL(value) : null
+  )
+
+  const handleFile = (file: File) => {
+    onChange(file)
+    setPreview(URL.createObjectURL(file))
+  }
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <label style={{
+        fontFamily: 'Inter', fontSize: 13, color: '#a1a1a1',
+        marginBottom: 8, display: 'block',
+      }}>
+        Startup Logo <span style={{ color: '#c8f135' }}>*</span>
+        <span style={{ color: '#6b6b6b', marginLeft: 6 }}>required</span>
+      </label>
+
+      <div
+        onDrop={(e) => {
+          e.preventDefault()
+          const file = e.dataTransfer.files[0]
+          if (file) handleFile(file)
+        }}
+        onDragOver={(e) => e.preventDefault()}
+        style={{
+          width: 100, height: 100,
+          border: `1px dashed ${error ? '#ef4444' : 'rgba(200,241,53,0.25)'}`,
+          borderRadius: 14,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', position: 'relative', overflow: 'hidden',
+          background: '#0a0a0a',
+        }}
+        onClick={() => document.getElementById('logo-input')?.click()}
+      >
+        {preview ? (
+          <img src={preview} alt="logo preview" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <Upload size={20} color="#6b6b6b" />
+        )}
+        <input
+          id="logo-input"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+        />
+      </div>
+      {error && (
+        <p style={{ color: '#ef4444', fontSize: 12, marginTop: 6 }}>
+          {error}
+        </p>
+      )}
+      <p style={{ color: '#3d3d3d', fontSize: 11, marginTop: 6 }}>
+        JPEG, PNG, or WEBP. Max 2MB. Square images work best.
+      </p>
+    </div>
+  )
+}
+
+function ScreenshotUpload({ files, onAdd, onRemove }: {
+  files: (File | string)[]
+  onAdd: (files: File[]) => void
+  onRemove: (index: number) => void
+}) {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <label style={{
+        fontFamily: 'Inter', fontSize: 13, color: '#a1a1a1',
+        marginBottom: 8, display: 'block',
+      }}>
+        Product Screenshots
+        <span style={{ color: '#6b6b6b', marginLeft: 6 }}>
+          optional, up to 6
+        </span>
+      </label>
+
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {files.map((file, i) => (
+          <div key={i} style={{
+            width: 80, height: 80, borderRadius: 10,
+            position: 'relative', overflow: 'hidden',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}>
+            <img
+              src={typeof file === 'string' ? file : URL.createObjectURL(file)}
+              alt={`screenshot ${i + 1}`}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+            <button
+              type="button"
+              onClick={() => onRemove(i)}
+              style={{
+                position: 'absolute', top: 2, right: 2,
+                width: 18, height: 18, borderRadius: '50%',
+                background: 'rgba(0,0,0,0.7)', border: 'none',
+                color: '#fff', fontSize: 11, cursor: 'pointer',
+              }}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+
+        {files.length < 6 && (
+          <div
+            onClick={() => document.getElementById('screenshot-input')?.click()}
+            style={{
+              width: 80, height: 80, borderRadius: 10,
+              border: '1px dashed rgba(255,255,255,0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <Plus size={18} color="#6b6b6b" />
+            <input
+              id="screenshot-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              hidden
+              onChange={(e) => {
+                if (e.target.files) onAdd(Array.from(e.target.files))
+              }}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function AiResearchButton({ 
+  websiteUrl, startupName, startupId, onResult 
+}: {
+  websiteUrl: string
+  startupName: string
+  startupId?: string
+  onResult: (analysis: any) => void
+}) {
+  const [loading, setLoading] = useState(false)
+  const [loadingText, setLoadingText] = useState('Crawling website...')
+  const [error, setError] = useState<string | null>(null)
+
+  const handleResearch = async () => {
+    if (!websiteUrl || !startupName) {
+      setError('Enter website URL and startup name first')
+      return
+    }
+    setError(null)
+    setLoading(true)
+
+    const messages = [
+      'Crawling website...',
+      'Searching the web...',
+      'Synthesizing analysis...',
+    ]
+    let i = 0
+    const interval = setInterval(() => {
+      i = (i + 1) % messages.length
+      setLoadingText(messages[i])
+    }, 2500)
+
+    try {
+      const res = await api.post('/api/ai/research-startup', { startupId, startupName, websiteUrl })
+      onResult(res.data.data.analysis)
+    } catch (err: any) {
+      setError(err.response?.data?.error || err.message || 'Research failed')
+    } finally {
+      clearInterval(interval)
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      <button
+        type="button"
+        onClick={handleResearch}
+        disabled={loading}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '8px 16px',
+          background: loading ? '#1a1a1a' : 'rgba(200,241,53,0.1)',
+          border: '1px solid rgba(200,241,53,0.25)',
+          borderRadius: 8, color: '#c8f135',
+          fontFamily: 'Inter', fontSize: 13, fontWeight: 600,
+          cursor: loading ? 'not-allowed' : 'pointer',
+        }}
+      >
+        {loading ? (
+          <>
+            <div style={{
+              width: 12, height: 12, borderRadius: '50%',
+              border: '2px solid rgba(200,241,53,0.2)',
+              borderTopColor: '#c8f135',
+              animation: 'spin 0.8s linear infinite',
+            }} />
+            {loadingText}
+          </>
+        ) : (
+          <>🔍 Research with AI</>
+        )}
+      </button>
+      {error && (
+        <p style={{ color: '#ef4444', fontSize: 12, marginTop: 6 }}>
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function AiResultPreview({ analysis, onInsertOverview }: {
+  analysis: any
+  onInsertOverview: (text: string) => void
+}) {
+  return (
+    <div style={{
+      background: '#0a0a0a',
+      border: '1px solid rgba(200,241,53,0.15)',
+      borderRadius: 12, padding: 20, marginTop: 16,
+    }}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between',
+        marginBottom: 12,
+      }}>
+        <span style={{ fontFamily: 'Syne', fontSize: 14, 
+          fontWeight: 700, color: '#c8f135' }}>
+          AI Analysis Result
+        </span>
+        <span style={{
+          fontFamily: 'Inter', fontSize: 11,
+          padding: '2px 8px', borderRadius: 4,
+          background: analysis.confidence === 'high' 
+            ? 'rgba(34,197,94,0.1)' 
+            : analysis.confidence === 'medium'
+            ? 'rgba(245,158,11,0.1)'
+            : 'rgba(239,68,68,0.1)',
+          color: analysis.confidence === 'high' 
+            ? '#22c55e' 
+            : analysis.confidence === 'medium' ? '#f59e0b' : '#ef4444',
+        }}>
+          {analysis.confidence} confidence
+        </span>
+      </div>
+
+      <p style={{ fontFamily: 'Inter', fontSize: 13, 
+        color: '#a1a1a1', lineHeight: 1.6, marginBottom: 12 }}>
+        {analysis.overview}
+      </p>
+
+      <button
+        type="button"
+        onClick={() => onInsertOverview(analysis.overview)}
+        style={{
+          fontSize: 12, color: '#c8f135', background: 'none',
+          border: 'none', cursor: 'pointer', textDecoration: 'underline',
+        }}
+      >
+        Use this as the startup description →
+      </button>
+
+      {analysis.redFlags?.length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <span style={{ fontSize: 11, color: '#6b6b6b', 
+            textTransform: 'uppercase' }}>
+            Flags to review
+          </span>
+          {analysis.redFlags.map((flag: string, i: number) => (
+            <p key={i} style={{ fontSize: 12, color: '#f59e0b', 
+              marginTop: 4 }}>
+              ⚠ {flag}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 const DOMAINS = [
   { label: 'AI/ML', value: 'AI_ML' },
@@ -45,6 +333,10 @@ export default function Startups() {
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [confirmDelete, setConfirmDelete] = useState<Startup | null>(null)
+  const [logoFile, setLogoFile] = useState<File | string | null>(null)
+  const [screenshotFiles, setScreenshotFiles] = useState<(File | string)[]>([])
+  const [logoError, setLogoError] = useState<string>()
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null)
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -56,23 +348,33 @@ export default function Startups() {
   })
 
   const createMutation = useMutation({
-    mutationFn: (payload: typeof form) => api.post('/api/startups', payload),
+    mutationFn: (formData: FormData) => api.post('/api/startups', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['startups'] })
       setShowAdd(false)
       setForm(emptyForm)
+      setLogoFile(null)
+      setScreenshotFiles([])
+      setAiAnalysis(null)
       toast.success('Startup created successfully')
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to create startup'),
+    onError: (err: any) => toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to create startup'),
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, ...payload }: typeof form & { id: string }) => api.patch(`/api/startups/${id}`, payload),
+    mutationFn: ({ id, formData }: { id: string, formData: FormData }) => api.patch(`/api/startups/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['startups'] })
       setShowAdd(false)
       setEditId(null)
       setForm(emptyForm)
+      setLogoFile(null)
+      setScreenshotFiles([])
+      setAiAnalysis(null)
       toast.success('Startup updated successfully')
     },
     onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to update startup'),
@@ -104,9 +406,13 @@ export default function Startups() {
       name: s.name, slug: s.slug, tagline: s.tagline, description: s.description,
       domain: s.domain, stage: s.stage, foundedYear: s.foundedYear,
       headcount: s.headcount, location: s.location, website: s.website || '',
-      githubUrl: '',
+      githubUrl: s.githubUrl || '',
     })
     setEditId(s.id)
+    setLogoFile(s.logoUrl || null)
+    setScreenshotFiles(s.screenshotUrls || [])
+    setAiAnalysis(null)
+    setLogoError(undefined)
     setShowAdd(true)
   }
 
@@ -116,10 +422,24 @@ export default function Startups() {
       toast.error('Name and tagline are required')
       return
     }
+    if (!logoFile && !editId) {
+      setLogoError('A logo is required')
+      return
+    }
+
+    const formData = new FormData()
+    Object.entries(form).forEach(([k, v]) => {
+      formData.append(k, String(v))
+    })
+    if (logoFile instanceof File) formData.append('logo', logoFile)
+    screenshotFiles.forEach((f) => {
+      if (f instanceof File) formData.append('screenshots', f)
+    })
+
     if (editId) {
-      updateMutation.mutate({ id: editId, ...form })
+      updateMutation.mutate({ id: editId, formData })
     } else {
-      createMutation.mutate(form)
+      createMutation.mutate(formData)
     }
   }
 
@@ -201,8 +521,19 @@ export default function Startups() {
       </div>
 
       {/* Add / Edit Startup Modal */}
-      <Modal isOpen={showAdd} onClose={() => { setShowAdd(false); setEditId(null); setForm(emptyForm) }} title={editId ? 'Edit Startup' : 'Add Startup'}>
+      <Modal isOpen={showAdd} onClose={() => { setShowAdd(false); setEditId(null); setForm(emptyForm); setLogoFile(null); setScreenshotFiles([]); setAiAnalysis(null); setLogoError(undefined) }} title={editId ? 'Edit Startup' : 'Add Startup'}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <LogoUpload 
+            value={logoFile} 
+            onChange={(f) => { setLogoFile(f); setLogoError(undefined) }} 
+            error={logoError} 
+          />
+          <ScreenshotUpload 
+            files={screenshotFiles} 
+            onAdd={(newFiles) => setScreenshotFiles(prev => [...prev, ...newFiles].slice(0, 6))}
+            onRemove={(index) => setScreenshotFiles(prev => prev.filter((_, i) => i !== index))}
+          />
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-gray-500 mb-1">Name *</label>
@@ -238,6 +569,12 @@ export default function Startups() {
               className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500 resize-none"
               placeholder="Full description of the startup..."
             />
+            {aiAnalysis && (
+              <AiResultPreview 
+                analysis={aiAnalysis} 
+                onInsertOverview={(text) => handleChange('description', text)} 
+              />
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -295,6 +632,12 @@ export default function Startups() {
                 value={form.website} onChange={(e) => handleChange('website', e.target.value)}
                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
                 placeholder="https://nexusai.com"
+              />
+              <AiResearchButton 
+                websiteUrl={form.website} 
+                startupName={form.name} 
+                startupId={editId || undefined}
+                onResult={(res) => setAiAnalysis(res)}
               />
             </div>
             <div>

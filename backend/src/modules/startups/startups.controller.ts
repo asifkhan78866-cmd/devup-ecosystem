@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { StartupsService } from "./startups.service";
 import { AppError } from "../../middleware/errorHandler";
 import { env } from "../../config/env";
+import { uploadStartupImage } from "../../lib/storage";
 
 const startupsService = new StartupsService();
 
@@ -22,16 +23,71 @@ export class StartupsController {
   }
 
   async createStartup(req: Request, res: Response) {
+    const files = req.files as {
+      logo?: Express.Multer.File[];
+      screenshots?: Express.Multer.File[];
+    };
+
+    if (!files?.logo?.[0]) {
+      return res.status(400).json({
+        success: false,
+        error: "A startup logo is required",
+        code: "LOGO_REQUIRED",
+      });
+    }
+
     const payload = { ...req.body };
     if (!payload.founderId) {
       payload.founderId = req.user!.id;
     }
+
+    if (payload.foundedYear) payload.foundedYear = parseInt(payload.foundedYear, 10);
+    if (payload.fundingAmount) payload.fundingAmount = parseFloat(payload.fundingAmount);
+    if (payload.userCount) payload.userCount = parseInt(payload.userCount, 10);
+    if (payload.aiAnalysis && typeof payload.aiAnalysis === 'string') {
+      try { payload.aiAnalysis = JSON.parse(payload.aiAnalysis); } catch (e) {}
+    }
+
+    const slug = payload.slug;
+    payload.logoUrl = await uploadStartupImage(files.logo[0], slug, "logo");
+
+    if (files.screenshots && files.screenshots.length > 0) {
+      payload.screenshotUrls = await Promise.all(
+        files.screenshots.map((f) => uploadStartupImage(f, slug, "screenshot"))
+      );
+    }
+
     const data = await startupsService.createStartup(payload);
     res.status(201).json({ success: true, data });
   }
 
   async updateStartup(req: Request, res: Response) {
-    const data = await startupsService.updateStartup(req.params.id as string, req.user!.id, req.user!.role, req.body);
+    const files = req.files as {
+      logo?: Express.Multer.File[];
+      screenshots?: Express.Multer.File[];
+    };
+    
+    const payload = { ...req.body };
+    if (payload.foundedYear) payload.foundedYear = parseInt(payload.foundedYear, 10);
+    if (payload.fundingAmount) payload.fundingAmount = parseFloat(payload.fundingAmount);
+    if (payload.userCount) payload.userCount = parseInt(payload.userCount, 10);
+    if (payload.aiAnalysis && typeof payload.aiAnalysis === 'string') {
+      try { payload.aiAnalysis = JSON.parse(payload.aiAnalysis); } catch (e) {}
+    }
+
+    const slug = payload.slug || req.params.id; // use ID if slug not in body
+
+    if (files?.logo?.[0]) {
+      payload.logoUrl = await uploadStartupImage(files.logo[0], slug, "logo");
+    }
+
+    if (files?.screenshots && files.screenshots.length > 0) {
+      payload.screenshotUrls = await Promise.all(
+        files.screenshots.map((f) => uploadStartupImage(f, slug, "screenshot"))
+      );
+    }
+
+    const data = await startupsService.updateStartup(req.params.id as string, req.user!.id, req.user!.role, payload);
     res.status(200).json({ success: true, data });
   }
 

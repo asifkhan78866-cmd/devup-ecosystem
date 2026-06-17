@@ -21,8 +21,29 @@ router.get("/:slug", controller.getBySlug);
 router.get("/:id/jobs", controller.getJobs);
 
 // Protected routes
-router.post("/", requireAuth, requireRole(["ADMIN"]), validate(startupSchema), controller.createStartup);
-router.patch("/:id", requireAuth, validate(updateStartupSchema), controller.updateStartup);
+router.post(
+  "/", 
+  requireAuth, 
+  requireRole(["ADMIN", "FOUNDER"]), 
+  upload.fields([
+    { name: "logo", maxCount: 1 },
+    { name: "screenshots", maxCount: 6 },
+  ]),
+  validate(startupSchema), 
+  controller.createStartup
+);
+
+router.patch(
+  "/:id", 
+  requireAuth, 
+  upload.fields([
+    { name: "logo", maxCount: 1 },
+    { name: "screenshots", maxCount: 6 },
+  ]),
+  validate(updateStartupSchema), 
+  controller.updateStartup
+);
+
 router.delete("/:id", requireAuth, requireRole(["ADMIN"]), controller.deleteStartup);
 router.post("/:id/logo", requireAuth, upload.single("file"), controller.uploadLogo);
 router.post("/:id/banner", requireAuth, upload.single("file"), controller.uploadBanner);
