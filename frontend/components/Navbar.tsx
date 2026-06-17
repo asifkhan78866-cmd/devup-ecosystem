@@ -285,10 +285,13 @@ export function Navbar() {
         }
         .nav-logo-image {
           height: 36px;
+          width: 58px;
+          flex-shrink: 0;
         }
         @media (max-width: 1023px) {
           .nav-logo-image {
             height: 28px;
+            width: 45px;
           }
           .desktop-nav-links {
             display: none !important;

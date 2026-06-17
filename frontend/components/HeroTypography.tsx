@@ -60,8 +60,8 @@ export default function HeroTypography() {
         style={{
           fontFamily: "var(--font-syne), sans-serif",
           fontWeight: 800,
-          fontSize: "clamp(48px, 7vw, 80px)",
-          lineHeight: 1.0,
+          fontSize: "clamp(34px, 8vw, 80px)",
+          lineHeight: 1.05,
           letterSpacing: "-0.035em",
           color: "#ffffff",
         }}
