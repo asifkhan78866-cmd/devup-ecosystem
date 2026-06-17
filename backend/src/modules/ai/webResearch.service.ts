@@ -45,7 +45,7 @@ async function crawlWebsite(url: string): Promise<{
       return { markdown: null, error: `Firecrawl ${response.status}: ${text}` }
     }
 
-    const data = await response.json()
+    const data = await response.json() as any
     return { markdown: data.data?.markdown || null, error: null }
   } catch (err) {
     return { 
@@ -125,7 +125,7 @@ shown above, then return the structured JSON analysis.`
     throw new Error(`OpenRouter error: ${response.status}`)
   }
 
-  const data = await response.json()
+  const data = await response.json() as any
   const rawText = data.choices?.[0]?.message?.content || ''
   const tokensUsed = data.usage?.total_tokens || 0
 
@@ -170,7 +170,7 @@ async function retryJsonParse(
       max_tokens: 1500,
     }),
   })
-  const data = await response.json()
+  const data = await response.json() as any
   return JSON.parse(stripCodeFences(data.choices?.[0]?.message?.content || '{}'))
 }
 
