@@ -23,12 +23,16 @@ export default function StartupShowcase() {
       .then(data => {
         if (data.success && data.data) {
           const formatted = data.data.map((s: any) => ({
+            id: s.id,
+            slug: s.slug || s.id,
             name: s.name,
             domain: s.domain || "Tech",
             tagline: s.tagline || s.description || "Innovating the future.",
             stage: s.stage || "Seed",
             roles: s._count?.jobs || 0,
             logoSeed: s.slug || s.name,
+            logoUrl: s.logoUrl,
+            screenshotUrls: s.screenshotUrls,
           }));
           setStartups(formatted);
         }
@@ -99,9 +103,10 @@ export default function StartupShowcase() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div
-                className="group flex flex-col relative cursor-pointer"
-                style={{
+              <Link href={`/ecosystem/${startup.slug}`}>
+                <div
+                  className="group flex flex-col relative cursor-pointer"
+                  style={{
                   background: "#111111",
                   border: "1px solid rgba(255,255,255,0.07)",
                   borderRadius: "14px",
@@ -119,16 +124,18 @@ export default function StartupShowcase() {
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                {/* Banner Area */}
-                <div 
-                  className="relative w-full"
-                  style={{
-                    height: "140px",
-                    background: bannerBg,
-                    backgroundImage: "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
-                    backgroundSize: "20px 20px"
-                  }}
-                >
+                  <div 
+                    className="relative w-full"
+                    style={{
+                      height: "140px",
+                      background: bannerBg,
+                      backgroundImage: startup.screenshotUrls?.length 
+                        ? `url(${startup.screenshotUrls[0]})`
+                        : "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
+                      backgroundSize: startup.screenshotUrls?.length ? "cover" : "20px 20px",
+                      backgroundPosition: "center",
+                    }}
+                  >
                   <div 
                     className="absolute top-4 right-4"
                     style={{
@@ -163,7 +170,11 @@ export default function StartupShowcase() {
                       color: `hsl(${hue}, 80%, 70%)`
                     }}
                   >
-                    {startup.name.charAt(0)}
+                    {startup.logoUrl ? (
+                      <img src={startup.logoUrl} alt={startup.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                    ) : (
+                      startup.name.charAt(0)
+                    )}
                   </div>
                 </div>
 
@@ -221,7 +232,8 @@ export default function StartupShowcase() {
                     />
                   </div>
                 </div>
-              </div>
+                </div>
+              </Link>
             </motion.div>
           );
         })}
