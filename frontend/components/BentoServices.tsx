@@ -4,6 +4,16 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Cpu, Palette, Shield, TrendingUp, Users, Handshake } from "lucide-react";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
+
+const SERVICE_PREVIEW_ITEMS = [
+  { name: "AI & Compute", shortDesc: "H100s on demand.", Icon: Cpu },
+  { name: "Brand Identity", shortDesc: "Logo, colors, design system.", Icon: Palette },
+  { name: "Legal Cover", shortDesc: "Incorporated and protected.", Icon: Shield },
+  { name: "Growth Marketing", shortDesc: "Scale your startup.", Icon: TrendingUp },
+  { name: "Mentor Network", shortDesc: "Founders who've done it.", Icon: Users },
+  { name: "Co-Founder Match", shortDesc: "Meet your builder.", Icon: Handshake },
+];
 
 function GpuTerminal() {
   const [usage, setUsage] = useState(84);
@@ -50,6 +60,8 @@ function GpuTerminal() {
 }
 
 export default function BentoServices() {
+  const isMobile = useIsMobile();
+
   return (
     <section className="py-24 px-6 max-w-[1200px] mx-auto w-full relative z-10">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
@@ -107,9 +119,46 @@ export default function BentoServices() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 auto-rows-[220px] gap-4">
-        
-        {/* Large 2x2: AI & Compute */}
+      {isMobile ? (
+        <div style={{
+          display: 'flex', gap: 12,
+          overflowX: 'auto', scrollSnapType: 'x mandatory',
+          scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
+          padding: '0 0px 16px',
+        }} className="hide-scrollbar">
+          {SERVICE_PREVIEW_ITEMS.map((service, i) => (
+            <div key={i} style={{
+              width: 200, flexShrink: 0,
+              scrollSnapAlign: 'start',
+              background: '#111111',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 16, padding: 20,
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: 'rgba(200,241,53,0.08)',
+                border: '1px solid rgba(200,241,53,0.15)',
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'center',
+                color: '#c8f135', marginBottom: 14,
+              }}>
+                <service.Icon size={16} />
+              </div>
+              <div style={{ fontFamily: 'var(--font-syne), sans-serif', fontSize: 15,
+                fontWeight: 700, color: '#ffffff', marginBottom: 6 }}>
+                {service.name}
+              </div>
+              <div style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 12,
+                color: '#6b6b6b', lineHeight: 1.5 }}>
+                {service.shortDesc}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 auto-rows-[220px] gap-4">
+          
+          {/* Large 2x2: AI & Compute */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -360,7 +409,8 @@ export default function BentoServices() {
           </div>
         </motion.div>
 
-      </div>
+        </div>
+      )}
     </section>
   );
 }

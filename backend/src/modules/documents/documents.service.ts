@@ -2,95 +2,129 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { uploadFile } from "../../lib/storage";
 import { env } from "../../config/env";
-import { resend, EmailTemplates } from "../../lib/resend";
+import { sendDocumentReadyEmail, sendDocumentSignedEmail } from "../../lib/resend";
 
-export class DocumentsService {
-  async uploadDocument(adminId: string, data: any, fileBuffer: Buffer, mimetype: string) {
-    const startup = await prisma.startup.findUnique({
-      where: { id: data.startupId },
-      include: { primaryFounder: true }
-    });
+export async function sendDocumentToStartup(params: {
+  startupId: string;
+  type: any; // DocType enum
+  name: string;
+  fileUrl: string;
+  sentBy: string;
+}) {
+  const doc = await prisma.document.create({
+    data: {
+      startupId: params.startupId,
+      type: params.type,
+      name: params.name,
+      fileUrl: params.fileUrl,
+      status: 'PENDING',
+      sentToStartupAt: new Date(),
+    },
+  });
 
-    if (!startup) throw new AppError(404, "Startup not found");
+  const founders = await prisma.startupMember.findMany({
+    where: { 
+      startupId: params.startupId, status: 'ACTIVE',
+      role: { in: ['Founder', 'Co-Founder'] },
+    },
+    include: { user: true },
+  });
 
-    const path = `documents/${startup.id}/${data.type}-${Date.now()}.pdf`;
-    const url = await uploadFile(env.STORAGE_BUCKET_DOCUMENTS, path, fileBuffer, mimetype);
-
-    const document = await prisma.document.create({
+  for (const founder of founders) {
+    if (!founder.userId) continue;
+    await prisma.notification.create({
       data: {
-        startupId: startup.id,
-        type: data.type,
-        name: data.name,
-        fileUrl: url,
-      }
+        userId: founder.userId,
+        title: 'New document to sign',
+        message: `${params.name} requires your signature.`,
+        type: 'DOCUMENT_PENDING',
+        link: `/dashboard/documents`,
+      },
     });
-
-    if (startup.primaryFounder?.email) {
-      await resend.emails.send({
-        from: env.RESEND_FROM_EMAIL,
-        to: startup.primaryFounder.email,
-        subject: "New Document Requires Signature - DevUp Ecosystem",
-        html: EmailTemplates.documentReady("Founder", data.name, `${env.FRONTEND_URL}/dashboard/documents`)
-      }).catch(err => console.error("Email error:", err));
-    }
-
-    return document;
+    await sendDocumentReadyEmail(founder.user!.email, params.name);
   }
 
-  async getDocument(id: string, userId: string, role: string) {
-    const document = await prisma.document.findUnique({
-      where: { id },
-      include: { startup: { include: { founders: true } } }
-    });
+  await prisma.auditLog.create({
+    data: {
+      adminId: params.sentBy,
+      action: 'SEND_DOCUMENT',
+      entity: 'Document',
+      entityId: doc.id,
+      metadata: { startupId: params.startupId },
+    },
+  });
 
-    if (!document) throw new AppError(404, "Document not found");
+  return doc;
+}
 
-    if (role !== "ADMIN" && !document.startup.founders.some(f => f.id === userId)) {
-      throw new AppError(403, "Not authorized to view this document");
-    }
-
-    return document;
+export async function signDocument(params: {
+  documentId: string;
+  userId: string;
+  signatureDataUrl: string;
+  ipAddress: string;
+  userAgent: string;
+}) {
+  const doc = await prisma.document.findUnique({
+    where: { id: params.documentId },
+  });
+  
+  if (!doc) throw new AppError(404, 'Document not found');
+  if (doc.status === 'SIGNED') {
+    throw new AppError(400, 'This document has already been signed');
   }
 
-  async signDocument(id: string, userId: string, role: string) {
-    const document = await prisma.document.findUnique({
-      where: { id },
-      include: { startup: { include: { primaryFounder: true, founders: true } } }
-    });
-
-    if (!document) throw new AppError(404, "Document not found");
-
-    const updateData: any = {};
-
-    if (role === "ADMIN") {
-      updateData.signedByAdmin = true;
-      updateData.adminSignedAt = new Date();
-    } else if (document.startup.founders.some(f => f.id === userId)) {
-      updateData.signedByFounder = true;
-      updateData.founderSignedAt = new Date();
-    } else {
-      throw new AppError(403, "Not authorized to sign this document");
-    }
-
-    // If both signed, status is SIGNED
-    if ((updateData.signedByAdmin || document.signedByAdmin) && (updateData.signedByFounder || document.signedByFounder)) {
-      updateData.status = "SIGNED";
-    }
-
-    const updated = await prisma.document.update({
-      where: { id },
-      data: updateData
-    });
-
-    if (updateData.status === "SIGNED") {
-      await resend.emails.send({
-        from: env.RESEND_FROM_EMAIL,
-        to: env.RESEND_TEAM_EMAIL,
-        subject: "Document Fully Signed",
-        html: EmailTemplates.documentSigned(document.startup.name, document.name)
-      }).catch(err => console.error("Email error:", err));
-    }
-
-    return updated;
+  const member = await prisma.startupMember.findFirst({
+    where: {
+      startupId: doc.startupId!,
+      userId: params.userId,
+      status: 'ACTIVE',
+      role: { in: ['Founder', 'Co-Founder'] },
+    },
+    include: { user: true },
+  });
+  
+  if (!member) {
+    throw new AppError(403, 'Only an authorized founder of this startup can sign this document');
   }
+
+  const signed = await prisma.document.update({
+    where: { id: params.documentId },
+    data: {
+      status: 'SIGNED',
+      signedByFounder: true,
+      founderSignedAt: new Date(),
+      signedByUserId: params.userId,
+      signedByName: member.user!.name,
+      signatureDataUrl: params.signatureDataUrl,
+      ipAddress: params.ipAddress,
+      signedUserAgent: params.userAgent,
+    },
+  });
+
+  const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+  for (const admin of admins) {
+    await prisma.notification.create({
+      data: {
+        userId: admin.id,
+        title: 'Document signed',
+        message: `${member.user!.name} signed ${doc.name}.`,
+        type: 'DOCUMENT_SIGNED',
+        link: `/admin/documents`,
+      },
+    });
+  }
+  
+  await sendDocumentSignedEmail(process.env.RESEND_FROM_EMAIL || 'admin@devup.com', doc.name, member.user!.name);
+
+  await prisma.auditLog.create({
+    data: {
+      adminId: null,
+      action: 'SIGN_DOCUMENT',
+      entity: 'Document',
+      entityId: doc.id,
+      metadata: { signedBy: params.userId, startupId: doc.startupId },
+    },
+  });
+
+  return signed;
 }

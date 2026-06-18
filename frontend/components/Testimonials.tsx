@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 const TESTIMONIALS = [
   {
@@ -48,6 +49,8 @@ const TESTIMONIALS = [
 ];
 
 export default function Testimonials() {
+  const isMobile = useIsMobile();
+
   return (
     <section className="py-24 px-6 max-w-[1200px] mx-auto w-full relative z-10">
       <div className="mb-16">
@@ -78,8 +81,92 @@ export default function Testimonials() {
         </h2>
       </div>
 
-      <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
-        {TESTIMONIALS.map((testimonial, index) => (
+      {isMobile ? (
+        <div style={{
+          display: 'flex', gap: 16,
+          overflowX: 'auto', scrollSnapType: 'x mandatory',
+          scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
+          padding: '0 20px 16px',
+        }} className="hide-scrollbar">
+          {TESTIMONIALS.slice(0, 3).map((testimonial, index) => (
+            <div key={index} style={{
+              width: 'calc(100vw - 56px)', flexShrink: 0,
+              scrollSnapAlign: 'start',
+              background: '#111111',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 14, padding: 24,
+            }}>
+              <div 
+                style={{
+                  fontFamily: "var(--font-syne), sans-serif",
+                  fontSize: "64px",
+                  color: "#c8f135",
+                  opacity: 0.4,
+                  lineHeight: 0,
+                  marginTop: "20px",
+                  marginBottom: "20px"
+                }}
+              >
+                "
+              </div>
+              <p
+                style={{
+                  fontFamily: "var(--font-inter), sans-serif",
+                  fontSize: "15px",
+                  color: "#e4e4e4",
+                  lineHeight: 1.65,
+                  fontStyle: "italic",
+                  marginBottom: "24px"
+                }}
+              >
+                {testimonial.quote}
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <img 
+                    src={`https://api.dicebear.com/7.x/notionists/svg?seed=${testimonial.seed}&backgroundColor=c8f135`}
+                    className="w-9 h-9 rounded-full bg-[#1a1a1a]"
+                    alt={testimonial.name}
+                  />
+                  <div className="flex flex-col">
+                    <span 
+                      style={{
+                        fontFamily: "var(--font-inter), sans-serif",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: "#ffffff"
+                      }}
+                    >
+                      {testimonial.name}
+                    </span>
+                    <span 
+                      style={{
+                        fontFamily: "var(--font-inter), sans-serif",
+                        fontSize: "12px",
+                        color: "#6b6b6b"
+                      }}
+                    >
+                      {testimonial.role}
+                    </span>
+                  </div>
+                </div>
+                <span 
+                  style={{
+                    fontFamily: "var(--font-inter), sans-serif",
+                    fontSize: "11px",
+                    color: "#c8f135"
+                  }}
+                >
+                  {testimonial.service}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+          {TESTIMONIALS.map((testimonial, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
@@ -160,9 +247,10 @@ export default function Testimonials() {
                 {testimonial.service}
               </span>
             </div>
-          </motion.div>
-        ))}
-      </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

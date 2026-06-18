@@ -17,6 +17,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 import HeroStatChips from "@/components/HeroStatChips";
 import { FEATURE_FLAGS } from "@/lib/config";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import MobileStatStrip from "@/components/mobile/MobileStatStrip";
 
 const HeroVideoBackdrop = dynamic(
   () => import("@/components/HeroVideoBackdrop"),
@@ -43,6 +45,8 @@ const EcosystemOrbit3D = dynamic(
 );
 
 export default function Home() {
+  const isMobile = useIsMobile();
+
   return (
     <>
       {/* 1. Ambient Background Layer */}
@@ -53,6 +57,19 @@ export default function Home() {
       <section className="relative min-h-screen flex flex-col items-center pt-20 overflow-hidden z-10 pb-24">
         {FEATURE_FLAGS.HERO_VIDEO_BACKDROP && <HeroVideoBackdrop />}
         
+        {/* Mobile atmospheric background fallback */}
+        <div className="mobile-only" style={{
+          position: 'absolute',
+          inset: 0, zIndex: 0,
+          background: `
+            radial-gradient(ellipse 60% 40% at 30% 60%, 
+              rgba(200,241,53,0.06) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 30% at 80% 20%, 
+              rgba(99,102,241,0.05) 0%, transparent 50%)
+          `,
+          animation: 'mobileBgPulse 8s ease-in-out infinite alternate',
+        }} />
+
         <div style={{ position: 'relative', zIndex: 10, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {!FEATURE_FLAGS.HERO_VIDEO_BACKDROP && <HeroBeacon />}
           <HeroTypography />
@@ -63,7 +80,7 @@ export default function Home() {
           transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="relative w-full max-w-[960px] mx-auto mt-[72px] mb-0"
         >
-          <div style={{
+          <div className="desktop-only-3d" style={{
             position: 'relative',
             width: '100%',
             maxWidth: 680,
@@ -79,6 +96,8 @@ export default function Home() {
 
       {/* 3. Social Proof Strip */}
       <LogoStrip />
+      
+      {isMobile && <div className="px-5"><MobileStatStrip /></div>}
 
       {/* 4. Stats Section */}
       <div className="relative z-10">
@@ -90,89 +109,154 @@ export default function Home() {
         <HowItWorks />
       </div>
 
-      {/* 6. Orbital Ecosystem 3D */}
-      <section className="relative w-full z-10 flex flex-col xl:flex-row items-center max-w-[1400px] mx-auto min-h-[700px] overflow-hidden">
-        {/* Left Text content */}
-        <div className="w-full xl:w-[40%] px-6 xl:pl-16 xl:pr-0 pt-24 xl:pt-0 z-20 flex flex-col pointer-events-none">
-          <span 
-            style={{
-              fontFamily: "var(--font-inter), sans-serif",
-              fontSize: "11px",
-              fontWeight: 500,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "#6b6b6b",
-              marginBottom: "16px"
-            }}
-          >
-            THE ECOSYSTEM
-          </span>
-          <h2 
-            className="whitespace-pre-line mb-6"
-            style={{
-              fontFamily: "var(--font-syne), sans-serif",
-              fontSize: "clamp(32px, 4vw, 52px)",
-              fontWeight: 700,
-              letterSpacing: "-0.025em",
-              lineHeight: 1.1,
-              color: "#ffffff"
-            }}
-          >
-            {"One signal.\nEvery resource\nyou need."}
+      {/* 6. Orbital Ecosystem 3D / 2D Mobile Fallback */}
+      {isMobile ? (
+        <section style={{ 
+          padding: '48px 20px',
+          background: '#0a0a0a',
+        }}>
+          <p style={{
+            fontFamily: 'var(--font-inter), sans-serif', fontSize: 11,
+            color: '#c8f135', textTransform: 'uppercase',
+            letterSpacing: '0.12em', marginBottom: 12,
+          }}>
+            ✦ THE ECOSYSTEM
+          </p>
+          <h2 style={{
+            fontFamily: 'var(--font-syne), sans-serif', fontSize: 32,
+            fontWeight: 800, color: '#ffffff',
+            lineHeight: 1.1, marginBottom: 16,
+          }}>
+            One signal.<br/>
+            <span style={{ color: '#c8f135' }}>Every resource</span><br/>
+            you need.
           </h2>
-          <p 
-            className="mb-8"
-            style={{
-              fontFamily: "var(--font-inter), sans-serif",
-              fontSize: "16px",
-              lineHeight: 1.65,
-              color: "#a1a1a1",
-              maxWidth: "480px"
-            }}
-          >
-            DevUp connects student founders with mentors, investors, compute, legal, design, and a community that moves fast.
+          <p style={{
+            fontFamily: 'var(--font-inter), sans-serif', fontSize: 15,
+            color: '#a1a1a1', lineHeight: 1.6,
+            marginBottom: 24,
+          }}>
+            DevUp connects student founders with mentors, 
+            investors, compute, legal, and a community 
+            that moves fast.
           </p>
           
-          {/* Categories Pills */}
-          <div className="flex flex-wrap gap-2 pointer-events-auto max-w-[480px]">
+          {/* Service category pills — 2 per row grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 10,
+          }}>
             {[
-              { label: "Tech", color: "#6366f1" },
-              { label: "AI", color: "#c8f135" },
-              { label: "Design", color: "#ec4899" },
-              { label: "Marketing", color: "#22c55e" },
-              { label: "Legal", color: "#94a3b8" },
-              { label: "Mission", color: "#f97316" }
-            ].map((cat) => (
-              <button
-                key={cat.label}
-                type="button"
-                className="group flex items-center gap-2 hover:text-[#c8f135] hover:border-[rgba(200,241,53,0.3)]"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "100px",
-                  padding: "6px 12px",
-                  fontFamily: "var(--font-inter), sans-serif",
-                  fontSize: "12px",
-                  color: "#a1a1a1",
-                  transition: "all 0.2s ease",
-                  cursor: "default"
-                }}
-              >
-                <span className="w-[10px] h-[10px] rounded-full" style={{ backgroundColor: cat.color }} />
-                {cat.label}
-              </button>
+              { icon: '💻', label: 'Tech', color: '#6366f1' },
+              { icon: '🤖', label: 'AI', color: '#c8f135' },
+              { icon: '🎨', label: 'Design', color: '#ec4899' },
+              { icon: '📈', label: 'Marketing', color: '#22c55e' },
+              { icon: '⚖️', label: 'Legal', color: '#94a3b8' },
+              { icon: '🎯', label: 'Mission', color: '#f97316' },
+            ].map((item, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '12px 14px',
+                background: '#111111',
+                border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 12,
+              }}>
+                <span style={{ fontSize: 18 }}>{item.icon}</span>
+                <span style={{
+                  fontFamily: 'var(--font-inter), sans-serif', fontSize: 14,
+                  fontWeight: 600, color: '#ffffff',
+                }}>
+                  {item.label}
+                </span>
+              </div>
             ))}
           </div>
-        </div>
+        </section>
+      ) : (
+        <section className="relative w-full z-10 flex flex-col xl:flex-row items-center max-w-[1400px] mx-auto min-h-[700px] overflow-hidden desktop-only-3d">
+          {/* Left Text content */}
+          <div className="w-full xl:w-[40%] px-6 xl:pl-16 xl:pr-0 pt-24 xl:pt-0 z-20 flex flex-col pointer-events-none">
+            <span 
+              style={{
+                fontFamily: "var(--font-inter), sans-serif",
+                fontSize: "11px",
+                fontWeight: 500,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#6b6b6b",
+                marginBottom: "16px"
+              }}
+            >
+              THE ECOSYSTEM
+            </span>
+            <h2 
+              className="whitespace-pre-line mb-6"
+              style={{
+                fontFamily: "var(--font-syne), sans-serif",
+                fontSize: "clamp(32px, 4vw, 52px)",
+                fontWeight: 700,
+                letterSpacing: "-0.025em",
+                lineHeight: 1.1,
+                color: "#ffffff"
+              }}
+            >
+              {"One signal.\nEvery resource\nyou need."}
+            </h2>
+            <p 
+              className="mb-8"
+              style={{
+                fontFamily: "var(--font-inter), sans-serif",
+                fontSize: "16px",
+                lineHeight: 1.65,
+                color: "#a1a1a1",
+                maxWidth: "480px"
+              }}
+            >
+              DevUp connects student founders with mentors, investors, compute, legal, design, and a community that moves fast.
+            </p>
+            
+            {/* Categories Pills */}
+            <div className="flex flex-wrap gap-2 pointer-events-auto max-w-[480px]">
+              {[
+                { label: "Tech", color: "#6366f1" },
+                { label: "AI", color: "#c8f135" },
+                { label: "Design", color: "#ec4899" },
+                { label: "Marketing", color: "#22c55e" },
+                { label: "Legal", color: "#94a3b8" },
+                { label: "Mission", color: "#f97316" }
+              ].map((cat) => (
+                <button
+                  key={cat.label}
+                  type="button"
+                  className="group flex items-center gap-2 hover:text-[#c8f135] hover:border-[rgba(200,241,53,0.3)]"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "100px",
+                    padding: "6px 12px",
+                    fontFamily: "var(--font-inter), sans-serif",
+                    fontSize: "12px",
+                    color: "#a1a1a1",
+                    transition: "all 0.2s ease",
+                    cursor: "default"
+                  }}
+                >
+                  <span className="w-[10px] h-[10px] rounded-full" style={{ backgroundColor: cat.color }} />
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-        {/* Right 3D Scene */}
-        <div className="w-full xl:w-[60%] h-[500px] xl:h-[700px] absolute xl:relative top-0 left-0 xl:left-auto opacity-30 xl:opacity-100 -z-10 xl:z-10">
-          <ErrorBoundary>
-            <EcosystemOrbit3D />
-          </ErrorBoundary>
-        </div>
-      </section>
+          {/* Right 3D Scene */}
+          <div className="w-full xl:w-[60%] h-[500px] xl:h-[700px] absolute xl:relative top-0 left-0 xl:left-auto opacity-30 xl:opacity-100 -z-10 xl:z-10">
+            <ErrorBoundary>
+              <EcosystemOrbit3D />
+            </ErrorBoundary>
+          </div>
+        </section>
+      )}
 
       {/* 7. Startup Showcase */}
       <div className="relative z-10">

@@ -3,7 +3,8 @@ import { AppError } from "../../middleware/errorHandler";
 import { uploadFile } from "../../lib/storage";
 import { env } from "../../config/env";
 import { resend, EmailTemplates } from "../../lib/resend";
-import { ApplicationStatus } from "@prisma/client";
+import { ApplicationStatus, Role } from "@prisma/client";
+import { randomBytes } from "crypto";
 
 export class ApplicationsService {
   async submitApplication(userId: string, data: any) {
@@ -82,6 +83,66 @@ export class ApplicationsService {
 
     if (user?.email) {
       if (data.status === "APPROVED") {
+        const slug = application.startupName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + randomBytes(4).toString('hex');
+        
+        const startup = await prisma.startup.create({
+          data: {
+            name: application.startupName,
+            slug,
+            tagline: application.oneLiner,
+            description: application.oneLiner,
+            domain: application.domain,
+            stage: application.stage,
+            foundedYear: new Date().getFullYear(),
+            headcount: application.userCount || "1-5",
+            location: "Global",
+            isVerified: true,
+            verifiedAt: new Date(),
+            verifiedBy: adminId,
+            founderId: application.submittedBy,
+          },
+        });
+
+        await prisma.startupMember.create({
+          data: {
+            startupId: startup.id,
+            userId: application.submittedBy,
+            email: user.email,
+            role: "Founder",
+            status: "ACTIVE",
+            invitedBy: adminId,
+            inviteToken: randomBytes(24).toString("hex"),
+            joinedAt: new Date(),
+          },
+        });
+
+        if (user.role === Role.STUDENT) {
+          await prisma.user.update({
+            where: { id: application.submittedBy },
+            data: { role: Role.FOUNDER },
+          });
+        }
+
+        await prisma.auditLog.create({
+          data: {
+            adminId,
+            action: "APPROVE_APPLICATION",
+            entity: "Startup",
+            entityId: startup.id,
+            metadata: { applicationId: id },
+          },
+        });
+
+        await prisma.notification.create({
+          data: {
+            userId: application.submittedBy,
+            title: "Your startup is verified! 🎉",
+            message: `${startup.name} is now live on DevUp Ecosystem.`,
+            type: "STARTUP_VERIFIED",
+            link: "/dashboard",
+          },
+        });
+
         await resend.emails.send({
           from: env.RESEND_FROM_EMAIL,
           to: user.email,
@@ -89,7 +150,6 @@ export class ApplicationsService {
           html: EmailTemplates.applicationApproved(user.profile?.name || "Founder", application.startupName, `${env.FRONTEND_URL}/dashboard`)
         }).catch(err => console.error("Email error:", err));
         
-        // Optionally create the Startup entity here automatically
       } else if (data.status === "REJECTED") {
         await resend.emails.send({
           from: env.RESEND_FROM_EMAIL,

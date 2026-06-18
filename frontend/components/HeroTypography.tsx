@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 const WORDS = ["Founders.", "Builders.", "Dreamers.", "Students.", "Creators.", "Makers."];
 
@@ -15,6 +16,7 @@ const AVATARS = [
 
 export default function HeroTypography() {
   const [wordIndex, setWordIndex] = useState(0);
+  const isMobile = useIsMobile();
 
   // Word morphing effect (Slot machine)
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function HeroTypography() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center text-center z-10 relative px-4 max-w-[800px] mx-auto pt-[140px]">
+    <div className={`flex flex-col items-center justify-center text-center z-10 relative px-4 max-w-[800px] mx-auto ${isMobile ? 'pt-[100px]' : 'pt-[140px]'}`}>
       {/* Badge */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
@@ -60,8 +62,8 @@ export default function HeroTypography() {
         style={{
           fontFamily: "var(--font-syne), sans-serif",
           fontWeight: 800,
-          fontSize: "clamp(34px, 8vw, 80px)",
-          lineHeight: 1.05,
+          fontSize: isMobile ? "40px" : "clamp(34px, 8vw, 80px)",
+          lineHeight: isMobile ? 1.1 : 1.05,
           letterSpacing: "-0.035em",
           color: "#ffffff",
         }}
@@ -112,20 +114,21 @@ export default function HeroTypography() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
-        className="flex flex-row gap-4 items-center justify-center mb-5"
+        className={`flex ${isMobile ? 'flex-col w-full' : 'flex-row'} gap-4 items-center justify-center mb-5`}
       >
         <Link 
           href="/apply"
           className="flex items-center justify-center"
           style={{
+            width: isMobile ? '100%' : 'auto',
             background: "#c8f135",
             color: "#000000",
             fontFamily: "var(--font-inter), sans-serif",
-            fontSize: "14px",
+            fontSize: "15px",
             fontWeight: 700,
             padding: "12px 24px",
             borderRadius: "10px",
-            height: "46px",
+            height: "52px",
             transition: "all 0.2s cubic-bezier(0.16,1,0.3,1)",
           }}
           onMouseEnter={(e) => {
@@ -145,15 +148,16 @@ export default function HeroTypography() {
           href="/ecosystem"
           className="flex items-center justify-center"
           style={{
+            width: isMobile ? '100%' : 'auto',
             background: "transparent",
             color: "#e4e4e4",
             border: "1px solid rgba(255,255,255,0.12)",
             fontFamily: "var(--font-inter), sans-serif",
-            fontSize: "14px",
+            fontSize: "15px",
             fontWeight: 500,
             padding: "12px 24px",
             borderRadius: "10px",
-            height: "46px",
+            height: "52px",
             transition: "all 0.2s cubic-bezier(0.16,1,0.3,1)",
           }}
           onMouseEnter={(e) => {
@@ -172,32 +176,34 @@ export default function HeroTypography() {
       </motion.div>
 
       {/* Social Proof */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="flex items-center justify-center gap-3"
-      >
-        <div className="flex -space-x-2">
-          {AVATARS.map((avatar, i) => (
-            <img
-              key={i}
-              src={avatar}
-              alt="Founder Avatar"
-              className="w-7 h-7 rounded-full border border-[#0a0a0a]"
-            />
-          ))}
-        </div>
-        <span 
-          style={{
-            fontFamily: "var(--font-inter), sans-serif",
-            fontSize: "13px",
-            color: "#6b6b6b"
-          }}
+      {!isMobile && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="flex items-center justify-center gap-3"
         >
-          Trusted by 23+ startups across Hyderabad, Bangalore & Delhi
-        </span>
-      </motion.div>
+          <div className="flex -space-x-2">
+            {AVATARS.map((avatar, i) => (
+              <img
+                key={i}
+                src={avatar}
+                alt="Founder Avatar"
+                className="w-7 h-7 rounded-full border border-[#0a0a0a]"
+              />
+            ))}
+          </div>
+          <span 
+            style={{
+              fontFamily: "var(--font-inter), sans-serif",
+              fontSize: "13px",
+              color: "#6b6b6b"
+            }}
+          >
+            Trusted by 23+ startups across Hyderabad, Bangalore & Delhi
+          </span>
+        </motion.div>
+      )}
     </div>
   );
 }

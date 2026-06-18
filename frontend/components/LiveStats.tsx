@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 function CountUp({ end, duration = 2 }: { end: number; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -62,6 +63,45 @@ export default function LiveStats() {
       })
       .catch(() => {}); // keep fallback values
   }, []);
+
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <section style={{ padding: '48px 20px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 1,
+          background: 'rgba(255,255,255,0.06)',
+          borderRadius: 16, overflow: 'hidden',
+          border: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          {stats.map((stat, i) => (
+            <div key={i} style={{
+              padding: '28px 20px',
+              background: '#0a0a0a',
+              textAlign: 'center',
+            }}>
+              <div style={{
+                fontFamily: 'var(--font-syne), sans-serif', fontSize: 32,
+                fontWeight: 800, color: '#ffffff',
+                lineHeight: 1,
+              }}>
+                {stat.prefix}<CountUp end={stat.value} duration={2} />{stat.suffix}
+              </div>
+              <div style={{
+                fontFamily: 'var(--font-inter), sans-serif', fontSize: 12,
+                color: '#6b6b6b', marginTop: 8,
+              }}>
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section 
@@ -136,16 +176,6 @@ export default function LiveStats() {
               >
                 {stat.label}
               </span>
-              
-              {/* Fix border logic for mobile (2x2 grid) */}
-              <style jsx>{`
-                @media (max-width: 768px) {
-                  div {
-                    border-right: ${index % 2 === 0 ? "1px solid rgba(255,255,255,0.08)" : "none"} !important;
-                    border-bottom: ${index < 2 ? "1px solid rgba(255,255,255,0.08)" : "none"};
-                  }
-                }
-              `}</style>
             </motion.div>
           ))}
 

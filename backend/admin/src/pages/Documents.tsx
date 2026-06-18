@@ -16,6 +16,7 @@ export default function Documents() {
   const [showUpload, setShowUpload] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<DocType | null>(null)
   const [uploadForm, setUploadForm] = useState({ startupId: '', type: 'NDA' as typeof DOC_TYPES[number], name: '' })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -51,11 +52,14 @@ export default function Documents() {
   })
 
   const uploadMutation = useMutation({
-    mutationFn: (payload: typeof uploadForm) => api.post('/api/documents', payload),
+    mutationFn: (payload: FormData) => api.post('/api/documents', payload, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] })
       setShowUpload(false)
       setUploadForm({ startupId: '', type: 'NDA', name: '' })
+      setSelectedFile(null)
       toast.success('Document uploaded — email sent to founder')
     },
     onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to upload document'),
@@ -84,7 +88,18 @@ export default function Documents() {
       toast.error('Please enter a document name')
       return
     }
-    uploadMutation.mutate(uploadForm)
+    if (!selectedFile) {
+      toast.error('Please select a PDF file')
+      return
+    }
+    
+    const formData = new FormData()
+    formData.append('startupId', uploadForm.startupId)
+    formData.append('name', uploadForm.name)
+    formData.append('type', uploadForm.type)
+    formData.append('file', selectedFile)
+
+    uploadMutation.mutate(formData)
   }
 
   return (
@@ -213,11 +228,22 @@ export default function Documents() {
 
           <div>
             <label className="block text-xs text-gray-500 mb-1">Upload File (PDF)</label>
-            <div className="border-2 border-dashed border-white/10 rounded-lg p-8 text-center hover:border-indigo-500/30 transition-colors cursor-pointer">
-              <FileText className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">Drag and drop your PDF here, or click to browse</p>
+            <div className="relative border-2 border-dashed border-white/10 rounded-lg p-8 text-center hover:border-indigo-500/30 transition-colors">
+              <FileText className={`w-8 h-8 mx-auto mb-2 ${selectedFile ? 'text-indigo-400' : 'text-gray-600'}`} />
+              <p className="text-sm text-gray-500">
+                {selectedFile ? selectedFile.name : 'Click to browse for a PDF'}
+              </p>
               <p className="text-xs text-gray-700 mt-1">PDF files only, max 10MB</p>
-              <input type="file" accept=".pdf" className="hidden" />
+              <input 
+                type="file" 
+                accept=".pdf" 
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setSelectedFile(e.target.files[0])
+                  }
+                }}
+              />
             </div>
           </div>
 

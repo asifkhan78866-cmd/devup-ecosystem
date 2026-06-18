@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import { Providers } from "@/lib/providers";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
+import MobilePageTransition from "@/components/mobile/MobilePageTransition";
 
 const IntroAnimation = dynamic(
   () => import("@/components/IntroAnimation"),
@@ -23,7 +24,11 @@ export default function LayoutClient({
     // Suppress THREE.Clock deprecation warning caused by @react-three/fiber internals
     const originalWarn = console.warn;
     console.warn = (...args) => {
-      if (args[0] && typeof args[0] === 'string' && args[0].includes('THREE.Clock: This module has been deprecated')) {
+      if (args[0] && typeof args[0] === 'string' && (
+        args[0].includes('THREE.Clock: This module has been deprecated') ||
+        args[0].includes('WebGL context lost') ||
+        args[0].includes('THREE.WebGLRenderer: Context Lost.')
+      )) {
         return;
       }
       originalWarn(...args);
@@ -40,7 +45,9 @@ export default function LayoutClient({
         <SmoothScrollProvider>
           <IntroAnimation />
           <Navbar />
-          <main className="flex-1 relative z-10">{children}</main>
+          <MobilePageTransition>
+            <main className="flex-1 relative z-10">{children}</main>
+          </MobilePageTransition>
           <MobileBottomNav />
           <Footer />
         </SmoothScrollProvider>

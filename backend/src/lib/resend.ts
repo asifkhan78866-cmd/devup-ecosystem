@@ -46,3 +46,46 @@ export const EmailTemplates = {
     <p>Message: ${message}</p>
   `,
 };
+
+export async function sendTeamInviteEmail(params: {
+  to: string, startupName: string, role: string, inviteLink: string
+}) {
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+    to: params.to,
+    subject: `You've been invited to join ${params.startupName} on DevUp`,
+    html: `
+      <div style="background:#0a0a0a;padding:40px;font-family:Inter,sans-serif">
+        <h2 style="color:#fff">You've been invited 🎉</h2>
+        <p style="color:#a1a1a1">
+          You've been invited to join <strong style="color:#fff">${params.startupName}</strong> 
+          as a <strong style="color:#c8f135">${params.role}</strong> on DevUp Ecosystem.
+        </p>
+        <a href="${params.inviteLink}" 
+          style="display:inline-block;margin-top:20px;padding:12px 24px;
+          background:#c8f135;color:#000;border-radius:10px;
+          text-decoration:none;font-weight:700">
+          Accept Invite
+        </a>
+      </div>
+    `,
+  });
+}
+
+export async function sendDocumentReadyEmail(to: string, documentName: string) {
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+    to,
+    subject: 'Document ready for signature - DevUp',
+    html: EmailTemplates.documentReady("Founder", documentName, `${process.env.FRONTEND_URL}/dashboard/documents`),
+  }).catch(e => console.error(e));
+}
+
+export async function sendDocumentSignedEmail(to: string, documentName: string, founderName: string) {
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+    to,
+    subject: 'Document signed - DevUp',
+    html: EmailTemplates.documentSigned(founderName, documentName),
+  }).catch(e => console.error(e));
+}

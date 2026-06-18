@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { FileText, Shield, TrendingUp } from "lucide-react";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 const STEPS = [
   {
@@ -25,6 +26,71 @@ const STEPS = [
 export default function HowItWorks() {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <section style={{ padding: '48px 20px' }}>
+        <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 11,
+          color: '#c8f135', textTransform: 'uppercase',
+          letterSpacing: '0.12em', marginBottom: 8 }}>
+          THE PROCESS
+        </p>
+        <h2 style={{ fontFamily: 'var(--font-syne), sans-serif', fontSize: 28,
+          fontWeight: 800, color: '#ffffff',
+          lineHeight: 1.1, marginBottom: 40 }}>
+          From application<br/>to ecosystem.
+        </h2>
+        
+        {STEPS.map((step, i) => (
+          <div key={i} style={{
+            display: 'flex', gap: 16,
+            marginBottom: i < STEPS.length - 1 ? 0 : 0,
+            position: 'relative',
+          }}>
+            {/* Timeline line + dot */}
+            <div style={{ display: 'flex', flexDirection: 'column',
+              alignItems: 'center', width: 32, flexShrink: 0 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: 'rgba(200,241,53,0.1)',
+                border: '1px solid rgba(200,241,53,0.3)',
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: 'var(--font-syne), sans-serif', fontSize: 14,
+                fontWeight: 700, color: '#c8f135',
+                flexShrink: 0,
+              }}>
+                {i + 1}
+              </div>
+              {i < STEPS.length - 1 && (
+                <div style={{
+                  width: 1, flex: 1,
+                  background: 'rgba(200,241,53,0.15)',
+                  margin: '8px 0', minHeight: 40,
+                }} />
+              )}
+            </div>
+            
+            {/* Content */}
+            <div style={{ 
+              paddingBottom: i < STEPS.length - 1 ? 32 : 0,
+              flex: 1,
+            }}>
+              <div style={{ fontFamily: 'var(--font-syne), sans-serif', fontSize: 17,
+                fontWeight: 700, color: '#ffffff', marginBottom: 6 }}>
+                {step.title}
+              </div>
+              <div style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 13,
+                color: '#6b6b6b', lineHeight: 1.6 }}>
+                {step.body}
+              </div>
+            </div>
+          </div>
+        ))}
+      </section>
+    );
+  }
 
   return (
     <section ref={containerRef} className="py-24 px-6 max-w-[1200px] mx-auto w-full relative z-10">

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import HeroBeacon from "@/components/HeroBeacon";
 import Link from "next/link";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 export default function FinalCTA() {
   const [email, setEmail] = useState("");
@@ -16,6 +17,53 @@ export default function FinalCTA() {
     setSubmitted(true);
     // Real implementation would POST to /api/applications/early-interest
   };
+
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <section style={{ padding: '64px 20px 80px' }}>
+        <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 11,
+          color: '#c8f135', textTransform: 'uppercase',
+          letterSpacing: '0.12em', marginBottom: 16 }}>
+          JOIN THE ECOSYSTEM
+        </p>
+        <h2 style={{ fontFamily: 'var(--font-syne), sans-serif', fontSize: 36,
+          fontWeight: 800, color: '#ffffff',
+          lineHeight: 0.97, marginBottom: 16 }}>
+          Ready to build<br/>what's next?
+        </h2>
+        <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 14,
+          color: '#6b6b6b', marginBottom: 32 }}>
+          Applications reviewed within 48 hours.
+        </p>
+        
+        {/* Input stacked above button */}
+        <input
+          type="email"
+          placeholder="your@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          style={{
+            width: '100%', padding: '14px 16px',
+            background: '#111111',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: 12, color: '#e4e4e4',
+            fontFamily: 'var(--font-inter), sans-serif', fontSize: 15,
+            marginBottom: 10, boxSizing: 'border-box',
+          }}
+        />
+        <button onClick={handleSubmit} style={{
+          width: '100%', height: 52,
+          background: '#c8f135', color: '#000',
+          border: 'none', borderRadius: 12,
+          fontFamily: 'var(--font-inter), sans-serif', fontSize: 16, fontWeight: 700,
+        }}>
+          Apply Now
+        </button>
+      </section>
+    );
+  }
 
   return (
     <section 

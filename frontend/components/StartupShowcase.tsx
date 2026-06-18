@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import MobileStartupCard from "@/components/mobile/MobileStartupCard";
 
 // Simple hash function to generate a unique HSL hue from string
 function getHueFromString(str: string) {
@@ -42,6 +44,45 @@ export default function StartupShowcase() {
         // Fallback or ignore quietly so Next.js doesn't throw a dev overlay
       });
   }, []);
+
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <section style={{ padding: '48px 20px' }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'flex-end', marginBottom: 24,
+        }}>
+          <div>
+            <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 11,
+              color: '#6b6b6b', textTransform: 'uppercase',
+              letterSpacing: '0.1em', marginBottom: 8 }}>
+              OUR ECOSYSTEM
+            </p>
+            <h2 style={{ fontFamily: 'var(--font-syne), sans-serif', fontSize: 28,
+              fontWeight: 800, color: '#ffffff', lineHeight: 1.1 }}>
+              Startups building<br/>with DevUp.
+            </h2>
+          </div>
+          <Link href="/ecosystem" style={{
+            fontFamily: 'var(--font-inter), sans-serif', fontSize: 13,
+            color: '#c8f135', textDecoration: 'none',
+            flexShrink: 0,
+          }}>
+            View all →
+          </Link>
+        </div>
+        
+        {/* Show only 3 startups on mobile, full-width cards */}
+        {startups?.slice(0, 3).map(startup => (
+          <Link key={startup.id} href={`/ecosystem/${startup.slug}`} style={{ textDecoration: 'none' }}>
+            <MobileStartupCard startup={startup} />
+          </Link>
+        ))}
+      </section>
+    );
+  }
 
   return (
     <section className="py-24 px-6 max-w-[1200px] mx-auto w-full relative z-10">

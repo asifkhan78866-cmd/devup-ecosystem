@@ -8,6 +8,8 @@ import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PageControls from "@/components/PageControls";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import MobileStartupCard from "@/components/mobile/MobileStartupCard";
 
 // Dynamically import 3D element with ssr: false
 const EcosystemConstellation = dynamic(
@@ -46,6 +48,7 @@ export default function EcosystemPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [startups, setStartups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/startups`)
@@ -174,9 +177,12 @@ export default function EcosystemPage() {
                   transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.5), ease: [0.16, 1, 0.3, 1] }}
                 >
                   <Link href={`/ecosystem/${startup.id}`} className="block h-full group">
-                    <div 
-                      className="h-full bg-[#111111] border border-white/5 rounded-[16px] overflow-hidden transition-all duration-300 group-hover:border-white/15 group-hover:translate-y-[-4px]"
-                    >
+                    {isMobile ? (
+                      <MobileStartupCard startup={startup} />
+                    ) : (
+                      <div 
+                        className="h-full bg-[#111111] border border-white/5 rounded-[16px] overflow-hidden transition-all duration-300 group-hover:border-white/15 group-hover:translate-y-[-4px]"
+                      >
                       {/* Background Banner */}
                       {startup.bannerUrl ? (
                         <div 
@@ -254,6 +260,7 @@ export default function EcosystemPage() {
                         </div>
                       </div>
                     </div>
+                    )}
                   </Link>
                 </motion.div>
               ))}

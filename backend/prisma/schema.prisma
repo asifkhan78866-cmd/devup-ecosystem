@@ -11,8 +11,10 @@ datasource db {
 enum Role {
   ADMIN
   FOUNDER
+  STARTUP_MEMBER
   STUDENT
   INVESTOR
+  MENTOR
 }
 
 enum AuthProvider {
@@ -41,6 +43,9 @@ model User {
   sentRequests     CofounderRequest[] @relation("SentRequests")
   receivedRequests CofounderRequest[] @relation("ReceivedRequests")
   notifications    Notification[]
+  sentConnections     ConnectionRequest[] @relation("SentConnections")
+  receivedConnections ConnectionRequest[] @relation("ReceivedConnections")
+  startupMemberships  StartupMember[]
 }
 
 model Profile {
@@ -130,8 +135,30 @@ model Startup {
   updatedAt      DateTime @updatedAt
   approvedAt     DateTime?
   approvedBy     String?
+  
+  verifiedAt       DateTime?
+  verifiedBy       String?
 
   aiResearchLogs AiResearchLog[]
+  members          StartupMember[]
+}
+
+model StartupMember {
+  id          String   @id @default(cuid())
+  startupId   String
+  startup     Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email       String
+  role        String
+  status      String   @default("PENDING")
+  invitedBy   String
+  inviteToken String   @unique
+  invitedAt   DateTime @default(now())
+  joinedAt    DateTime?
+  removedAt   DateTime?
+
+  @@unique([startupId, email])
 }
 
 enum ApplicationStatus {
@@ -326,6 +353,20 @@ model CofounderRequest {
   @@unique([fromUserId, toUserId])
 }
 
+model ConnectionRequest {
+  id          String   @id @default(cuid())
+  fromUserId  String
+  fromUser    User     @relation("SentConnections", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId    String
+  toUser      User     @relation("ReceivedConnections", fields: [toUserId], references: [id], onDelete: Cascade)
+  message     String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  respondedAt DateTime?
+
+  @@unique([fromUserId, toUserId])
+}
+
 enum DocType {
   NDA
   EQUITY_AGREEMENT
@@ -353,6 +394,13 @@ model Document {
   
   startup           Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
   
+  sentToStartupAt   DateTime?
+  signedByUserId    String?
+  signedByName      String?
+  signatureDataUrl  String?
+  ipAddress         String?
+  signedUserAgent   String?
+
   createdAt         DateTime @default(now())
 }
 
@@ -385,7 +433,7 @@ model Notification {
 
 model AuditLog {
   id             String   @id @default(uuid())
-  adminId        String
+  adminId        String?
   action         String
   entity         String
   entityId       String?

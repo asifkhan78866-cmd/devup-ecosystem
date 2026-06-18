@@ -35,6 +35,12 @@ export default function StartupProfilePage() {
   const [activeTab, setActiveTab] = useState("Overview");
   const [startup, setStartup] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Connection state
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [connectMessage, setConnectMessage] = useState("I'd love to connect and learn more about what you're building.");
+  const [connectStatus, setConnectStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [connectError, setConnectError] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -93,6 +99,40 @@ export default function StartupProfilePage() {
   if (!startup) {
     return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-white">Startup not found.</div>;
   }
+
+  const handleConnect = async () => {
+    setConnectStatus("loading");
+    setConnectError("");
+    try {
+      // Find the primary founder (just take the first one with a seed/userId for now)
+      const primaryFounder = startup.team.find((f: any) => f.seed && !f.seed.includes(' '));
+      if (!primaryFounder) {
+        throw new Error("No valid founder found to connect with");
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/connections/request`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}` 
+        },
+        body: JSON.stringify({
+          toUserId: primaryFounder.seed,
+          message: connectMessage
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setConnectStatus("success");
+        setTimeout(() => setIsConnectModalOpen(false), 2000);
+      } else {
+        throw new Error(data.error || data.message || "Failed to send request");
+      }
+    } catch (err: any) {
+      setConnectStatus("error");
+      setConnectError(err.message || "An error occurred");
+    }
+  };
 
   // Render starts here
 
@@ -508,10 +548,11 @@ export default function StartupProfilePage() {
                 </div>
 
                 <button 
+                  onClick={() => setIsConnectModalOpen(true)}
                   className="w-full py-3 bg-[#c8f135] text-black font-semibold rounded-[8px] hover:bg-[#b0d829] transition-colors mb-2"
                   style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
                 >
-                  Send a Message
+                  Connect with Founders
                 </button>
                 {startup.website && (
                   <a 
@@ -558,6 +599,58 @@ export default function StartupProfilePage() {
 
         </div>
       </div>
+
+      {isConnectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl text-white font-bold" style={{ fontFamily: "var(--font-syne)" }}>Connect with Founder</h2>
+              <button 
+                onClick={() => setIsConnectModalOpen(false)} 
+                className="text-[#6b6b6b] hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {connectStatus === "success" ? (
+              <div className="text-center py-8">
+                <ShieldCheck className="w-16 h-16 text-[#c8f135] mx-auto mb-4" />
+                <h3 className="text-white font-bold mb-2">Request Sent!</h3>
+                <p className="text-[#a1a1a1] text-sm">They will be notified of your request.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {connectStatus === "error" && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm">
+                    {connectError}
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm text-[#a1a1a1] mb-1.5" style={{ fontFamily: "var(--font-inter)" }}>Message (Optional)</label>
+                  <textarea 
+                    value={connectMessage} 
+                    onChange={(e) => setConnectMessage(e.target.value)}
+                    className="w-full h-32 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c8f135]/50 transition-colors resize-none"
+                    placeholder="Add a personal note..."
+                  />
+                </div>
+                <button 
+                  onClick={handleConnect}
+                  disabled={connectStatus === "loading"}
+                  className="w-full bg-[#c8f135] text-black font-semibold rounded-lg py-3 hover:bg-[#b0d829] transition-colors mt-2 disabled:opacity-50"
+                  style={{ fontFamily: "var(--font-inter)" }}
+                >
+                  {connectStatus === "loading" ? "Sending..." : "Send Connection Request"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -22,6 +22,8 @@ import documentsRoutes from "./modules/documents/documents.routes";
 import aiRoutes from "./modules/ai/ai.routes";
 import adminRoutes from "./modules/admin/admin.routes";
 import servicesRoutes from "./modules/services/services.routes";
+import membersRoutes from "./modules/startups/members.routes";
+import connectionsRoutes from "./modules/connections/connections.routes";
 // ... (will import as implemented)
 
 export const app = express();
@@ -129,6 +131,8 @@ app.use("/api/documents", documentsRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/services", servicesRoutes);
+app.use("/api/startups", membersRoutes);
+app.use("/api/connections", connectionsRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

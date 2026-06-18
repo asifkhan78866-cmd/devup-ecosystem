@@ -172,3 +172,68 @@ html[data-skip-intro="true"] #intro-overlay {
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* ════════════════════════════════════════
+   PART 1 — GLOBAL MOBILE FIXES
+   ════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  /* Kill horizontal overflow globally */
+  body, html, #__next {
+    overflow-x: hidden !important;
+    width: 100% !important;
+  }
+
+  /* All sections: consistent mobile padding */
+  section {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* Typography scale down */
+  .text-display {
+    font-size: clamp(36px, 11vw, 52px) !important;
+    line-height: 1.0 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  .text-h1 {
+    font-size: clamp(28px, 8vw, 40px) !important;
+    line-height: 1.1 !important;
+  }
+
+  .text-h2 {
+    font-size: clamp(22px, 6vw, 28px) !important;
+  }
+
+  /* All grids collapse to single column */
+  [class*="grid-cols-2"],
+  [class*="grid-cols-3"],
+  [class*="grid-cols-4"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Remove fixed heights that create dead space */
+  canvas {
+    max-height: 280px !important;
+  }
+
+  /* Hide 3D heavy scenes on mobile entirely */
+  .desktop-only-3d {
+    display: none !important;
+  }
+
+  /* Mobile-only elements */
+  .mobile-only {
+    display: block !important;
+  }
+}
+
+.mobile-only {
+  display: none;
+}
+
+@keyframes mobileBgPulse {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.05); }
+}

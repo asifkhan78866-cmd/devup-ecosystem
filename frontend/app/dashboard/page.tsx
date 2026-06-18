@@ -2,10 +2,12 @@
 import { useAuth } from '@/lib/auth/AuthProvider'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
 
 export default function DashboardPage() {
   const { user, loading, signOut } = useAuth()
   const router = useRouter()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     if (!loading && !user) {
@@ -38,7 +40,7 @@ export default function DashboardPage() {
       paddingTop: 80,
     }}>
       <div style={{
-        maxWidth: 1200, margin: '0 auto', padding: '40px 32px',
+        maxWidth: 1200, margin: '0 auto', padding: isMobile ? '24px 20px' : '40px 32px',
       }}>
         
         {/* Welcome header */}
@@ -63,15 +65,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Role-based dashboard content */}
-        {user.role === 'FOUNDER' && <FounderDashboard user={user} />}
-        {user.role === 'STUDENT' && <StudentDashboard user={user} />}
+        {user.role === 'FOUNDER' && <FounderDashboard user={user} isMobile={isMobile} />}
+        {user.role === 'STUDENT' && <StudentDashboard user={user} isMobile={isMobile} />}
         {user.role === 'INVESTOR' && <InvestorDashboard user={user} />}
       </div>
     </main>
   )
 }
 
-function FounderDashboard({ user }: { user: any }) {
+function FounderDashboard({ user, isMobile }: { user: any, isMobile: boolean }) {
   const cards = [
     { label: 'Your Startup', value: 'Not set up yet',
       action: 'Set up profile →', href: '/startup/setup' },
@@ -87,7 +89,7 @@ function FounderDashboard({ user }: { user: any }) {
     <div>
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)',
         gap: 16, marginBottom: 48,
       }}>
         {cards.map((card, i) => (
@@ -123,7 +125,7 @@ function FounderDashboard({ user }: { user: any }) {
   )
 }
 
-function StudentDashboard({ user }: { user: any }) {
+function StudentDashboard({ user, isMobile }: { user: any, isMobile: boolean }) {
   const cards = [
     { label: 'Jobs Applied', value: '0',
       action: 'Browse jobs →', href: '/careers' },
@@ -139,7 +141,7 @@ function StudentDashboard({ user }: { user: any }) {
     <div>
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)',
         gap: 16, marginBottom: 48,
       }}>
         {cards.map((card, i) => (
