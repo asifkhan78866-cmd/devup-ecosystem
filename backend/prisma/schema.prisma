@@ -117,6 +117,7 @@ model Startup {
   founderId      String
   primaryFounder User     @relation("StartupPrimaryFounder", fields: [founderId], references: [id])
   founders       User[]   @relation("StartupFounders")
+  founderNames   String[] @default([])
   
   jobs           Job[]
   documents      Document[]

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from '@/lib/auth/AuthProvider';
@@ -29,7 +29,7 @@ export function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 40);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -41,7 +41,7 @@ export function Navbar() {
         height: 72, width: '100%', zIndex: 100,
         background: scrolled ? 'rgba(10,10,10,0.85)' : 'transparent',
         backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
         transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 32px'
@@ -71,24 +71,24 @@ export function Navbar() {
               textDecoration: 'none',
               transition: 'color 0.2s ease',
             }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.color = '#e4e4e4';
-                const iconElement = e.currentTarget.querySelector('svg');
-                if (iconElement) iconElement.style.color = '#e4e4e4';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.color = '#888888';
-                const iconElement = e.currentTarget.querySelector('svg');
-                if (iconElement) iconElement.style.color = '#888888';
-              }
-            }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.color = '#e4e4e4';
+                  const iconElement = e.currentTarget.querySelector('svg');
+                  if (iconElement) iconElement.style.color = '#e4e4e4';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.color = '#888888';
+                  const iconElement = e.currentTarget.querySelector('svg');
+                  if (iconElement) iconElement.style.color = '#888888';
+                }
+              }}
             >
-              <link.icon size={16} 
-                color={isActive ? '#c8f135' : 'currentColor'} 
-                strokeWidth={1.75} 
+              <link.icon size={16}
+                color={isActive ? '#c8f135' : 'currentColor'}
+                strokeWidth={1.75}
                 style={{ transition: 'color 0.2s ease, transform 0.2s ease' }}
               />
               {link.label}
@@ -112,12 +112,12 @@ export function Navbar() {
               fontWeight: 600, textDecoration: 'none',
               transition: 'all 0.2s ease'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(200,241,53,0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(200,241,53,0.08)';
-            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(200,241,53,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(200,241,53,0.08)';
+              }}
             >
               <LayoutDashboard size={14} strokeWidth={2} />
               Dashboard
@@ -130,14 +130,14 @@ export function Navbar() {
               fontWeight: 500, cursor: 'pointer',
               transition: 'all 0.2s ease'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-              e.currentTarget.style.color = '#ffffff';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#888888';
-            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                e.currentTarget.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#888888';
+              }}
             >
               <LogOut size={14} strokeWidth={2} />
               Sign out
@@ -153,14 +153,14 @@ export function Navbar() {
               fontWeight: 500, textDecoration: 'none',
               transition: 'all 0.2s ease'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-              e.currentTarget.style.color = '#ffffff';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#a1a1a1';
-            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                e.currentTarget.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#a1a1a1';
+              }}
             >
               <LogIn size={14} strokeWidth={2} />
               Sign in
@@ -172,14 +172,14 @@ export function Navbar() {
               fontWeight: 700, textDecoration: 'none',
               transition: 'all 0.2s ease'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#d4f53f';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#c8f135';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#d4f53f';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#c8f135';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
             >
               Join Ecosystem
             </Link>

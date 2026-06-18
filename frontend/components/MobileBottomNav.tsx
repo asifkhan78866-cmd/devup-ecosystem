@@ -43,7 +43,7 @@ export default function MobileBottomNav() {
       {/* Spacer so page content never sits behind the bar */}
       <div style={{ 
         height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
-      }} className="mobile-nav-spacer" />
+      }} className="mobile-nav-spacer md:hidden" />
 
       {/* Bottom tab bar */}
       <nav style={{
@@ -55,7 +55,7 @@ export default function MobileBottomNav() {
         borderTop: '1px solid rgba(255,255,255,0.07)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
-      className="mobile-bottom-nav"
+      className="mobile-bottom-nav md:hidden flex"
       >
         {PRIMARY_TABS.map(tab => {
           const active = isActive(tab.href)

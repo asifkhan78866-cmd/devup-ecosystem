@@ -61,6 +61,8 @@ export default function EcosystemPage() {
             roles: s._count?.jobs || 0,
             verified: s.isVerified || false,
             location: s.location || s.city || "Global",
+            logoUrl: s.logoUrl,
+            bannerUrl: s.bannerUrl,
           }));
           setStartups(formatted);
         }
@@ -175,22 +177,33 @@ export default function EcosystemPage() {
                     <div 
                       className="h-full bg-[#111111] border border-white/5 rounded-[16px] overflow-hidden transition-all duration-300 group-hover:border-white/15 group-hover:translate-y-[-4px]"
                     >
-                      {/* Name-based HSL Gradient Banner */}
-                      <div 
-                        className="h-24 w-full opacity-80" 
-                        style={{
-                          background: `linear-gradient(135deg, hsl(${(startup.name.codePointAt(0) ?? 0) * 10}, 70%, 20%), hsl(${(startup.name.codePointAt(startup.name.length - 1) ?? 0) * 10}, 70%, 10%))`
-                        }} 
-                      />
+                      {/* Background Banner */}
+                      {startup.bannerUrl ? (
+                        <div 
+                          className="h-24 w-full bg-cover bg-center opacity-80"
+                          style={{ backgroundImage: `url(${startup.bannerUrl})` }}
+                        />
+                      ) : (
+                        <div 
+                          className="h-24 w-full opacity-80" 
+                          style={{
+                            background: `linear-gradient(135deg, hsl(${(startup.name.codePointAt(0) ?? 0) * 10}, 70%, 20%), hsl(${(startup.name.codePointAt(startup.name.length - 1) ?? 0) * 10}, 70%, 10%))`
+                          }} 
+                        />
+                      )}
 
                       <div className="p-6 relative">
                         {/* Logo */}
                         <div 
-                          className="absolute -top-10 left-6 w-[56px] h-[56px] bg-[#0a0a0a] flex items-center justify-center border border-white/10 rounded-[12px] shadow-2xl"
+                          className="absolute -top-10 left-6 w-[56px] h-[56px] bg-[#0a0a0a] flex items-center justify-center border border-white/10 rounded-[12px] shadow-2xl overflow-hidden"
                         >
-                          <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "20px", fontWeight: 700, color: "#fff" }}>
-                            {startup.name[0]}
-                          </span>
+                          {startup.logoUrl ? (
+                            <img src={startup.logoUrl} alt={startup.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "20px", fontWeight: 700, color: "#fff" }}>
+                              {startup.name[0]}
+                            </span>
+                          )}
                         </div>
 
                         <div className="mt-4">

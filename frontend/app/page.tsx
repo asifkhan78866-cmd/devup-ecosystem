@@ -16,6 +16,12 @@ import FinalCTA from "@/components/FinalCTA";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 import HeroStatChips from "@/components/HeroStatChips";
+import { FEATURE_FLAGS } from "@/lib/config";
+
+const HeroVideoBackdrop = dynamic(
+  () => import("@/components/HeroVideoBackdrop"),
+  { ssr: false }
+);
 
 // Dynamically import HeroSignalNetwork
 const HeroSignalNetwork = dynamic(
@@ -45,8 +51,11 @@ export default function Home() {
 
       {/* 2. Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center pt-20 overflow-hidden z-10 pb-24">
-        <HeroBeacon />
-        <HeroTypography />
+        {FEATURE_FLAGS.HERO_VIDEO_BACKDROP && <HeroVideoBackdrop />}
+        
+        <div style={{ position: 'relative', zIndex: 10, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {!FEATURE_FLAGS.HERO_VIDEO_BACKDROP && <HeroBeacon />}
+          <HeroTypography />
         
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.97 }}
@@ -65,6 +74,7 @@ export default function Home() {
             <HeroStatChips />
           </div>
         </motion.div>
+        </div>
       </section>
 
       {/* 3. Social Proof Strip */}

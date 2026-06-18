@@ -180,10 +180,15 @@ function AiResearchButton({
     }, 2500)
 
     try {
-      const res = await api.post('/api/ai/research-startup', { startupId, startupName, websiteUrl })
+      let formattedUrl = websiteUrl;
+      if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = `https://${formattedUrl}`;
+      }
+      const res = await api.post('/api/ai/research-startup', { startupId, startupName, websiteUrl: formattedUrl })
       onResult(res.data.data.analysis)
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Research failed')
+      const errorMessage = err.response?.data?.errors?.[0]?.message || err.response?.data?.error || err.message || 'Research failed'
+      setError(errorMessage)
     } finally {
       clearInterval(interval)
       setLoading(false)
@@ -326,6 +331,7 @@ const HEADCOUNTS = ['1-5', '6-15', '16-50', '51-100', '100+']
 const emptyForm = {
   name: '', slug: '', tagline: '', description: '', domain: 'AI_ML', stage: 'MVP',
   foundedYear: new Date().getFullYear(), headcount: '1-5', location: '', website: '', githubUrl: '',
+  founderNames: [] as string[],
 }
 
 export default function Startups() {
@@ -406,7 +412,7 @@ export default function Startups() {
       name: s.name, slug: s.slug, tagline: s.tagline, description: s.description,
       domain: s.domain, stage: s.stage, foundedYear: s.foundedYear,
       headcount: s.headcount, location: s.location, website: s.website || '',
-      githubUrl: s.githubUrl || '',
+      githubUrl: s.githubUrl || '', founderNames: (s as any).founderNames || [],
     })
     setEditId(s.id)
     setLogoFile(s.logoUrl || null)
@@ -429,7 +435,11 @@ export default function Startups() {
 
     const formData = new FormData()
     Object.entries(form).forEach(([k, v]) => {
-      formData.append(k, String(v))
+      if (k === 'founderNames') {
+        formData.append(k, JSON.stringify(v))
+      } else {
+        formData.append(k, String(v))
+      }
     })
     if (logoFile instanceof File) formData.append('logo', logoFile)
     screenshotFiles.forEach((f) => {
@@ -647,6 +657,50 @@ export default function Startups() {
                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
                 placeholder="https://github.com/nexusai"
               />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs text-gray-500">Founder Names (up to 4)</label>
+              {form.founderNames.length < 4 && (
+                <button
+                  type="button"
+                  onClick={() => setForm(prev => ({ ...prev, founderNames: [...prev.founderNames, ''] }))}
+                  className="text-[#c8f135] text-xs font-medium hover:underline"
+                >
+                  + Add Founder
+                </button>
+              )}
+            </div>
+            <div className="space-y-2">
+              {form.founderNames.map((founder, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    value={founder}
+                    onChange={(e) => {
+                      const newFounders = [...form.founderNames]
+                      newFounders[index] = e.target.value
+                      setForm(prev => ({ ...prev, founderNames: newFounders }))
+                    }}
+                    className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
+                    placeholder={`Founder ${index + 1} Name`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newFounders = form.founderNames.filter((_, i) => i !== index)
+                      setForm(prev => ({ ...prev, founderNames: newFounders }))
+                    }}
+                    className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-red-400 hover:bg-white/10"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              {form.founderNames.length === 0 && (
+                <p className="text-xs text-gray-600 italic">No founders added yet.</p>
+              )}
             </div>
           </div>
 

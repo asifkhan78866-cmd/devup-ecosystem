@@ -33,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} h-full antialiased dark`}>
       <head>
+        <link rel="preload" as="image" href="/video/hero-space-poster.jpg" />
         {/* Synchronous script — runs BEFORE paint, before React hydrates.
             Tags <html> with data-skip-intro for returning visitors so CSS
             can instantly hide the overlay with zero flash. */}

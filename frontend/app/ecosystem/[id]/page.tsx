@@ -63,13 +63,22 @@ export default function StartupProfilePage() {
             github: s.githubUrl,
             linkedin: s.linkedinUrl,
             twitter: s.twitterUrl,
-            team: s.founders?.map((f: any) => ({
-              name: f.profile?.name || f.email,
-              role: "Co-founder",
-              bio: f.profile?.bio || "",
-              seed: f.id,
-              linkedin: f.profile?.linkedinUrl || "#"
-            })) || [],
+            team: [
+              ...(s.founders?.map((f: any) => ({
+                name: f.profile?.name || f.email,
+                role: "Co-founder",
+                bio: f.profile?.bio || "",
+                seed: f.id,
+                linkedin: f.profile?.linkedinUrl || "#"
+              })) || []),
+              ...(s.founderNames?.map((name: string) => ({
+                name,
+                role: "Co-founder",
+                bio: "",
+                seed: name,
+                linkedin: "#"
+              })) || [])
+            ],
             roles: s.jobs || []
           });
         }

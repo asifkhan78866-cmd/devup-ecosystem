@@ -47,6 +47,9 @@ export class StartupsController {
     if (payload.aiAnalysis && typeof payload.aiAnalysis === 'string') {
       try { payload.aiAnalysis = JSON.parse(payload.aiAnalysis); } catch (e) {}
     }
+    if (payload.founderNames && typeof payload.founderNames === 'string') {
+      try { payload.founderNames = JSON.parse(payload.founderNames); } catch (e) {}
+    }
 
     const slug = payload.slug;
     payload.logoUrl = await uploadStartupImage(files.logo[0], slug, "logo");
@@ -73,6 +76,9 @@ export class StartupsController {
     if (payload.userCount) payload.userCount = parseInt(payload.userCount, 10);
     if (payload.aiAnalysis && typeof payload.aiAnalysis === 'string') {
       try { payload.aiAnalysis = JSON.parse(payload.aiAnalysis); } catch (e) {}
+    }
+    if (payload.founderNames && typeof payload.founderNames === 'string') {
+      try { payload.founderNames = JSON.parse(payload.founderNames); } catch (e) {}
     }
 
     const slug = payload.slug || req.params.id; // use ID if slug not in body
