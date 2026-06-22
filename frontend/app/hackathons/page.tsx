@@ -18,6 +18,10 @@ const FILTERS = ["All", "Online", "Offline", "Hybrid", "Ecosystem-hosted", "Exte
 
 const COLORS = ["#c8f135", "#a78bfa", "#22c55e", "#38bdf8", "#fb923c", "#f472b6"];
 
+// API returns the Prisma enum uppercase (ONLINE/OFFLINE/HYBRID) — prettify for display.
+const prettyMode = (mode?: string) =>
+  mode ? mode.charAt(0).toUpperCase() + mode.slice(1).toLowerCase() : "";
+
 function getDaysLeft(dateStr: string): number {
   const end = new Date(dateStr).getTime();
   const now = Date.now();
@@ -47,8 +51,8 @@ export default function HackathonsPage() {
             name: h.title || h.name,
             org: h.organizer || "DevUp",
             prize: h.prizePool || "TBD",
-            mode: h.mode || "Online",
-            type: h.type || "Ecosystem-hosted",
+            mode: h.mode || "ONLINE",
+            isEcosystemHosted: h.isEcosystemHosted ?? false,
             date: h.startDate && h.endDate
               ? `${new Date(h.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} - ${new Date(h.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}`
               : "TBD",
@@ -97,11 +101,11 @@ export default function HackathonsPage() {
 
   const filteredHackathons = hackathons.filter(h => {
     if (activeFilter === "All") return true;
-    if (activeFilter === "Online") return h.mode === "Online";
-    if (activeFilter === "Offline") return h.mode === "Offline";
-    if (activeFilter === "Hybrid") return h.mode === "Hybrid";
-    if (activeFilter === "Ecosystem-hosted") return h.type === "Ecosystem-hosted";
-    if (activeFilter === "External") return h.type === "External";
+    if (activeFilter === "Online") return h.mode === "ONLINE";
+    if (activeFilter === "Offline") return h.mode === "OFFLINE";
+    if (activeFilter === "Hybrid") return h.mode === "HYBRID";
+    if (activeFilter === "Ecosystem-hosted") return h.isEcosystemHosted === true;
+    if (activeFilter === "External") return h.isEcosystemHosted === false;
     return true;
   });
 
@@ -116,7 +120,11 @@ export default function HackathonsPage() {
       />
 
       {/* Featured Hackathon Card (Hero Card) */}
-      {featuredHackathon ? (
+      {loading ? (
+        <div className="max-w-7xl mx-auto px-4 md:px-8 mb-4 relative z-10">
+          <div className="bg-[#111111] border border-white/10 rounded-[20px] h-[320px] animate-pulse" />
+        </div>
+      ) : featuredHackathon ? (
         <div className="max-w-7xl mx-auto px-4 md:px-8 mb-4 relative z-10">
           <div className="bg-[#111111] border border-white/10 rounded-[20px] overflow-hidden flex flex-col md:flex-row relative">
             {featuredHackathon.bannerUrl && (
@@ -130,7 +138,7 @@ export default function HackathonsPage() {
               />
             )}
             {/* Left section */}
-            <div className="p-10 flex-1 border-b md:border-b-0 md:border-r border-white/5 relative z-10 bg-gradient-to-r from-[#111111] via-[#111111]/90 to-transparent">
+            <div className="p-6 sm:p-10 flex-1 border-b md:border-b-0 md:border-r border-white/5 relative z-10 bg-gradient-to-r from-[#111111] via-[#111111]/90 to-transparent">
               <div 
                 className="inline-block px-3 py-1 bg-[rgba(200,241,53,0.1)] border border-[rgba(200,241,53,0.2)] text-[#c8f135] rounded-full mb-6"
                 style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em" }}
@@ -138,7 +146,7 @@ export default function HackathonsPage() {
                 FEATURED
               </div>
               
-              <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "36px", fontWeight: 800, color: "#fff", marginBottom: "8px", lineHeight: 1.1 }}>
+              <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(26px, 7vw, 36px)", fontWeight: 800, color: "#fff", marginBottom: "8px", lineHeight: 1.1 }}>
                 {featuredHackathon.title}
               </h2>
               <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", marginBottom: "24px" }}>
@@ -146,7 +154,7 @@ export default function HackathonsPage() {
               </div>
               
               <div className="mb-6">
-                <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "48px", fontWeight: 700, color: "#c8f135", lineHeight: 1 }}>
+                <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(34px, 9vw, 48px)", fontWeight: 700, color: "#c8f135", lineHeight: 1 }}>
                   {featuredHackathon.prizePool}
                 </div>
                 <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", marginTop: "4px", letterSpacing: "0.05em" }}>
@@ -156,7 +164,7 @@ export default function HackathonsPage() {
 
               <div className="flex flex-wrap gap-2 mb-6">
                 <span className="px-3 py-1.5 bg-[#1a1a1a] border border-white/5 text-[#a1a1a1] rounded-[6px]" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px" }}>
-                  {featuredHackathon.mode}
+                  {prettyMode(featuredHackathon.mode)}
                 </span>
                 {featuredHackathon.domain?.slice(0, 3).map((tag: string) => (
                   <span 
@@ -224,7 +232,7 @@ export default function HackathonsPage() {
             </div>
             
             {/* Right section (Timer) */}
-            <div className="p-10 md:w-[400px] bg-[#0a0a0a]/90 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden z-10 border-l border-white/5">
+            <div className="p-6 sm:p-10 md:w-[400px] bg-[#0a0a0a]/90 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden z-10 border-l border-white/5">
               <div className="absolute inset-0 bg-[#c8f135] opacity-[0.02]" />
               
               {new Date(featuredHackathon.registrationDeadline).getTime() < Date.now() ? (
@@ -241,17 +249,17 @@ export default function HackathonsPage() {
                   <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#6b6b6b", letterSpacing: "0.1em", marginBottom: "24px", zIndex: 10 }}>
                     REGISTRATION CLOSES IN
                   </div>
-                  <div className="flex items-center gap-4 z-10">
+                  <div className="flex items-center gap-2 sm:gap-4 z-10">
                     {[
                       { label: "DAYS", value: timeLeft.days },
                       { label: "HOURS", value: timeLeft.hours },
                       { label: "MINUTES", value: timeLeft.minutes },
                       { label: "SECONDS", value: timeLeft.seconds }
                     ].map((item, i, arr) => (
-                      <div key={item.label} className="flex items-center gap-4">
+                      <div key={item.label} className="flex items-center gap-2 sm:gap-4">
                         <div className="flex flex-col items-center">
-                          <div 
-                            className="w-[60px] h-[60px] sm:w-[72px] sm:h-[72px] bg-[#0a0a0a] border border-white/10 rounded-[12px] flex items-center justify-center overflow-hidden relative shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
+                          <div
+                            className="w-[clamp(44px,14vw,72px)] h-[clamp(44px,14vw,72px)] bg-[#0a0a0a] border border-white/10 rounded-[12px] flex items-center justify-center overflow-hidden relative shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
                           >
                             <AnimatePresence mode="popLayout">
                               <motion.div
@@ -260,7 +268,7 @@ export default function HackathonsPage() {
                                 animate={{ y: 0, opacity: 1 }}
                                 exit={{ y: "-50%", opacity: 0 }}
                                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                                style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "32px", fontWeight: 700, color: "#fff", position: "absolute" }}
+                                style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(19px, 6vw, 32px)", fontWeight: 700, color: "#fff", position: "absolute" }}
                               >
                                 {item.value.toString().padStart(2, "0")}
                               </motion.div>
@@ -271,7 +279,7 @@ export default function HackathonsPage() {
                           </div>
                         </div>
                         {i < arr.length - 1 && (
-                          <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "24px", color: "#6b6b6b", paddingBottom: "24px" }}>:</div>
+                          <div className="pb-6" style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(16px, 5vw, 24px)", color: "#6b6b6b" }}>:</div>
                         )}
                       </div>
                     ))}
@@ -329,8 +337,8 @@ export default function HackathonsPage() {
             {filteredHackathons.map((hackathon, idx) => {
               const isClosed = hackathon.daysLeft < 0;
               let modeColor = "#38bdf8"; // Online
-              if (hackathon.mode === "Offline") modeColor = "#fb923c";
-              if (hackathon.mode === "Hybrid") modeColor = "#a78bfa";
+              if (hackathon.mode === "OFFLINE") modeColor = "#fb923c";
+              if (hackathon.mode === "HYBRID") modeColor = "#a78bfa";
               let statusColor = "#a1a1a1";
               if (isClosed) {
                 statusColor = "#6b6b6b";
@@ -365,7 +373,7 @@ export default function HackathonsPage() {
                           className="px-2 py-1 rounded-[4px]"
                           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", color: modeColor, fontSize: "11px", fontFamily: "var(--font-inter), sans-serif" }}
                         >
-                          {hackathon.mode}
+                          {prettyMode(hackathon.mode)}
                         </div>
                       </div>
 

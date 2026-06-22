@@ -80,12 +80,14 @@ export async function signDocument(params: {
       status: 'ACTIVE',
       role: { in: ['Founder', 'Co-Founder'] },
     },
-    include: { user: true },
+    include: { user: { include: { profile: true } } },
   });
-  
+
   if (!member) {
     throw new AppError(403, 'Only an authorized founder of this startup can sign this document');
   }
+
+  const signerName = member.user!.profile?.name ?? member.user!.email;
 
   const signed = await prisma.document.update({
     where: { id: params.documentId },
@@ -94,7 +96,7 @@ export async function signDocument(params: {
       signedByFounder: true,
       founderSignedAt: new Date(),
       signedByUserId: params.userId,
-      signedByName: member.user!.name,
+      signedByName: signerName,
       signatureDataUrl: params.signatureDataUrl,
       ipAddress: params.ipAddress,
       signedUserAgent: params.userAgent,
@@ -107,14 +109,14 @@ export async function signDocument(params: {
       data: {
         userId: admin.id,
         title: 'Document signed',
-        message: `${member.user!.name} signed ${doc.name}.`,
+        message: `${signerName} signed ${doc.name}.`,
         type: 'DOCUMENT_SIGNED',
         link: `/admin/documents`,
       },
     });
   }
   
-  await sendDocumentSignedEmail(process.env.RESEND_FROM_EMAIL || 'admin@devup.com', doc.name, member.user!.name);
+  await sendDocumentSignedEmail(process.env.RESEND_FROM_EMAIL || 'admin@devup.com', doc.name, signerName);
 
   await prisma.auditLog.create({
     data: {

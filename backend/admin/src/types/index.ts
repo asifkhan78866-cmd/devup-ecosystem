@@ -23,6 +23,8 @@ export interface Startup {
   logoUrl: string | null
   bannerUrl: string | null
   website: string | null
+  githubUrl: string | null
+  screenshotUrls: string[] | null
   domain: string
   stage: string
   foundedYear: number

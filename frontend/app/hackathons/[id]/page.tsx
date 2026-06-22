@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,7 +10,12 @@ import {
   ArrowLeft, Calendar, MapPin, Clock, Trophy, Users, Gift,
   Shield, Wifi, ChevronRight, Sparkles, Zap,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import confetti from "canvas-confetti";
+
+// Pretty-print the uppercase Prisma enum mode (ONLINE -> Online)
+const prettyMode = (mode?: string) =>
+  mode ? mode.charAt(0).toUpperCase() + mode.slice(1).toLowerCase() : "";
 
 // ─── API BASE ───
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -51,6 +57,8 @@ const TIMELINE: TimelineDay[] = [
   },
 ];
 
+const DOMAIN_COLORS = ["#c8f135", "#a78bfa", "#38bdf8", "#fb923c", "#f472b6"];
+
 const DOMAINS = [
   { label: "AI & ML", sub: "GenAI, Predictive Analytics", color: "#c8f135" },
   { label: "Cybersecurity & Blockchain", sub: "Smart contracts, Pen testing", color: "#a78bfa" },
@@ -68,12 +76,26 @@ const PERKS = [
   { icon: "📦", title: "Mystery Boxes", desc: "'I Survived Vynedam 2K26' merch & surprise gifts" },
 ];
 
+// Logistics icons are keyed by string so they can come from the DB (Json) too.
+const LOGISTICS_ICONS: Record<string, LucideIcon> = {
+  shield: Shield, accommodation: Shield,
+  meals: Gift, gift: Gift,
+  wifi: Wifi, internet: Wifi,
+  support: Users, users: Users,
+  clock: Clock, calendar: Calendar, trophy: Trophy,
+};
+
 const LOGISTICS = [
-  { icon: Shield, label: "Accommodation", desc: "Separate male/female dorms on campus" },
-  { icon: Gift, label: "5 Meals + Refreshments", desc: "24/7 snacks, tea, coffee, energy drinks" },
-  { icon: Wifi, label: "1 Gbps Internet", desc: "Dedicated fiber + power backup" },
-  { icon: Users, label: "On-site Support", desc: "Paramedic, security, volunteer crew" },
+  { icon: "shield", label: "Accommodation", desc: "Separate male/female dorms on campus" },
+  { icon: "meals", label: "5 Meals + Refreshments", desc: "24/7 snacks, tea, coffee, energy drinks" },
+  { icon: "wifi", label: "1 Gbps Internet", desc: "Dedicated fiber + power backup" },
+  { icon: "support", label: "On-site Support", desc: "Paramedic, security, volunteer crew" },
 ];
+
+const DEFAULT_OVERVIEW =
+  "VYNEDAM Talent Hunt 2K26 is a national-level 36-hour non-stop offline innovation marathon bridging academia and industry. Students, developers, and aspiring entrepreneurs come together to solve high-impact, real-world problems curated by industry veterans across five critical technology domains. This is not just a hackathon — it's a launchpad for your career, with guaranteed internships, world-class mentorship, and a stage to prove your potential.";
+
+const DEFAULT_SUBTITLE = "36-Hour Non-Stop Offline National Innovation Challenge";
 
 // ─── REGISTER MODAL ───
 function RegisterModal({
@@ -92,6 +114,8 @@ function RegisterModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [registrationId, setRegistrationId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -142,7 +166,7 @@ function RegisterModal({
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.errors?.[0]?.message || data?.message || "Registration failed");
+      if (!res.ok) throw new Error(data?.errors?.[0]?.message || data?.error || data?.message || "Registration failed");
       const newLeadId = data.data?.registrationId || null;
       setRegistrationId(newLeadId);
       setStep("success");
@@ -174,10 +198,13 @@ function RegisterModal({
     }
   }, [isOpen]);
 
+  // text-base (16px) on mobile prevents iOS auto-zoom on focus; text-sm on desktop keeps the original look.
   const inputClass =
-    "w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#c8f135]/50 transition-colors placeholder:text-[#4a4a4a]";
+    "w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white text-base md:text-sm outline-none focus:border-[#c8f135]/50 transition-colors placeholder:text-[#4a4a4a]";
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -185,7 +212,7 @@ function RegisterModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[300]"
             onClick={onClose}
           />
           <motion.div
@@ -193,9 +220,9 @@ function RegisterModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-[300] flex items-center justify-center p-4"
           >
-            <div className="w-full max-w-md bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="w-full max-w-md bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl overflow-y-auto overflow-x-hidden max-h-[90dvh]">
               {step === "form" ? (
                 <div className="p-6">
                   <h2
@@ -319,7 +346,8 @@ function RegisterModal({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
@@ -380,6 +408,20 @@ export default function HackathonDetailPage() {
   const startDate = new Date(hackathon.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   const endDate = new Date(hackathon.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
+  // ─── DATA-DRIVEN CONTENT (falls back to built-in defaults when a field is empty) ───
+  const subtitle = hackathon.subtitle || DEFAULT_SUBTITLE;
+  const overview = hackathon.description || DEFAULT_OVERVIEW;
+  // Prefer the rich per-event cards; fall back to the full default domain cards
+  // (with their sub-lines) so existing hackathons keep all their detail.
+  const domains: { label: string; sub?: string; color?: string }[] =
+    hackathon.domainsDetailed?.length ? hackathon.domainsDetailed : DOMAINS;
+  const timeline = hackathon.timeline?.length ? hackathon.timeline : TIMELINE;
+  const perks = hackathon.perks?.length ? hackathon.perks : PERKS;
+  const logistics = hackathon.logistics?.length ? hackathon.logistics : LOGISTICS;
+
+  const isClosed = new Date(hackathon.registrationDeadline).getTime() <= Date.now();
+  const openRegister = () => { if (!isClosed) setShowRegister(true); };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Back nav */}
@@ -407,6 +449,7 @@ export default function HackathonDetailPage() {
               src={bannerSrc}
               alt={hackathon.title}
               fill
+              sizes="(max-width: 1280px) 100vw, 1280px"
               className="object-cover"
               priority
             />
@@ -420,7 +463,7 @@ export default function HackathonDetailPage() {
                 className="px-3 py-1 bg-[rgba(200,241,53,0.15)] border border-[rgba(200,241,53,0.3)] text-[#c8f135] rounded-full"
                 style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em" }}
               >
-                {hackathon.mode}
+                {prettyMode(hackathon.mode)}
               </span>
               {hackathon.isFeatured && (
                 <span
@@ -439,7 +482,7 @@ export default function HackathonDetailPage() {
               {hackathon.title}
             </h1>
             <p className="text-sm text-[#a1a1a1] mb-4" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-              36-Hour Non-Stop Offline National Innovation Challenge
+              {subtitle}
             </p>
 
             <div className="flex flex-wrap items-center gap-6 text-sm text-[#888]" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
@@ -494,31 +537,32 @@ export default function HackathonDetailPage() {
         <div className="bg-[#111] border border-white/5 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <p className="text-xs text-[#6b6b6b] uppercase tracking-widest mb-1" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-              Registration closes in
+              {isClosed ? "Registration closed" : "Registration closes in"}
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               {(["days", "hours", "minutes", "seconds"] as const).map((unit, i) => (
-                <div key={unit} className="flex items-center gap-3">
+                <div key={unit} className="flex items-center gap-2 sm:gap-3">
                   <div className="text-center">
                     <div
-                      className="w-[60px] h-[60px] bg-[#0a0a0a] border border-white/10 rounded-xl flex items-center justify-center"
-                      style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "28px", fontWeight: 700, color: "#fff" }}
+                      className="w-[clamp(46px,15vw,60px)] h-[clamp(46px,15vw,60px)] bg-[#0a0a0a] border border-white/10 rounded-xl flex items-center justify-center"
+                      style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(20px, 6vw, 28px)", fontWeight: 700, color: "#fff" }}
                     >
                       {countdown[unit].toString().padStart(2, "0")}
                     </div>
                     <span className="text-[10px] text-[#6b6b6b] mt-1 block uppercase">{unit}</span>
                   </div>
-                  {i < 3 && <span className="text-[#4a4a4a] text-xl pb-5">:</span>}
+                  {i < 3 && <span className="text-[#4a4a4a] text-lg sm:text-xl pb-5">:</span>}
                 </div>
               ))}
             </div>
           </div>
           <button
-            onClick={() => setShowRegister(true)}
-            className="h-[52px] px-10 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all hover:scale-105"
+            onClick={openRegister}
+            disabled={isClosed}
+            className="h-[52px] px-10 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-[#c8f135]"
             style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
           >
-            Register Now
+            {isClosed ? "Closed" : "Register Now"}
           </button>
         </div>
       </motion.section>
@@ -534,12 +578,8 @@ export default function HackathonDetailPage() {
           Overview
         </h2>
         <div className="bg-[#111] border border-white/5 rounded-2xl p-6 md:p-8">
-          <p className="text-[#a1a1a1] leading-relaxed" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}>
-            VYNEDAM Talent Hunt 2K26 is a national-level 36-hour non-stop offline innovation marathon
-            bridging academia and industry. Students, developers, and aspiring entrepreneurs come together
-            to solve high-impact, real-world problems curated by industry veterans across five critical
-            technology domains. This is not just a hackathon — it&apos;s a launchpad for your career, with
-            guaranteed internships, world-class mentorship, and a stage to prove your potential.
+          <p className="text-[#a1a1a1] leading-relaxed whitespace-pre-line" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}>
+            {overview}
           </p>
         </div>
       </motion.section>
@@ -555,22 +595,24 @@ export default function HackathonDetailPage() {
           Core Technical Domains
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {DOMAINS.map((d) => (
+          {domains.map((d, i) => (
             <motion.div
-              key={d.label}
+              key={`${d.label}-${i}`}
               whileHover={{ scale: 1.03, y: -2 }}
               className="bg-[#111] border border-white/5 rounded-xl p-4 group hover:border-white/15 transition-all"
             >
               <div
                 className="w-2 h-2 rounded-full mb-3"
-                style={{ background: d.color }}
+                style={{ background: d.color || DOMAIN_COLORS[i % DOMAIN_COLORS.length] }}
               />
               <h3 className="text-sm font-semibold text-white mb-1" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
                 {d.label}
               </h3>
-              <p className="text-xs text-[#6b6b6b]" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-                {d.sub}
-              </p>
+              {d.sub && (
+                <p className="text-xs text-[#6b6b6b]" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+                  {d.sub}
+                </p>
+              )}
             </motion.div>
           ))}
         </div>
@@ -587,7 +629,7 @@ export default function HackathonDetailPage() {
           Event Timeline
         </h2>
         <div className="space-y-12">
-          {TIMELINE.map((day) => (
+          {timeline.map((day: TimelineDay) => (
             <div key={day.label}>
               <div className="flex items-center gap-3 mb-6">
                 <span
@@ -652,13 +694,13 @@ export default function HackathonDetailPage() {
           Rewards, Career & Swag
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {PERKS.map((p) => (
+          {perks.map((p: { icon?: string; title: string; desc?: string }, i: number) => (
             <motion.div
-              key={p.title}
+              key={`${p.title}-${i}`}
               whileHover={{ scale: 1.02 }}
               className="bg-[#111] border border-white/5 rounded-xl p-5 hover:border-[#c8f135]/20 transition-all"
             >
-              <span className="text-2xl mb-3 block">{p.icon}</span>
+              <span className="text-2xl mb-3 block">{p.icon || "🎁"}</span>
               <h3 className="text-sm font-semibold text-white mb-1" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
                 {p.title}
               </h3>
@@ -681,38 +723,42 @@ export default function HackathonDetailPage() {
           Logistics & Facilities
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {LOGISTICS.map((l) => (
-            <div key={l.label} className="bg-[#111] border border-white/5 rounded-xl p-5">
-              <l.icon className="w-5 h-5 text-[#c8f135] mb-3" />
-              <h3 className="text-sm font-semibold text-white mb-1" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-                {l.label}
-              </h3>
-              <p className="text-xs text-[#6b6b6b]" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-                {l.desc}
-              </p>
-            </div>
-          ))}
+          {logistics.map((l: { icon?: string; label: string; desc?: string }, i: number) => {
+            const Icon = LOGISTICS_ICONS[(l.icon || "").toLowerCase()] ?? Shield;
+            return (
+              <div key={`${l.label}-${i}`} className="bg-[#111] border border-white/5 rounded-xl p-5">
+                <Icon className="w-5 h-5 text-[#c8f135] mb-3" />
+                <h3 className="text-sm font-semibold text-white mb-1" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+                  {l.label}
+                </h3>
+                <p className="text-xs text-[#6b6b6b]" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+                  {l.desc}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </motion.section>
 
-      {/* ─── BOTTOM SPACER ─── */}
-      <div className="h-32" />
+      {/* ─── BOTTOM SPACER (extra room on mobile for raised CTA + bottom-nav) ─── */}
+      <div className="h-44 md:h-32" />
 
-      {/* ─── STICKY CTA ─── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-transparent pb-4 pt-8 px-4">
+      {/* ─── STICKY CTA (sits above the global mobile bottom-nav on small screens) ─── */}
+      <div className="fixed bottom-[calc(64px+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-transparent pb-4 pt-8 px-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="hidden md:block">
             <p className="text-white font-semibold text-sm" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
               {hackathon.title}
             </p>
-            <p className="text-xs text-[#6b6b6b]">{startDate} – {endDate} · {hackathon.location}</p>
+            <p className="text-xs text-[#6b6b6b]">{startDate} – {endDate}{hackathon.location ? ` · ${hackathon.location}` : ""}</p>
           </div>
           <button
-            onClick={() => setShowRegister(true)}
-            className="w-full md:w-auto h-[52px] px-10 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all hover:scale-105 flex items-center justify-center gap-2"
+            onClick={openRegister}
+            disabled={isClosed}
+            className="w-full md:w-auto h-[52px] px-10 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-[#c8f135]"
             style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
           >
-            <Sparkles className="w-4 h-4" /> Register Now
+            <Sparkles className="w-4 h-4" /> {isClosed ? "Registration Closed" : "Register Now"}
           </button>
         </div>
       </div>

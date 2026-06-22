@@ -14,7 +14,7 @@ export default function InviteAcceptPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const { session } = useAuth();
+  const { session, loading: authLoading } = useAuth();
 
   const handleAccept = useCallback(async (authToken: string) => {
     try {
@@ -42,10 +42,13 @@ export default function InviteAcceptPage() {
 
   useEffect(() => {
     if (!token) return;
+    // Wait for Supabase auth to resolve before deciding — otherwise a logged-in
+    // user briefly sees the "you must be logged in" error while the session loads.
+    if (authLoading) return;
 
-    const tokenFromStorage = session?.access_token;
-    
-    if (!tokenFromStorage) {
+    const authToken = session?.access_token;
+
+    if (!authToken) {
       // Not logged in.
       // Store intended invite token so after login/signup they are redirected back here or it's handled automatically
       localStorage.setItem('pending_invite_token', token);
@@ -54,8 +57,8 @@ export default function InviteAcceptPage() {
       return;
     }
 
-    handleAccept(tokenFromStorage);
-  }, [token, session, handleAccept]);
+    handleAccept(authToken);
+  }, [token, session, authLoading, handleAccept]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">

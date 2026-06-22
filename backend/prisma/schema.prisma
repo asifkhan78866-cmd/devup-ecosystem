@@ -257,6 +257,7 @@ model Hackathon {
   title                String
   description          String
   organizer            String
+  subtitle             String?  // One-line tagline shown under the title on the detail page
   logoUrl              String?
   bannerUrl            String?
   startupId            String?  // Nullable, if ecosystem hosted
@@ -270,6 +271,12 @@ model Hackathon {
   registrationLink     String?
   maxParticipants      Int?
   currentParticipants  Int      @default(0)
+  // Optional rich detail-page content. When null, the frontend falls back to its
+  // built-in defaults so existing hackathons render unchanged.
+  domainsDetailed      Json?    // [{ label, sub, color }]
+  timeline             Json?    // [{ date, label, subtitle, slots: [{ time, title, description, icon }] }]
+  perks                Json?    // [{ icon, title, desc }]
+  logistics            Json?    // [{ icon, label, desc }]
   isEcosystemHosted    Boolean  @default(false)
   isFeatured           Boolean  @default(false)
   isActive             Boolean  @default(true)

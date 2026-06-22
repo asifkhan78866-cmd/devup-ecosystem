@@ -14,6 +14,7 @@ const emptyForm = {
   title: '',
   description: '',
   organizer: '',
+  subtitle: '',
   prizePool: '',
   mode: 'ONLINE' as string,
   location: '',
@@ -26,13 +27,43 @@ const emptyForm = {
   isEcosystemHosted: false,
 }
 
+// ISO timestamp -> yyyy-mm-dd for <input type="date">
+const toDateInput = (iso?: string) => (iso ? new Date(iso).toISOString().slice(0, 10) : '')
+
 export default function Hackathons() {
   const [showAdd, setShowAdd] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [showRegistrations, setShowRegistrations] = useState<string | null>(null)
   const [showPartners, setShowPartners] = useState<{ id: string, name: string } | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [domainInput, setDomainInput] = useState('')
   const queryClient = useQueryClient()
+
+  const closeModal = () => { setShowAdd(false); setEditingId(null); setForm(emptyForm); setDomainInput('') }
+
+  const openCreate = () => { setForm(emptyForm); setDomainInput(''); setEditingId(null); setShowAdd(true) }
+
+  const openEdit = (h: any) => {
+    setForm({
+      title: h.title || '',
+      description: h.description || '',
+      organizer: h.organizer || '',
+      subtitle: h.subtitle || '',
+      prizePool: h.prizePool || '',
+      mode: h.mode || 'ONLINE',
+      location: h.location || '',
+      domain: Array.isArray(h.domain) ? h.domain : [],
+      startDate: toDateInput(h.startDate),
+      endDate: toDateInput(h.endDate),
+      registrationDeadline: toDateInput(h.registrationDeadline),
+      registrationLink: h.registrationLink || '',
+      maxParticipants: h.maxParticipants != null ? String(h.maxParticipants) : '',
+      isEcosystemHosted: !!h.isEcosystemHosted,
+    })
+    setDomainInput('')
+    setEditingId(h.id)
+    setShowAdd(true)
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ['hackathons'],
@@ -134,13 +165,23 @@ export default function Hackathons() {
       isEcosystemHosted: form.isEcosystemHosted,
     }
 
-    if (form.location.trim()) payload.location = form.location.trim()
-    if (form.registrationLink.trim()) payload.registrationLink = form.registrationLink.trim()
-    if (form.maxParticipants && Number(form.maxParticipants) > 0) {
-      payload.maxParticipants = Number(form.maxParticipants)
+    if (editingId) {
+      // On edit, send null to clear optional fields that were emptied.
+      payload.subtitle = form.subtitle.trim() || null
+      payload.location = form.location.trim() || null
+      payload.registrationLink = form.registrationLink.trim() || null
+      payload.maxParticipants =
+        form.maxParticipants && Number(form.maxParticipants) > 0 ? Number(form.maxParticipants) : null
+      updateMutation.mutate({ id: editingId, payload }, { onSuccess: closeModal })
+    } else {
+      if (form.subtitle.trim()) payload.subtitle = form.subtitle.trim()
+      if (form.location.trim()) payload.location = form.location.trim()
+      if (form.registrationLink.trim()) payload.registrationLink = form.registrationLink.trim()
+      if (form.maxParticipants && Number(form.maxParticipants) > 0) {
+        payload.maxParticipants = Number(form.maxParticipants)
+      }
+      createMutation.mutate(payload)
     }
-
-    createMutation.mutate(payload)
   }
 
   return (
@@ -149,10 +190,10 @@ export default function Hackathons() {
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <Badge label={`${hackathons.length} hackathons`} />
-          <Button variant="primary" size="md" onClick={() => { setForm(emptyForm); setDomainInput(''); setShowAdd(true) }}>+ Add Hackathon</Button>
+          <Button variant="primary" size="md" onClick={openCreate}>+ Add Hackathon</Button>
         </div>
 
-        <div className="bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden">
+        <div className="bg-white/[0.03] border border-white/5 rounded-2xl overflow-x-auto">
           {isLoading ? (
             <div className="p-8 space-y-3">
               {[...Array(3)].map((_, i) => <div key={i} className="h-12 bg-white/5 rounded-lg animate-pulse" />)}
@@ -160,7 +201,7 @@ export default function Hackathons() {
           ) : hackathons.length === 0 ? (
             <div className="p-16 text-center text-gray-500">No hackathons yet</div>
           ) : (
-            <table className="w-full">
+            <table className="w-full min-w-[720px]">
               <thead>
                 <tr className="border-b border-white/5">
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Name</th>
@@ -198,8 +239,8 @@ export default function Hackathons() {
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <Button variant="ghost" size="sm" onClick={() => setShowPartners({ id: h.id, name: h.title })}>Partners</Button>
-                      <Button variant="ghost" size="sm">Edit</Button>
-                      <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300" onClick={() => deleteMutation.mutate(h.id)}>Delete</Button>
+                      <Button variant="ghost" size="sm" onClick={() => openEdit(h)}>Edit</Button>
+                      <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300" onClick={() => { if (window.confirm(`Delete "${h.title}"? This also removes its leads and partners. This cannot be undone.`)) deleteMutation.mutate(h.id) }}>Delete</Button>
                     </td>
                   </tr>
                 ))}
@@ -209,8 +250,8 @@ export default function Hackathons() {
         </div>
       </div>
 
-      {/* Add Hackathon Modal */}
-      <Modal isOpen={showAdd} onClose={() => { setShowAdd(false); setForm(emptyForm); setDomainInput('') }} title="Add Hackathon">
+      {/* Add / Edit Hackathon Modal */}
+      <Modal isOpen={showAdd} onClose={closeModal} title={editingId ? 'Edit Hackathon' : 'Add Hackathon'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs text-gray-500 mb-1">Title *</label>
@@ -227,6 +268,15 @@ export default function Hackathons() {
               value={form.description} onChange={(e) => handleChange('description', e.target.value)} rows={3} required
               className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500 resize-none"
               placeholder="Full description of the hackathon..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Subtitle / Tagline</label>
+            <input
+              value={form.subtitle} onChange={(e) => handleChange('subtitle', e.target.value)}
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
+              placeholder="36-Hour Non-Stop Offline National Innovation Challenge"
             />
           </div>
 
@@ -344,9 +394,11 @@ export default function Hackathons() {
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-white/5 justify-end">
-            <Button variant="ghost" onClick={() => { setShowAdd(false); setForm(emptyForm); setDomainInput('') }}>Cancel</Button>
-            <Button variant="primary" type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Creating...' : 'Create Hackathon'}
+            <Button variant="ghost" onClick={closeModal}>Cancel</Button>
+            <Button variant="primary" type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              {editingId
+                ? (updateMutation.isPending ? 'Saving...' : 'Save Changes')
+                : (createMutation.isPending ? 'Creating...' : 'Create Hackathon')}
             </Button>
           </div>
         </form>

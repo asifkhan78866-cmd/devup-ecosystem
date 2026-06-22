@@ -111,7 +111,7 @@ export default function PageHeader({
           className="whitespace-pre-line mb-6"
           style={{
             fontFamily: "var(--font-syne), sans-serif",
-            fontSize: "clamp(40px, 6vw, 72px)",
+            fontSize: "clamp(28px, 6vw, 72px)",
             fontWeight: 800,
             letterSpacing: "-0.035em",
             lineHeight: 0.97,
