@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function Footer() {
   return (
     <footer className="border-t border-[rgba(255,255,255,0.05)] bg-[#0a0a0a] py-12 relative z-10">
@@ -15,10 +17,10 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4 text-white">Platform</h4>
             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-              <li><a href="/ecosystem" className="hover:text-white transition-colors">Startups</a></li>
-              <li><a href="/cofounders" className="hover:text-white transition-colors">Find a Co-Founder</a></li>
-              <li><a href="/hackathons" className="hover:text-white transition-colors">Hackathons</a></li>
-              <li><a href="/careers" className="hover:text-white transition-colors">Careers</a></li>
+              <li><Link href="/ecosystem" className="hover:text-white transition-colors">Startups</Link></li>
+              <li><Link href="/cofounders" className="hover:text-white transition-colors">Find a Co-Founder</Link></li>
+              <li><Link href="/hackathons" className="hover:text-white transition-colors">Hackathons</Link></li>
+              <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
             </ul>
           </div>
 

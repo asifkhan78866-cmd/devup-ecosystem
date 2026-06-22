@@ -11,8 +11,13 @@ export class HackathonsController {
     res.status(200).json({ success: true, data, meta });
   }
 
-  async getHackathon(req: Request, res: Response) {
-    const data = await hackathonsService.getHackathon(req.params.id as string);
+  async getFeatured(req: Request, res: Response) {
+    const data = await hackathonsService.getFeaturedHackathon();
+    res.status(200).json({ success: true, data });
+  }
+
+  async getById(req: Request, res: Response) {
+    const data = await hackathonsService.getHackathon(req.params.id);
     res.status(200).json({ success: true, data });
   }
 
@@ -32,16 +37,29 @@ export class HackathonsController {
   }
 
   async uploadLogo(req: Request, res: Response) {
-    if (!req.file) throw new AppError(400, "No file uploaded");
-    const maxBytes = env.MAX_FILE_SIZE_MB * 1024 * 1024;
-    const allowedTypes = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
-    if (req.file.size > maxBytes) {
-      throw new AppError(400, "File exceeds maximum size", "FILE_TOO_LARGE");
-    }
-    if (!allowedTypes.includes(req.file.mimetype)) {
-      throw new AppError(400, "Invalid file type", "INVALID_FILE_TYPE");
-    }
-    const data = await hackathonsService.uploadImage(req.params.id as string, "logo", req.file.buffer, req.file.mimetype);
+    if (!req.file) throw new AppError(400, "No file provided");
+    const data = await hackathonsService.uploadImage(req.params.id, "logo", req.file.buffer, req.file.mimetype);
+    res.status(200).json({ success: true, data });
+  }
+
+  async createPartner(req: Request, res: Response) {
+    const data = await hackathonsService.createPartner(req.params.id, req.body);
+    res.status(201).json({ success: true, data });
+  }
+
+  async updatePartner(req: Request, res: Response) {
+    const data = await hackathonsService.updatePartner(req.params.id, req.params.pid, req.body);
+    res.status(200).json({ success: true, data });
+  }
+
+  async deletePartner(req: Request, res: Response) {
+    await hackathonsService.deletePartner(req.params.id, req.params.pid);
+    res.status(200).json({ success: true, message: "Partner deleted" });
+  }
+
+  async uploadPartnerLogo(req: Request, res: Response) {
+    if (!req.file) throw new AppError(400, "No file provided");
+    const data = await hackathonsService.uploadPartnerLogo(req.params.id, req.params.pid, req.file.buffer, req.file.mimetype);
     res.status(200).json({ success: true, data });
   }
 
@@ -62,5 +80,20 @@ export class HackathonsController {
   async register(req: Request, res: Response) {
     const data = await hackathonsService.register(req.params.id as string, req.user!.id, req.body);
     res.status(201).json({ success: true, data });
+  }
+
+  async createLead(req: Request, res: Response) {
+    const data = await hackathonsService.createLead(req.params.id as string, req.body);
+    res.status(201).json({ success: true, data: { registrationId: data.id } });
+  }
+
+  async markLeadRedirected(req: Request, res: Response) {
+    const data = await hackathonsService.markLeadRedirected(req.params.leadId);
+    res.status(200).json({ success: true, data });
+  }
+
+  async getLeads(req: Request, res: Response) {
+    const { data, meta } = await hackathonsService.getLeads(req.params.id as string);
+    res.status(200).json({ success: true, data, meta });
   }
 }

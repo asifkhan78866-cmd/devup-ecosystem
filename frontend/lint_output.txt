@@ -1,0 +1,239 @@
+
+> frontend@0.1.0 lint
+> eslint
+
+
+/Users/syedasif/devup-ecosystem/frontend/app/(admin)/admin/page.tsx
+  11:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/app/apply/page.tsx
+  6:16  warning  'X' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/app/build-with-devup/page.tsx
+   392:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  1314:9   warning  Do not use an `<a>` element to navigate to `/ecosystem/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages                                                                                                                          @next/next/no-html-link-for-pages
+
+/Users/syedasif/devup-ecosystem/frontend/app/careers/page.tsx
+  33:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/app/cofounders/page.tsx
+   29:44  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   43:47  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  163:31  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  272:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/app/dashboard/connections/page.tsx
+    4:10  warning  'UserPlus' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+    8:58  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+    9:66  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   75:52  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+   87:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  128:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  144:25  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  144:39  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+/Users/syedasif/devup-ecosystem/frontend/app/dashboard/documents/page.tsx
+   8:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/app/dashboard/page.tsx
+    8:26  warning  'signOut' is assigned a value but never used                                                                                                                     @typescript-eslint/no-unused-vars
+   76:29  warning  'user' is defined but never used                                                                                                                                 @typescript-eslint/no-unused-vars
+   76:55  warning  Unexpected any. Specify a different type                                                                                                                         @typescript-eslint/no-explicit-any
+  128:29  warning  'user' is defined but never used                                                                                                                                 @typescript-eslint/no-unused-vars
+  128:55  warning  Unexpected any. Specify a different type                                                                                                                         @typescript-eslint/no-explicit-any
+  180:30  warning  'user' is defined but never used                                                                                                                                 @typescript-eslint/no-unused-vars
+  180:46  warning  Unexpected any. Specify a different type                                                                                                                         @typescript-eslint/no-explicit-any
+  200:7   warning  Do not use an `<a>` element to navigate to `/ecosystem/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+
+/Users/syedasif/devup-ecosystem/frontend/app/dashboard/team/page.tsx
+    5:19   warning  'MoreVertical' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    8:9    warning  'router' is assigned a value but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+    9:42   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   46:39   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   77:19   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  135:104  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  164:25   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/app/ecosystem/[id]/page.tsx
+   37:42  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   75:39  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  110:52  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  133:19  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  202:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  407:77  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  413:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  460:74  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  540:41  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  547:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/app/ecosystem/page.tsx
+   49:44  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   50:10  warning  'loading' is assigned a value but never used                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   58:47  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  207:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/app/global-error.tsx
+  4:3  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/app/hackathons/page.tsx
+    6:20  warning  'Users' is defined but never used                                @typescript-eslint/no-unused-vars
+   28:48  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   29:10  warning  'loading' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+   38:47  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  106:32  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/syedasif/devup-ecosystem/frontend/app/invite/[token]/page.tsx
+  32:6   warning  React Hook useEffect has a missing dependency: 'handleAccept'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  51:19  warning  Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+  70:95  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                  react/no-unescaped-entities
+
+/Users/syedasif/devup-ecosystem/frontend/app/layout.tsx
+  6:8  warning  'Script' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/app/login/page.tsx
+   19:9   warning  'redirect' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+  258:14  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/syedasif/devup-ecosystem/frontend/app/page.tsx
+  8:8  warning  'HeroDashboardPreview' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/app/signup/page.tsx
+    7:18  warning  'AnimatePresence' is defined but never used  @typescript-eslint/no-unused-vars
+   28:9   warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  274:77  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/components/3d/ApplicationRocket.tsx
+    7:10  warning  'useIsMobile' is defined but never used                 @typescript-eslint/no-unused-vars
+  141:22  warning  'originalPositions' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/3d/Canvas3DWrapper.tsx
+  72:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/components/3d/CareerNetworkGraph.tsx
+    6:16  warning  'Line' is defined but never used               @typescript-eslint/no-unused-vars
+  210:60  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  210:70  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  211:26  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  242:9   warning  'isMobile' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/3d/CofounderField.tsx
+    3:27  warning  'useState' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   46:53  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   90:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  101:36  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  138:51  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  174:17  warning  'intensity' is assigned a value but never used                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  224:9   warning  'isMobile' is assigned a value but never used                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/3d/EcosystemConstellation.tsx
+   4:20  warning  'useThree' is defined but never used      @typescript-eslint/no-unused-vars
+  54:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  78:22  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/3d/HackathonArena.tsx
+   62:43  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  190:9   warning  'isMobile' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/3d/StartupDNA.tsx
+  8:10  warning  'useIsMobile' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/BentoServices.tsx
+  358:27  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  364:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/components/EcosystemOrbit3D.tsx
+    5:31  warning  'CatmullRomLine' is defined but never used  @typescript-eslint/no-unused-vars
+  120:24  warning  'e' is defined but never used               @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/FinalCTA.tsx
+   34:34  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  211:22  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  211:41  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/syedasif/devup-ecosystem/frontend/components/Footer.tsx
+  18:19  warning  Do not use an `<a>` element to navigate to `/ecosystem/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+
+/Users/syedasif/devup-ecosystem/frontend/components/HeroDashboardPreview.tsx
+  117:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/components/HeroSignalNetwork.tsx
+  3:10  warning  'Canvas' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/HeroTypography.tsx
+   71:20  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  188:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/components/HowWeHelp.tsx
+  4:38  warning  'FileText' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/MobileBottomNav.tsx
+  31:9  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/Navbar.tsx
+  3:31  warning  'useRef' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/SignatureModal.tsx
+  35:19  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  93:23  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  93:37  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/Users/syedasif/devup-ecosystem/frontend/components/SmoothScrollProvider.tsx
+  12:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/components/StartupShowcase.tsx
+   20:44  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   27:47  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  215:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/components/Testimonials.tsx
+  110:17  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  127:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  196:15  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  213:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/components/build-with-devup/ServiceOrbit3D.tsx
+  117:9  warning  'isMobile' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/components/ecosystem/StartupGallery.tsx
+  37:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  69:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/components/mobile/MobileStartupCard.tsx
+   3:67  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  18:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/components/startup/AiAnalysisSection.tsx
+  4:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/components/startup/StartupGallery.tsx
+  34:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  51:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/syedasif/devup-ecosystem/frontend/hooks/useCofounders.ts
+  8:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/hooks/useHackathons.ts
+  7:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/hooks/useJobs.ts
+  8:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/hooks/useStartup.ts
+   7:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/hooks/useStartups.ts
+   7:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/syedasif/devup-ecosystem/frontend/lib/auth/AuthProvider.tsx
+  8:15  warning  'User' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/syedasif/devup-ecosystem/frontend/middleware.ts
+  29:48  warning  'options' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 130 problems (0 errors, 130 warnings)
+

@@ -8,6 +8,7 @@ import type { Service } from "@/data/services";
 import PageHeader from "@/components/PageHeader";
 import FloatingSymbols from "@/components/FloatingSymbols";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import Link from "next/link";
 
 const ServiceOrbit3D = dynamic(
   () => import("@/components/build-with-devup/ServiceOrbit3D"),
@@ -1295,7 +1296,7 @@ function ServiceCTA() {
         credit, and mentor listed on this page.
       </p>
       <div style={{ display: "flex", justifyContent: "center", gap: 16 }}>
-        <a
+        <Link
           href="/apply"
           style={{
             padding: "14px 32px",
@@ -1310,8 +1311,8 @@ function ServiceCTA() {
           }}
         >
           Apply Now
-        </a>
-        <a
+        </Link>
+        <Link
           href="/ecosystem"
           style={{
             padding: "14px 32px",
@@ -1327,7 +1328,7 @@ function ServiceCTA() {
           }}
         >
           Explore Startups
-        </a>
+        </Link>
       </div>
     </section>
   );

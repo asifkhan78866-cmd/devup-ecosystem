@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { CheckCircle, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 export default function InviteAcceptPage() {
   const params = useParams();
@@ -13,25 +14,9 @@ export default function InviteAcceptPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const { session } = useAuth();
 
-  useEffect(() => {
-    if (!token) return;
-
-    const tokenFromStorage = localStorage.getItem('token');
-    
-    if (!tokenFromStorage) {
-      // Not logged in.
-      // Store intended invite token so after login/signup they are redirected back here or it's handled automatically
-      localStorage.setItem('pending_invite_token', token);
-      setError("You must be logged in to accept this invite. If you don't have an account, please sign up.");
-      setLoading(false);
-      return;
-    }
-
-    handleAccept(tokenFromStorage);
-  }, [token]);
-
-  const handleAccept = async (authToken: string) => {
+  const handleAccept = useCallback(async (authToken: string) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups/invites/${token}/accept`, {
         method: 'POST',
@@ -53,7 +38,24 @@ export default function InviteAcceptPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, router]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const tokenFromStorage = session?.access_token;
+    
+    if (!tokenFromStorage) {
+      // Not logged in.
+      // Store intended invite token so after login/signup they are redirected back here or it's handled automatically
+      localStorage.setItem('pending_invite_token', token);
+      setError("You must be logged in to accept this invite. If you don't have an account, please sign up.");
+      setLoading(false);
+      return;
+    }
+
+    handleAccept(tokenFromStorage);
+  }, [token, session, handleAccept]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
@@ -74,7 +76,7 @@ export default function InviteAcceptPage() {
             <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
             <h1 className="text-2xl text-white font-bold mb-2" style={{ fontFamily: "var(--font-syne)" }}>Invalid Invitation</h1>
             <p className="text-[#a1a1a1] mb-6" style={{ fontFamily: "var(--font-inter)" }}>{error}</p>
-            {!localStorage.getItem('token') ? (
+            {!session?.access_token ? (
               <div className="flex gap-4 w-full">
                 <Link href="/login" className="flex-1 py-3 border border-white/10 text-white rounded-lg hover:bg-white/5 transition-colors font-medium">Log In</Link>
                 <Link href="/signup" className="flex-1 py-3 bg-[#c8f135] text-black rounded-lg hover:bg-[#b0d829] transition-colors font-medium">Sign Up</Link>

@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExternalLink, ShieldCheck } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import AiAnalysisSection from "@/components/startup/AiAnalysisSection";
 import StartupGallery from "@/components/startup/StartupGallery";
 
@@ -36,11 +37,12 @@ export default function StartupProfilePage() {
   const [startup, setStartup] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  // Connection state
+  //  const [activeTab, setActiveTab] = useState("Overview");
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
-  const [connectMessage, setConnectMessage] = useState("I'd love to connect and learn more about what you're building.");
+  const [connectMessage, setConnectMessage] = useState("");
   const [connectStatus, setConnectStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [connectError, setConnectError] = useState("");
+  const { session } = useAuth();
 
   useEffect(() => {
     if (!id) return;
@@ -114,7 +116,7 @@ export default function StartupProfilePage() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}` 
+          Authorization: `Bearer ${session?.access_token}` 
         },
         body: JSON.stringify({
           toUserId: primaryFounder.seed,

@@ -44,3 +44,12 @@ export const registerHackathonSchema = z.object({
     teamSize: z.number().int().min(1).default(1),
   })
 });
+
+export const leadRegistrationSchema = z.object({
+  body: z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    phone: z.string().regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian phone number"),
+    teamCount: z.number().int().min(1).max(10),
+    college: z.string().min(2, "College must be at least 2 characters"),
+  })
+});

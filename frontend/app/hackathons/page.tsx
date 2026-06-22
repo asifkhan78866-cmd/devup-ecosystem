@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Users } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -26,16 +27,22 @@ function getDaysLeft(dateStr: string): number {
 export default function HackathonsPage() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [hackathons, setHackathons] = useState<any[]>([]);
+  const [featuredHackathon, setFeaturedHackathon] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  const [timeLeft, setTimeLeft] = useState({ days: 14, hours: 23, minutes: 59, seconds: 59 });
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/hackathons`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.data) {
-          const formatted = data.data.map((h: any, i: number) => ({
+    Promise.all([
+      fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/hackathons`),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/hackathons/featured`)
+    ])
+      .then(async ([listRes, featuredRes]) => {
+        const listData = await listRes.json();
+        const featuredData = await featuredRes.json();
+
+        if (listData.success && listData.data) {
+          const formatted = listData.data.map((h: any, i: number) => ({
             id: h.id,
             name: h.title || h.name,
             org: h.organizer || "DevUp",
@@ -50,24 +57,43 @@ export default function HackathonsPage() {
           }));
           setHackathons(formatted);
         }
+
+        if (featuredData.success && featuredData.data) {
+          setFeaturedHackathon(featuredData.data);
+          // Set initial countdown
+          const end = new Date(featuredData.data.registrationDeadline).getTime();
+          const now = Date.now();
+          const diff = Math.max(0, end - now);
+          setTimeLeft({
+            days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((diff / 1000 / 60) % 60),
+            seconds: Math.floor((diff / 1000) % 60),
+          });
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
+    if (!featuredHackathon) return;
+    const end = new Date(featuredHackathon.registrationDeadline).getTime();
+    
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        let { days, hours, minutes, seconds } = prev;
-        seconds--;
-        if (seconds < 0) { seconds = 59; minutes--; }
-        if (minutes < 0) { minutes = 59; hours--; }
-        if (hours < 0) { hours = 23; days--; }
-        return { days, hours, minutes, seconds };
+      const now = Date.now();
+      const diff = Math.max(0, end - now);
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((diff / 1000 / 60) % 60),
+        seconds: Math.floor((diff / 1000) % 60),
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [featuredHackathon]);
+
+
 
   const filteredHackathons = hackathons.filter(h => {
     if (activeFilter === "All") return true;
@@ -90,112 +116,179 @@ export default function HackathonsPage() {
       />
 
       {/* Featured Hackathon Card (Hero Card) */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mb-4 relative z-10">
-        <div className="bg-[#111111] border border-white/10 rounded-[20px] overflow-hidden flex flex-col md:flex-row">
-          
-          {/* Left section */}
-          <div className="p-10 flex-1 border-b md:border-b-0 md:border-r border-white/5">
-            <div 
-              className="inline-block px-3 py-1 bg-[rgba(200,241,53,0.1)] border border-[rgba(200,241,53,0.2)] text-[#c8f135] rounded-full mb-6"
-              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em" }}
-            >
-              FEATURED
-            </div>
-            
-            <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "36px", fontWeight: 800, color: "#fff", marginBottom: "8px", lineHeight: 1.1 }}>
-              Global Hackathon '26
-            </h2>
-            <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", marginBottom: "24px" }}>
-              Hosted by DevUp Ecosystem
-            </div>
-            
-            <div className="mb-6">
-              <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "48px", fontWeight: 700, color: "#c8f135", lineHeight: 1 }}>
-                ₹2,00,000
-              </div>
-              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", marginTop: "4px", letterSpacing: "0.05em" }}>
-                PRIZE POOL
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mb-6">
-              {["Online", "AI / Web3", "500+ Participants"].map(tag => (
-                <span 
-                  key={tag}
-                  className="px-3 py-1.5 bg-[#1a1a1a] border border-white/5 text-[#a1a1a1] rounded-[6px]"
-                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px" }}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#a1a1a1", marginBottom: "32px" }}>
-              Starts: June 15 &nbsp;·&nbsp; Ends: June 30
-            </div>
-
-            <div className="flex flex-wrap gap-4">
-              <button 
-                className="h-[52px] px-8 bg-[#c8f135] text-black font-bold rounded-[10px] hover:bg-[#b0d829] transition-colors"
-                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
+      {featuredHackathon ? (
+        <div className="max-w-7xl mx-auto px-4 md:px-8 mb-4 relative z-10">
+          <div className="bg-[#111111] border border-white/10 rounded-[20px] overflow-hidden flex flex-col md:flex-row relative">
+            {featuredHackathon.bannerUrl && (
+              <div 
+                className="absolute inset-0 z-0 opacity-20 pointer-events-none"
+                style={{
+                  backgroundImage: `url(${featuredHackathon.bannerUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              />
+            )}
+            {/* Left section */}
+            <div className="p-10 flex-1 border-b md:border-b-0 md:border-r border-white/5 relative z-10 bg-gradient-to-r from-[#111111] via-[#111111]/90 to-transparent">
+              <div 
+                className="inline-block px-3 py-1 bg-[rgba(200,241,53,0.1)] border border-[rgba(200,241,53,0.2)] text-[#c8f135] rounded-full mb-6"
+                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em" }}
               >
-                Register Now
-              </button>
-              <button 
-                className="h-[52px] px-8 bg-transparent text-[#e4e4e4] border border-white/10 font-semibold rounded-[10px] hover:bg-white/5 transition-colors group"
-                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
-              >
-                Learn More <span className="inline-block transition-transform group-hover:translate-x-1 ml-1">→</span>
-              </button>
-            </div>
-          </div>
-          
-          {/* Right section (Timer) */}
-          <div className="p-10 md:w-[400px] bg-[#0a0a0a] flex flex-col items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-[#c8f135] opacity-[0.02]" />
-            <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#6b6b6b", letterSpacing: "0.1em", marginBottom: "24px", zIndex: 10 }}>
-              REGISTRATION CLOSES IN
-            </div>
-
-            <div className="flex items-center gap-4 z-10">
-              {[
-                { label: "DAYS", value: timeLeft.days },
-                { label: "HOURS", value: timeLeft.hours },
-                { label: "MINUTES", value: timeLeft.minutes },
-                { label: "SECONDS", value: timeLeft.seconds }
-              ].map((item, i, arr) => (
-                <div key={item.label} className="flex items-center gap-4">
-                  <div className="flex flex-col items-center">
-                    <div 
-                      className="w-[72px] h-[72px] sm:w-[80px] sm:h-[80px] bg-[#0a0a0a] border border-white/10 rounded-[12px] flex items-center justify-center overflow-hidden relative shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
-                    >
-                      {/* Using framer motion to create a flip effect */}
-                      <AnimatePresence mode="popLayout">
-                        <motion.div
-                          key={item.value}
-                          initial={{ y: "50%", opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          exit={{ y: "-50%", opacity: 0 }}
-                          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                          style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "36px", fontWeight: 700, color: "#fff", position: "absolute" }}
-                        >
-                          {item.value.toString().padStart(2, "0")}
-                        </motion.div>
-                      </AnimatePresence>
-                    </div>
-                    <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", marginTop: "12px", letterSpacing: "0.05em" }}>
-                      {item.label}
-                    </div>
-                  </div>
-                  {i < arr.length - 1 && (
-                    <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "24px", color: "#6b6b6b", paddingBottom: "24px" }}>:</div>
-                  )}
+                FEATURED
+              </div>
+              
+              <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "36px", fontWeight: 800, color: "#fff", marginBottom: "8px", lineHeight: 1.1 }}>
+                {featuredHackathon.title}
+              </h2>
+              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", marginBottom: "24px" }}>
+                Hosted by {featuredHackathon.organizer}
+              </div>
+              
+              <div className="mb-6">
+                <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "48px", fontWeight: 700, color: "#c8f135", lineHeight: 1 }}>
+                  {featuredHackathon.prizePool}
                 </div>
-              ))}
+                <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", marginTop: "4px", letterSpacing: "0.05em" }}>
+                  PRIZE POOL
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-6">
+                <span className="px-3 py-1.5 bg-[#1a1a1a] border border-white/5 text-[#a1a1a1] rounded-[6px]" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px" }}>
+                  {featuredHackathon.mode}
+                </span>
+                {featuredHackathon.domain?.slice(0, 3).map((tag: string) => (
+                  <span 
+                    key={tag}
+                    className="px-3 py-1.5 bg-[#1a1a1a] border border-white/5 text-[#a1a1a1] rounded-[6px]"
+                    style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px" }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#a1a1a1", marginBottom: "32px" }}>
+                Starts: {new Date(featuredHackathon.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} &nbsp;·&nbsp; Ends: {new Date(featuredHackathon.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+              </div>
+
+              <div className="flex flex-wrap gap-4 mb-8">
+                <Link href={`/hackathons/${featuredHackathon.id}`}>
+                  <button 
+                    className="h-[52px] px-8 bg-[#c8f135] text-black font-bold rounded-[10px] hover:bg-[#b0d829] transition-colors"
+                    style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
+                  >
+                    Register Now
+                  </button>
+                </Link>
+                <Link href={`/hackathons/${featuredHackathon.id}`}>
+                  <button 
+                    className="h-[52px] px-8 bg-[#111111] text-[#e4e4e4] border border-white/10 font-semibold rounded-[10px] hover:bg-white/5 transition-colors group"
+                    style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
+                  >
+                    Learn More <span className="inline-block transition-transform group-hover:translate-x-1 ml-1">→</span>
+                  </button>
+                </Link>
+              </div>
+
+              {/* Presented By Strip */}
+              {featuredHackathon.partners && featuredHackathon.partners.length > 0 && (
+                <div className="pt-6 border-t border-white/5">
+                  <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", letterSpacing: "0.1em", marginBottom: "12px" }}>
+                    PRESENTED BY
+                  </div>
+                  <div className="flex flex-wrap gap-4 items-center">
+                    {featuredHackathon.partners.map((p: any) => (
+                      <div key={p.id} className="group relative flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all">
+                        {p.logoUrl ? (
+                          <img 
+                            src={p.logoUrl} 
+                            alt={p.name} 
+                            className="w-8 h-8 object-contain filter grayscale group-hover:grayscale-0 transition-all" 
+                          />
+                        ) : (
+                          <span className="text-xs font-bold text-gray-400 group-hover:text-white" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+                            {p.name.substring(0, 2).toUpperCase()}
+                          </span>
+                        )}
+                        {/* Tooltip */}
+                        <div className="absolute -top-8 bg-black border border-white/10 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                          {p.name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Right section (Timer) */}
+            <div className="p-10 md:w-[400px] bg-[#0a0a0a]/90 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden z-10 border-l border-white/5">
+              <div className="absolute inset-0 bg-[#c8f135] opacity-[0.02]" />
+              
+              {new Date(featuredHackathon.registrationDeadline).getTime() < Date.now() ? (
+                <div className="z-10 text-center">
+                  <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "32px", fontWeight: 700, color: "#fff", marginBottom: "8px" }}>
+                    Registration Closed
+                  </div>
+                  <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#6b6b6b" }}>
+                    Thanks to everyone who applied!
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#6b6b6b", letterSpacing: "0.1em", marginBottom: "24px", zIndex: 10 }}>
+                    REGISTRATION CLOSES IN
+                  </div>
+                  <div className="flex items-center gap-4 z-10">
+                    {[
+                      { label: "DAYS", value: timeLeft.days },
+                      { label: "HOURS", value: timeLeft.hours },
+                      { label: "MINUTES", value: timeLeft.minutes },
+                      { label: "SECONDS", value: timeLeft.seconds }
+                    ].map((item, i, arr) => (
+                      <div key={item.label} className="flex items-center gap-4">
+                        <div className="flex flex-col items-center">
+                          <div 
+                            className="w-[60px] h-[60px] sm:w-[72px] sm:h-[72px] bg-[#0a0a0a] border border-white/10 rounded-[12px] flex items-center justify-center overflow-hidden relative shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
+                          >
+                            <AnimatePresence mode="popLayout">
+                              <motion.div
+                                key={item.value}
+                                initial={{ y: "50%", opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: "-50%", opacity: 0 }}
+                                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                                style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "32px", fontWeight: 700, color: "#fff", position: "absolute" }}
+                              >
+                                {item.value.toString().padStart(2, "0")}
+                              </motion.div>
+                            </AnimatePresence>
+                          </div>
+                          <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", marginTop: "12px", letterSpacing: "0.05em" }}>
+                            {item.label}
+                          </div>
+                        </div>
+                        {i < arr.length - 1 && (
+                          <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "24px", color: "#6b6b6b", paddingBottom: "24px" }}>:</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* Empty State */
+        <div className="max-w-7xl mx-auto px-4 md:px-8 mb-4 relative z-10">
+          <div className="bg-[#111111] border border-white/10 rounded-[20px] p-16 text-center text-gray-500">
+            No featured hackathon at the moment. Explore our list below!
+          </div>
+        </div>
+      )}
 
       <ErrorBoundary>
         <HackathonArena />
@@ -254,8 +347,9 @@ export default function HackathonsPage() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.5), ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <div 
-                    className="h-full bg-[#111111] border border-white/5 rounded-[14px] overflow-hidden flex flex-col group transition-all duration-300 hover:border-white/20 hover:translate-y-[-4px]"
+                  <Link 
+                    href={`/hackathons/${hackathon.id}`}
+                    className="h-full bg-[#111111] border border-white/5 rounded-[14px] overflow-hidden flex flex-col group transition-all duration-300 hover:border-white/20 hover:translate-y-[-4px] no-underline"
                   >
                     {/* Top Color Strip */}
                     <div className="w-full h-[8px]" style={{ background: hackathon.color }} />
@@ -295,22 +389,20 @@ export default function HackathonsPage() {
                           {isClosed ? "Registration closed" : `${hackathon.daysLeft}d left to register`}
                         </div>
                         
-                        <button 
-                          disabled={isClosed}
+                        <span 
                           className="px-4 py-2 font-semibold rounded-[6px] transition-colors"
                           style={{ 
                             background: isClosed ? "rgba(255,255,255,0.05)" : "#c8f135",
                             color: isClosed ? "#6b6b6b" : "#000",
                             fontFamily: "var(--font-inter), sans-serif", 
                             fontSize: "13px",
-                            cursor: isClosed ? "not-allowed" : "pointer"
                           }}
                         >
-                          {isClosed ? "Closed" : "Register"}
-                        </button>
+                          {isClosed ? "Closed" : "View & Register"}
+                        </span>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 </motion.div>
               )
             })}
