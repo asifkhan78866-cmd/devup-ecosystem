@@ -8,6 +8,8 @@ import { Calendar, Users } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PageControls from "@/components/PageControls";
+import { HackathonListSchema } from "@/components/seo/HackathonSchema";
+import HackathonsSEOContent from "@/components/seo/HackathonsSEOContent";
 
 const HackathonArena = dynamic(
   () => import("@/components/3d/HackathonArena"),
@@ -418,6 +420,16 @@ export default function HackathonsPage() {
         </div>
 
       </div>
+
+      {/* Schema.org ItemList structured data */}
+      {hackathons.length > 0 && (
+        <HackathonListSchema
+          hackathons={hackathons.map((h: any) => ({ id: h.id, name: h.name }))}
+        />
+      )}
+
+      {/* SEO Content (keyword-rich, below the fold) */}
+      <HackathonsSEOContent />
     </div>
   );
 }

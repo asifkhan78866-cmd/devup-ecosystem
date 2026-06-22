@@ -62,8 +62,8 @@ export default function HeroTypography() {
         style={{
           fontFamily: "var(--font-syne), sans-serif",
           fontWeight: 800,
-          fontSize: isMobile ? "40px" : "clamp(34px, 8vw, 80px)",
-          lineHeight: isMobile ? 1.1 : 1.05,
+          fontSize: isMobile ? "clamp(32px, 10vw, 40px)" : "clamp(34px, 8vw, 80px)",
+          lineHeight: isMobile ? 1.2 : 1.05,
           letterSpacing: "-0.035em",
           color: "#ffffff",
         }}
@@ -72,7 +72,7 @@ export default function HeroTypography() {
         <span>Ecosystem for</span>
         
         {/* Morphing Word Container */}
-        <div className="relative inline-block h-[1.1em] overflow-hidden text-[#c8f135] flex-shrink-0">
+        <div className="relative inline-block h-[1.2em] overflow-hidden text-[#c8f135] flex-shrink-0">
           <AnimatePresence mode="popLayout">
             <motion.span
               key={wordIndex}

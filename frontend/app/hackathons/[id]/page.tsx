@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import confetti from "canvas-confetti";
+import HackathonSchema, { BreadcrumbSchema } from "@/components/seo/HackathonSchema";
+import HackathonFAQ from "@/components/seo/HackathonFAQ";
 
 // Pretty-print the uppercase Prisma enum mode (ONLINE -> Online)
 const prettyMode = (mode?: string) =>
@@ -739,6 +741,16 @@ export default function HackathonDetailPage() {
           })}
         </div>
       </motion.section>
+
+      {/* ─── FAQ (SEO) ─── */}
+      <HackathonFAQ hackathon={hackathon} />
+
+      {/* ─── STRUCTURED DATA ─── */}
+      <HackathonSchema hackathon={hackathon} />
+      <BreadcrumbSchema
+        hackathonName={hackathon.title}
+        hackathonId={id}
+      />
 
       {/* ─── BOTTOM SPACER (extra room on mobile for raised CTA + bottom-nav) ─── */}
       <div className="h-44 md:h-32" />

@@ -21,6 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.devupecosystem.com"),
   title: "DevUp Ecosystem",
   description: "The premier ecosystem for the next generation of visionary founders.",
 };
@@ -31,9 +32,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} h-full antialiased dark`}>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} antialiased dark`}>
       <head>
         <link rel="preload" as="image" href="/video/hero-space-poster.jpg" />
+        {/* Geo targeting for India/Hyderabad — helps local search ranking */}
+        <meta name="geo.region" content="IN-TG" />
+        <meta name="geo.placename" content="Hyderabad" />
+        <meta name="geo.position" content="17.3850;78.4867" />
+        <meta name="ICBM" content="17.3850, 78.4867" />
+        <meta httpEquiv="content-language" content="en-IN" />
         {/* Synchronous script — runs BEFORE paint, before React hydrates.
             Tags <html> with data-skip-intro for returning visitors so CSS
             can instantly hide the overlay with zero flash. */}
@@ -53,7 +60,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col selection:bg-white/20">
+      <body className="min-h-screen flex flex-col selection:bg-white/20">
         {/* Static overlay — in the initial server HTML, covers everything
             from byte one. CSS rule hides it instantly for returning visitors. */}
         <div

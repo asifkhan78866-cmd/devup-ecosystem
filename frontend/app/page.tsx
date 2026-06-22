@@ -18,7 +18,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import HeroStatChips from "@/components/HeroStatChips";
 import { FEATURE_FLAGS } from "@/lib/config";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import MobileStatStrip from "@/components/mobile/MobileStatStrip";
 
 const HeroVideoBackdrop = dynamic(
   () => import("@/components/HeroVideoBackdrop"),
@@ -97,8 +96,6 @@ export default function Home() {
       {/* 3. Social Proof Strip */}
       <LogoStrip />
       
-      {isMobile && <div className="px-5"><MobileStatStrip /></div>}
-
       {/* 4. Stats Section */}
       <div className="relative z-10">
         <LiveStats />
