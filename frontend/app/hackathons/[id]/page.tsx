@@ -123,7 +123,7 @@ function RegisterModal({
     const e: Record<string, string> = {};
     if (form.name.trim().length < 2) e.name = "Name must be at least 2 characters";
     if (!/^[6-9]\d{9}$/.test(form.phone)) e.phone = "Enter a valid 10-digit Indian phone number";
-    if (form.teamCount < 1 || form.teamCount > 10) e.teamCount = "Team count must be 1–10";
+    if (form.teamCount < 1 || form.teamCount > 4) e.teamCount = "Team count must be 1–4";
     if (form.college.trim().length < 2) e.college = "College must be at least 2 characters";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -263,15 +263,29 @@ function RegisterModal({
                       {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
                     </div>
                     <div>
-                      <label className="block text-xs text-[#888] mb-1.5">Team Size *</label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={10}
-                        value={form.teamCount}
-                        onChange={(e) => setForm((p) => ({ ...p, teamCount: Math.min(10, Math.max(1, parseInt(e.target.value) || 1)) }))}
-                        className={inputClass}
-                      />
+                      <label className="block text-xs text-[#888] mb-1.5">Team Size (max 4) *</label>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setForm((p) => ({ ...p, teamCount: Math.max(1, p.teamCount - 1) }))}
+                          className="w-12 h-12 rounded-xl bg-[#111] border border-white/10 text-white text-xl font-bold flex items-center justify-center hover:bg-white/5 active:scale-95 transition-all"
+                        >
+                          −
+                        </button>
+                        <div
+                          className="flex-1 h-12 bg-[#111] border border-white/10 rounded-xl flex items-center justify-center text-white text-lg font-bold"
+                          style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                        >
+                          {form.teamCount}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setForm((p) => ({ ...p, teamCount: Math.min(4, p.teamCount + 1) }))}
+                          className="w-12 h-12 rounded-xl bg-[#111] border border-white/10 text-white text-xl font-bold flex items-center justify-center hover:bg-white/5 active:scale-95 transition-all"
+                        >
+                          +
+                        </button>
+                      </div>
                       {errors.teamCount && <p className="text-red-400 text-xs mt-1">{errors.teamCount}</p>}
                     </div>
                     <div>

@@ -80,7 +80,7 @@ export default function HeroTypography() {
               animate={{ y: "0%", opacity: 1 }}
               exit={{ y: "-100%", opacity: 0 }}
               transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute left-0 right-0"
+              className="absolute left-0 right-0 text-center"
             >
               {WORDS[wordIndex]}
             </motion.span>
