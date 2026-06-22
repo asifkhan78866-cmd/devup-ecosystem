@@ -441,7 +441,7 @@ export default function HackathonDetailPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Back nav */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-[100px] md:pt-[120px]">
         <Link
           href="/hackathons"
           className="inline-flex items-center gap-2 text-[#6b6b6b] hover:text-white text-sm transition-colors"

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Globe2, Briefcase, Trophy, Grid2x2,
-  Users, Sparkles, Rocket, LayoutDashboard,
+  Users, Hammer, Rocket, LayoutDashboard,
   LogIn, LogOut, X
 } from 'lucide-react'
 import Link from 'next/link'
@@ -20,7 +20,7 @@ const PRIMARY_TABS = [
 const MORE_ITEMS = [
   { href: '/cofounders', label: 'Co-Founders', icon: Users, 
     desc: 'Find your match' },
-  { href: '/build-with-devup', label: 'Build With Us', icon: Sparkles,
+  { href: '/build-with-devup', label: 'Build With Us', icon: Hammer,
     desc: '30+ services' },
   { href: '/apply', label: 'Apply', icon: Rocket,
     desc: 'Join Cohort 4' },

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Globe2, Briefcase, Trophy, Users, Sparkles, Rocket,
+  Globe2, Briefcase, Trophy, Users, Hammer, Rocket,
   LayoutDashboard, LogIn, LogOut
 } from "lucide-react";
 
@@ -15,7 +15,7 @@ const navLinks = [
   { href: '/careers', label: 'Careers', icon: Briefcase },
   { href: '/hackathons', label: 'Hackathons', icon: Trophy },
   { href: '/cofounders', label: 'Co-Founders', icon: Users },
-  { href: '/build-with-devup', label: 'Build With Us', icon: Sparkles },
+  { href: '/build-with-devup', label: 'Build With Us', icon: Hammer },
   { href: '/apply', label: 'Apply', icon: Rocket },
 ];
 
