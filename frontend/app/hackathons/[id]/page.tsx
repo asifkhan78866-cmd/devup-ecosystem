@@ -343,16 +343,25 @@ function RegisterModal({
                     One last step — complete your official registration on the form below.
                   </p>
 
-                  <button
-                    onClick={handleContinueToForm}
-                    className="px-6 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors"
-                  >
-                    Continue to Official Form →
-                  </button>
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={handleContinueToForm}
+                      className="px-6 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors"
+                    >
+                      Continue to Official Form →
+                    </button>
+
+                    <a
+                      href="tel:+919100770398"
+                      className="flex items-center justify-center px-6 py-3 rounded-xl bg-[#111] border border-white/10 text-white text-sm font-bold hover:bg-[#222] transition-colors"
+                    >
+                      📞 Queries? Call +91 9100770398
+                    </a>
+                  </div>
 
                   <button
                     onClick={onClose}
-                    className="block mx-auto mt-3 text-xs text-[#6b6b6b] hover:text-white transition-colors"
+                    className="block mx-auto mt-4 text-xs text-[#6b6b6b] hover:text-white transition-colors"
                   >
                     Close
                   </button>
