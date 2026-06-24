@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/startups/${params.id}`, { cache: "no-store" });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/startups/${id}`, { cache: "no-store" });
     const data = await res.json();
     if (data.success && data.data) {
       const startup = data.data;
@@ -21,10 +22,11 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-export default async function StartupLayout({ children, params }: { children: React.ReactNode, params: { id: string } }) {
+export default async function StartupLayout({ children, params }: { children: React.ReactNode, params: Promise<{ id: string }> }) {
+  const { id } = await params;
   let startup = null;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/startups/${params.id}`, { cache: "no-store" });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/startups/${id}`, { cache: "no-store" });
     const data = await res.json();
     if (data.success && data.data) {
       startup = data.data;
