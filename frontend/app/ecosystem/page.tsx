@@ -84,10 +84,10 @@ export default function EcosystemPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <PageHeader
-        label="THE ECOSYSTEM"
-        headline="Every startup\nbuilding with us."
-        accentWord="building"
-        subtitle="Browse verified startups, explore open roles, and connect with the founders behind them."
+        label="OUR VENTURES"
+        headline="Ventures &\nPortfolio."
+        accentWord="Portfolio"
+        subtitle="Explore the startups and companies built within the DevUp Ecosystem."
         variant="rings"
       />
 

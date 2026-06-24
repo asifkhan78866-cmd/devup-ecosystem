@@ -22,8 +22,32 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.devupecosystem.com"),
-  title: "DevUp Ecosystem",
-  description: "The premier ecosystem for the next generation of visionary founders.",
+  title: "DevUp Ecosystem | Innovation Hub for Startups & Builders",
+  description: "Discover the DevUp Ecosystem: hackathons, jobs, co-founder matching, and ventures including Yarnia, PortalX, Zappy, and more. Build, connect, and grow.",
+  keywords: "DevUp Ecosystem, startup platform, hackathons, jobs, innovation hub, co-founder matching, Indian startups, entrepreneurship",
+  alternates: {
+    canonical: "https://www.devupecosystem.com",
+  },
+  openGraph: {
+    title: "DevUp Ecosystem | Innovation Hub for Startups & Builders",
+    description: "Discover the DevUp Ecosystem: hackathons, jobs, co-founder matching, and ventures including Yarnia, PortalX, Zappy, and more. Build, connect, and grow.",
+    url: "https://www.devupecosystem.com",
+    siteName: "DevUp Ecosystem",
+    images: [
+      {
+        url: "/video/hero-space-poster.jpg",
+        width: 1920,
+        height: 1080,
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DevUp Ecosystem | Innovation Hub for Startups & Builders",
+    description: "Discover the DevUp Ecosystem: hackathons, jobs, co-founder matching, and ventures including Yarnia, PortalX, Zappy, and more. Build, connect, and grow.",
+    images: ["/video/hero-space-poster.jpg"],
+  },
 };
 
 export default function RootLayout({
@@ -57,6 +81,51 @@ export default function RootLayout({
                 } catch (e) {}
               })();
             `
+          }}
+        />
+        <script 
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://www.devupecosystem.com/#organization",
+                  "name": "DevUp Ecosystem",
+                  "url": "https://www.devupecosystem.com",
+                  "logo": "https://www.devupecosystem.com/icon.png",
+                  "description": "Innovation hub for startups, hackathons, and builders",
+                  "sameAs": [
+                    "https://twitter.com/devupeco",
+                    "https://linkedin.com/company/devup-ecosystem"
+                  ],
+                  "subOrganization": [
+                    { "@type": "Organization", "name": "Yarnia" },
+                    { "@type": "Organization", "name": "Kroshay" },
+                    { "@type": "Organization", "name": "Elnora" },
+                    { "@type": "Organization", "name": "PortalX" },
+                    { "@type": "Organization", "name": "Zappy" },
+                    { "@type": "Organization", "name": "StartupsIndia" },
+                    { "@type": "Organization", "name": "CineShot AI" },
+                    { "@type": "Organization", "name": "CourtAI" }
+                  ]
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://www.devupecosystem.com/#website",
+                  "url": "https://www.devupecosystem.com",
+                  "name": "DevUp Ecosystem",
+                  "publisher": { "@id": "https://www.devupecosystem.com/#organization" },
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://www.devupecosystem.com/ecosystem?search={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                  }
+                }
+              ]
+            })
           }}
         />
       </head>

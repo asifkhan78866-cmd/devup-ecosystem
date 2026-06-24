@@ -240,6 +240,11 @@ export default function StartupProfilePage() {
               <h1 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "36px", fontWeight: 800, color: "#fff", marginBottom: "8px" }}>
                 {startup.name}
               </h1>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="px-2 py-1 text-[11px] uppercase tracking-wider font-semibold rounded bg-white/5 border border-white/10 text-[#c8f135] font-inter">
+                  Part of DevUp Ecosystem
+                </span>
+              </div>
               <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "16px", color: "#a1a1a1", lineHeight: 1.5 }}>
                 {startup.tagline}
               </p>
