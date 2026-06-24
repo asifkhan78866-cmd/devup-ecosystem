@@ -123,7 +123,7 @@ function RegisterModal({
     const e: Record<string, string> = {};
     if (form.name.trim().length < 2) e.name = "Name must be at least 2 characters";
     if (!/^[6-9]\d{9}$/.test(form.phone)) e.phone = "Enter a valid 10-digit Indian phone number";
-    if (form.teamCount < 1 || form.teamCount > 4) e.teamCount = "Team count must be 1–4";
+    if (form.teamCount < 1 || form.teamCount > 5) e.teamCount = "Team count must be 1–5";
     if (form.college.trim().length < 2) e.college = "College must be at least 2 characters";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -263,7 +263,7 @@ function RegisterModal({
                       {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
                     </div>
                     <div>
-                      <label className="block text-xs text-[#888] mb-1.5">Team Size (max 4) *</label>
+                      <label className="block text-xs text-[#888] mb-1.5">Team Size (max 5) *</label>
                       <div className="flex items-center gap-3">
                         <button
                           type="button"
@@ -280,7 +280,7 @@ function RegisterModal({
                         </div>
                         <button
                           type="button"
-                          onClick={() => setForm((p) => ({ ...p, teamCount: Math.min(4, p.teamCount + 1) }))}
+                          onClick={() => setForm((p) => ({ ...p, teamCount: Math.min(5, p.teamCount + 1) }))}
                           className="w-12 h-12 rounded-xl bg-[#111] border border-white/10 text-white text-xl font-bold flex items-center justify-center hover:bg-white/5 active:scale-95 transition-all"
                         >
                           +
