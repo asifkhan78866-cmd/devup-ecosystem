@@ -313,6 +313,7 @@ model HackathonLead {
   createdAt    DateTime  @default(now())
 
   @@index([hackathonId])
+  @@unique([hackathonId, phone])
 }
 
 model HackathonRegistration {

@@ -482,9 +482,12 @@ function RegistrationsModal({ hackathonId, onClose, hackathonName }: { hackathon
             placeholder="Search by name or college..."
             className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
           />
-          <Button variant="primary" size="sm" onClick={handleExportCSV} disabled={leads.length === 0}>
-            Export CSV
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-gray-400">Total Members: <span className="text-white font-bold">{filteredLeads.reduce((acc: number, l: any) => acc + (l.teamCount || 0), 0)}</span></div>
+            <Button variant="primary" size="sm" onClick={handleExportCSV} disabled={leads.length === 0}>
+              Export CSV
+            </Button>
+          </div>
         </div>
 
         <div className="bg-[#0d0d0d] border border-white/5 rounded-xl overflow-x-auto max-h-[60vh] overflow-y-auto">

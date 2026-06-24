@@ -156,18 +156,25 @@ export class HackathonsService {
       throw new AppError(400, "Registration deadline has passed");
     }
 
-    const lead = await prisma.hackathonLead.create({
-      data: {
-        hackathonId,
-        name: data.name,
-        phone: data.phone,
-        teamCount: data.teamCount,
-        college: data.college,
-        source: "website",
-      },
-    });
+    try {
+      const lead = await prisma.hackathonLead.create({
+        data: {
+          hackathonId,
+          name: data.name,
+          phone: data.phone,
+          teamCount: data.teamCount,
+          college: data.college,
+          source: "website",
+        },
+      });
 
-    return lead;
+      return lead;
+    } catch (error: any) {
+      if (error.code === "P2002") {
+        throw new AppError(400, "This phone number is already registered for this hackathon.");
+      }
+      throw error;
+    }
   }
 
   async markLeadRedirected(leadId: string) {
