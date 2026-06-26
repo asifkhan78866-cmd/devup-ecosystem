@@ -58,6 +58,7 @@ export default function HackathonsPage() {
             date: h.startDate && h.endDate
               ? `${new Date(h.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} - ${new Date(h.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}`
               : "TBD",
+            fee: h.registrationFee || null,
             daysLeft: h.registrationDeadline ? getDaysLeft(h.registrationDeadline) : (h.endDate ? getDaysLeft(h.endDate) : 30),
             color: COLORS[i % COLORS.length],
           }));
@@ -160,7 +161,7 @@ export default function HackathonsPage() {
                   {featuredHackathon.prizePool}
                 </div>
                 <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", marginTop: "4px", letterSpacing: "0.05em" }}>
-                  PRIZE POOL
+                  PRIZE POOL {featuredHackathon.registrationFee && `· REGISTRATION FEE: ${featuredHackathon.registrationFee.toUpperCase()}`}
                 </div>
               </div>
 
@@ -384,7 +385,7 @@ export default function HackathonsPage() {
                       </h3>
                       
                       <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#c8f135", marginBottom: "20px" }}>
-                        {hackathon.prize} Prize Pool
+                        {hackathon.prize} Prize Pool {hackathon.fee && <span className="text-[#6b6b6b] mx-2">|</span>} {hackathon.fee && <span className="text-white">Fee: {hackathon.fee}</span>}
                       </div>
 
                       <div className="flex items-center gap-2 mb-8" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b" }}>

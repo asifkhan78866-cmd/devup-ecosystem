@@ -8,7 +8,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Calendar, MapPin, Clock, Trophy, Users, Gift,
-  Shield, Wifi, ChevronRight, Sparkles, Zap,
+  Shield, Wifi, ChevronRight, Sparkles, Zap, Ticket,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -512,6 +512,9 @@ export default function HackathonDetailPage() {
 
             <div className="flex flex-wrap items-center gap-6 text-sm text-[#888]" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
               <span className="flex items-center gap-1.5"><Trophy className="w-4 h-4 text-[#c8f135]" /> {hackathon.prizePool} Prize Pool</span>
+              {hackathon.registrationFee && (
+                <span className="flex items-center gap-1.5"><Ticket className="w-4 h-4 text-[#c8f135]" /> Registration Fee: {hackathon.registrationFee}</span>
+              )}
               <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-[#c8f135]" /> {startDate} – {endDate}</span>
               {hackathon.location && (
                 <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[#c8f135]" /> {hackathon.location}</span>

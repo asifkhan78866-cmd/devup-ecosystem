@@ -34,6 +34,7 @@ export type Hackathon = {
   startDate?: string;
   endDate?: string;
   registrationDeadline?: string;
+  registrationFee?: string | null;
   prizePool?: string | null;
 };
 

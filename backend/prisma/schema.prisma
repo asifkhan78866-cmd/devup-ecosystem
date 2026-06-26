@@ -269,6 +269,7 @@ model Hackathon {
   endDate              DateTime
   registrationDeadline DateTime
   registrationLink     String?
+  registrationFee      String?
   maxParticipants      Int?
   currentParticipants  Int      @default(0)
   // Optional rich detail-page content. When null, the frontend falls back to its

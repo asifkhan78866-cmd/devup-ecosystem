@@ -23,6 +23,7 @@ const emptyForm = {
   endDate: '',
   registrationDeadline: '',
   registrationLink: '',
+  registrationFee: '',
   maxParticipants: '',
   isEcosystemHosted: false,
 }
@@ -57,6 +58,7 @@ export default function Hackathons() {
       endDate: toDateInput(h.endDate),
       registrationDeadline: toDateInput(h.registrationDeadline),
       registrationLink: h.registrationLink || '',
+      registrationFee: h.registrationFee || '',
       maxParticipants: h.maxParticipants != null ? String(h.maxParticipants) : '',
       isEcosystemHosted: !!h.isEcosystemHosted,
     })
@@ -170,6 +172,7 @@ export default function Hackathons() {
       payload.subtitle = form.subtitle.trim() || null
       payload.location = form.location.trim() || null
       payload.registrationLink = form.registrationLink.trim() || null
+      payload.registrationFee = form.registrationFee.trim() || null
       payload.maxParticipants =
         form.maxParticipants && Number(form.maxParticipants) > 0 ? Number(form.maxParticipants) : null
       updateMutation.mutate({ id: editingId, payload }, { onSuccess: closeModal })
@@ -177,6 +180,7 @@ export default function Hackathons() {
       if (form.subtitle.trim()) payload.subtitle = form.subtitle.trim()
       if (form.location.trim()) payload.location = form.location.trim()
       if (form.registrationLink.trim()) payload.registrationLink = form.registrationLink.trim()
+      if (form.registrationFee.trim()) payload.registrationFee = form.registrationFee.trim()
       if (form.maxParticipants && Number(form.maxParticipants) > 0) {
         payload.maxParticipants = Number(form.maxParticipants)
       }
@@ -365,13 +369,21 @@ export default function Hackathons() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-gray-500 mb-1">Registration Link</label>
               <input
                 value={form.registrationLink} onChange={(e) => handleChange('registrationLink', e.target.value)}
                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
                 placeholder="https://forms.gle/..."
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Registration Fee</label>
+              <input
+                value={form.registrationFee} onChange={(e) => handleChange('registrationFee', e.target.value)}
+                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
+                placeholder="₹350"
               />
             </div>
             <div>
