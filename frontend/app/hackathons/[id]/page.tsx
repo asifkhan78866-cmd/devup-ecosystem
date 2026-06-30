@@ -535,7 +535,7 @@ export default function HackathonDetailPage() {
                         <img 
                           src={p.logoUrl} 
                           alt={p.name} 
-                          className="w-8 h-8 object-contain filter grayscale group-hover:grayscale-0 transition-all" 
+                          className="w-8 h-8 object-contain filter md:grayscale md:group-hover:grayscale-0 transition-all" 
                         />
                       ) : (
                         <span className="text-xs font-bold text-gray-400 group-hover:text-white" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
