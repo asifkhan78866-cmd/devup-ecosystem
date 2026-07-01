@@ -5,7 +5,7 @@ import helmet from "helmet";
 import { env } from "./config/env";
 import { morganMiddleware } from "./middleware/logger";
 import { errorHandler } from "./middleware/errorHandler";
-import { globalLimiter } from "./middleware/rateLimit";
+
 import { setupSwagger } from "./lib/swagger";
 import { prisma } from "./lib/prisma";
 import { redis } from "./config/redis";
@@ -61,7 +61,7 @@ app.use(
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(morganMiddleware);
-app.use(globalLimiter);
+
 
 // Setup Swagger UI
 setupSwagger(app);

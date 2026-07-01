@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { researchStartup } from './webResearch.service';
-import { aiLimiter } from '../../middleware/rateLimit';
+
 import { validate } from '../../middleware/validate';
 import { requireAuth, requireRole } from '../../middleware/auth';
 import { researchStartupSchema } from './ai.schema';
@@ -11,7 +11,7 @@ router.post(
   '/research-startup',
   requireAuth,
   requireRole(['ADMIN', 'FOUNDER']),
-  aiLimiter,
+
   validate(researchStartupSchema),
   async (req, res, next) => {
     try {
