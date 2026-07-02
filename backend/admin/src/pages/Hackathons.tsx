@@ -28,8 +28,12 @@ const emptyForm = {
   isEcosystemHosted: false,
 }
 
-// ISO timestamp -> yyyy-mm-dd for <input type="date">
-const toDateInput = (iso?: string) => (iso ? new Date(iso).toISOString().slice(0, 10) : '')
+// ISO timestamp -> yyyy-MM-ddThh:mm for <input type="datetime-local">
+const toDatetimeLocalInput = (iso?: string) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+}
 
 export default function Hackathons() {
   const [showAdd, setShowAdd] = useState(false)
@@ -54,9 +58,9 @@ export default function Hackathons() {
       mode: h.mode || 'ONLINE',
       location: h.location || '',
       domain: Array.isArray(h.domain) ? h.domain : [],
-      startDate: toDateInput(h.startDate),
-      endDate: toDateInput(h.endDate),
-      registrationDeadline: toDateInput(h.registrationDeadline),
+      startDate: toDatetimeLocalInput(h.startDate),
+      endDate: toDatetimeLocalInput(h.endDate),
+      registrationDeadline: toDatetimeLocalInput(h.registrationDeadline),
       registrationLink: h.registrationLink || '',
       registrationFee: h.registrationFee || '',
       maxParticipants: h.maxParticipants != null ? String(h.maxParticipants) : '',
@@ -327,21 +331,21 @@ export default function Hackathons() {
             <div>
               <label className="block text-xs text-gray-500 mb-1">Start Date *</label>
               <input
-                type="date" value={form.startDate} onChange={(e) => handleChange('startDate', e.target.value)} required
+                type="datetime-local" value={form.startDate} onChange={(e) => handleChange('startDate', e.target.value)} required
                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
               />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">End Date *</label>
               <input
-                type="date" value={form.endDate} onChange={(e) => handleChange('endDate', e.target.value)} required
+                type="datetime-local" value={form.endDate} onChange={(e) => handleChange('endDate', e.target.value)} required
                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
               />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Reg. Deadline *</label>
               <input
-                type="date" value={form.registrationDeadline} onChange={(e) => handleChange('registrationDeadline', e.target.value)} required
+                type="datetime-local" value={form.registrationDeadline} onChange={(e) => handleChange('registrationDeadline', e.target.value)} required
                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
               />
             </div>
