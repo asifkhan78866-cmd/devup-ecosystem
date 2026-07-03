@@ -8,7 +8,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Calendar, MapPin, Clock, Trophy, Users, Gift,
-  Shield, Wifi, ChevronRight, Sparkles, Zap, Ticket,
+  Shield, Wifi, ChevronRight, Sparkles, Zap, Ticket, Download,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -522,6 +522,19 @@ export default function HackathonDetailPage() {
               <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-[#c8f135]" /> 36 Hours Non-Stop</span>
             </div>
 
+            {id === 'f40eb44c-138c-4b86-86bd-2da45ae60b3a' && (
+              <div className="mt-8 flex flex-wrap gap-4">
+                <a
+                  href="/vynedam-problem-statements.pdf"
+                  download="VYNEDAM_Talent_Hunt_2K26_Problem_Statements.pdf"
+                  className="inline-flex items-center gap-2 h-[48px] px-6 bg-[#c8f135]/10 border border-[#c8f135]/30 text-[#c8f135] font-bold rounded-xl hover:bg-[#c8f135]/20 transition-all"
+                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
+                >
+                  <Download className="w-4 h-4" /> Official Problem Statement Book
+                </a>
+              </div>
+            )}
+
             {/* Presented By Strip */}
             {hackathon.partners && hackathon.partners.length > 0 && (
               <div className="mt-8 pt-6 border-t border-white/5">
@@ -584,14 +597,26 @@ export default function HackathonDetailPage() {
               ))}
             </div>
           </div>
-          <button
-            onClick={openRegister}
-            disabled={isClosed}
-            className="h-[52px] px-10 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-[#c8f135]"
-            style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
-          >
-            {isClosed ? "Closed" : "Register Now"}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4">
+            {id === 'f40eb44c-138c-4b86-86bd-2da45ae60b3a' && (
+              <a
+                href="/vynedam-problem-statements.pdf"
+                download="VYNEDAM_Talent_Hunt_2K26_Problem_Statements.pdf"
+                className="h-[52px] px-8 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
+              >
+                <Download className="w-5 h-5" /> Problem Statements
+              </a>
+            )}
+            <button
+              onClick={openRegister}
+              disabled={isClosed}
+              className="h-[52px] px-10 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-[#c8f135]"
+              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
+            >
+              {isClosed ? "Closed" : "Register Now"}
+            </button>
+          </div>
         </div>
       </motion.section>
 
