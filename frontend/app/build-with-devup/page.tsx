@@ -393,7 +393,7 @@ function CardAnimation({ type }: { type: string }) {
             <img
               key={seed}
               src={`https://api.dicebear.com/7.x/notionists/svg?seed=${seed}&backgroundColor=0a0a0a`}
-              alt=""
+              alt={`${seed} — DevUp mentor avatar`}
               style={{
                 width: 36,
                 height: 36,

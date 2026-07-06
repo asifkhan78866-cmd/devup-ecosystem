@@ -1,29 +1,28 @@
 import type { Metadata } from "next";
 import { buildTitle, buildOgMetadata, buildTwitterMetadata, canonicalUrl } from "@/lib/seo";
 
-const title = buildTitle("Co-Founder Marketplace");
+const title = buildTitle("Build With DevUp");
 const description =
-  "Find the perfect technical or business co-founder for your startup within the DevUp Ecosystem. Connect, build, and grow together.";
+  "Partner with DevUp Ecosystem for tech, AI, design, marketing, legal, and strategy services. We help student startups build, launch, and scale with expert support.";
 
 export const metadata: Metadata = {
   title,
   description,
+  alternates: {
+    canonical: canonicalUrl("/build-with-devup"),
+  },
   openGraph: buildOgMetadata({
     title,
     description,
-    path: "/cofounders",
+    path: "/build-with-devup",
   }),
   twitter: buildTwitterMetadata({ title, description }),
-  alternates: {
-    canonical: canonicalUrl("/cofounders"),
-  },
 };
 
-export default function CofoundersLayout({
+export default function BuildWithDevUpLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return <>{children}</>;
 }
-

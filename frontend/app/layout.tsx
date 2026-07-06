@@ -3,7 +3,7 @@ import { Inter, Syne, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import LayoutClient from "@/components/LayoutClient";
 import BackendWakeUp from "@/components/BackendWakeUp";
-import Script from "next/script";
+import { seoConfig, buildTitle, buildOgMetadata, buildTwitterMetadata } from "@/lib/seo";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -20,34 +20,29 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+const homepageTitle = buildTitle();
+const homepageDescription = seoConfig.siteDescription;
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.devupecosystem.com"),
-  title: "DevUp Ecosystem | Innovation Hub for Startups & Builders",
-  description: "Discover the DevUp Ecosystem: hackathons, jobs, co-founder matching, and ventures including Yarnia, PortalX, Zappy, and more. Build, connect, and grow.",
-  keywords: "DevUp Ecosystem, startup platform, hackathons, jobs, innovation hub, co-founder matching, Indian startups, entrepreneurship",
+  metadataBase: new URL(seoConfig.baseUrl),
+  title: {
+    default: homepageTitle,
+    template: `%s | ${seoConfig.siteName}`,
+  },
+  description: homepageDescription,
+  keywords: "DevUp Ecosystem, student startup ecosystem India, student innovation hub Hyderabad, hackathons, co-founder matching, college innovation, Indian startups, entrepreneurship",
   alternates: {
-    canonical: "https://www.devupecosystem.com",
+    canonical: seoConfig.baseUrl,
   },
-  openGraph: {
-    title: "DevUp Ecosystem | Innovation Hub for Startups & Builders",
-    description: "Discover the DevUp Ecosystem: hackathons, jobs, co-founder matching, and ventures including Yarnia, PortalX, Zappy, and more. Build, connect, and grow.",
-    url: "https://www.devupecosystem.com",
-    siteName: "DevUp Ecosystem",
-    images: [
-      {
-        url: "/video/hero-space-poster.jpg",
-        width: 1920,
-        height: 1080,
-      },
-    ],
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "DevUp Ecosystem | Innovation Hub for Startups & Builders",
-    description: "Discover the DevUp Ecosystem: hackathons, jobs, co-founder matching, and ventures including Yarnia, PortalX, Zappy, and more. Build, connect, and grow.",
-    images: ["/video/hero-space-poster.jpg"],
-  },
+  openGraph: buildOgMetadata({
+    title: homepageTitle,
+    description: homepageDescription,
+    path: "/",
+  }),
+  twitter: buildTwitterMetadata({
+    title: homepageTitle,
+    description: homepageDescription,
+  }),
 };
 
 export default function RootLayout({

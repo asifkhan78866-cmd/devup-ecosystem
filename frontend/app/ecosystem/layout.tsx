@@ -1,12 +1,22 @@
 import { Metadata } from "next";
+import { buildTitle, buildOgMetadata, buildTwitterMetadata, canonicalUrl } from "@/lib/seo";
+
+const title = buildTitle("Our Ventures");
+const description =
+  "Explore the ventures and startups built within the DevUp Ecosystem: Zappy, Yarnia, Kroshay, Elnora, PortalX, StartupsIndia, CineShot AI, CourtAI, and more.";
 
 export const metadata: Metadata = {
-  title: "Our Ventures | DevUp Ecosystem Portfolio",
-  description: "Explore the ventures and companies built within the DevUp Ecosystem: Yarnia, PortalX, Zappy, Elnora, Kroshay, and more.",
-  openGraph: {
-    title: "Our Ventures | DevUp Ecosystem Portfolio",
-    description: "Explore the ventures and companies built within the DevUp Ecosystem: Yarnia, PortalX, Zappy, Elnora, Kroshay, and more.",
-  }
+  title,
+  description,
+  alternates: {
+    canonical: canonicalUrl("/ecosystem"),
+  },
+  openGraph: buildOgMetadata({
+    title,
+    description,
+    path: "/ecosystem",
+  }),
+  twitter: buildTwitterMetadata({ title, description }),
 };
 
 export default function EcosystemLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +29,7 @@ export default function EcosystemLayout({ children }: { children: React.ReactNod
             "@context": "https://schema.org",
             "@type": "CollectionPage",
             "name": "Our Ventures | DevUp Ecosystem Portfolio",
-            "description": "Explore the ventures and companies built within the DevUp Ecosystem: Yarnia, PortalX, Zappy, Elnora, Kroshay, and more.",
+            "description": description,
             "url": "https://www.devupecosystem.com/ecosystem"
           })
         }}
@@ -28,3 +38,4 @@ export default function EcosystemLayout({ children }: { children: React.ReactNod
     </>
   );
 }
+

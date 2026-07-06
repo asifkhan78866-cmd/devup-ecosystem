@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { canonicalUrl, seoConfig } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title:
-    "Hackathons in Hyderabad 2026 | Coding Competitions & Tech Events | DevUp Ecosystem",
+    "Hackathons in Hyderabad 2026 | DevUp Ecosystem",
   description:
-    "Find the best upcoming hackathons in Hyderabad, India 2026. Student hackathons, 36-hour coding competitions, startup challenges with ₹1,00,000+ prizes, internships, and mentorship. Register now on DevUp Ecosystem.",
+    "Find upcoming hackathons in Hyderabad, India 2026. Student hackathons, coding competitions, ₹1,00,000+ prizes, internships & mentorship. Register on DevUp.",
   keywords: [
     "hackathon in Hyderabad",
     "hackathon near me",
@@ -29,8 +30,8 @@ export const metadata: Metadata = {
     title: "Hackathons in Hyderabad 2026 | DevUp Ecosystem",
     description:
       "Upcoming hackathons, coding competitions, and startup challenges in Hyderabad and across India. ₹1,00,000+ prizes, paid internships, mentorship.",
-    url: "https://www.devupecosystem.com/hackathons",
-    siteName: "DevUp Ecosystem",
+    url: canonicalUrl("/hackathons"),
+    siteName: seoConfig.siteName,
     images: [
       {
         url: "https://www.devupecosystem.com/og/hackathons.png",
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
     images: ["https://www.devupecosystem.com/og/hackathons.png"],
   },
   alternates: {
-    canonical: "https://www.devupecosystem.com/hackathons",
+    canonical: canonicalUrl("/hackathons"),
   },
   robots: {
     index: true,

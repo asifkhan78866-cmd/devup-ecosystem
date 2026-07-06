@@ -1,24 +1,51 @@
 import { Metadata } from "next";
+import { seoConfig, buildOgMetadata, buildTwitterMetadata, canonicalUrl } from "@/lib/seo";
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
+async function getStartup(id: string) {
+  try {
+    const res = await fetch(`${API}/api/startups/${id}`, { cache: "no-store" });
+    const data = await res.json();
+    return data.success ? data.data : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/startups/${id}`, { cache: "no-store" });
-    const data = await res.json();
-    if (data.success && data.data) {
-      const startup = data.data;
-      return {
-        title: `${startup.name} — Venture of DevUp Ecosystem`,
-        description: `${startup.name} is a ${startup.domain || 'Tech'} venture of the DevUp Ecosystem, focusing on ${startup.tagline || 'innovation'}. Explore how we're building innovation together.`,
-      };
-    }
-  } catch (e) {
-    console.error("Failed to generate metadata for startup:", e);
+  const startup = await getStartup(id);
+
+  if (!startup) {
+    return {
+      title: "Venture | DevUp Ecosystem",
+      description: "Explore the ventures and startups built within the DevUp Ecosystem.",
+    };
   }
 
+  const title = `${startup.name} — Venture of DevUp Ecosystem`;
+  const description = `${startup.name} is a ${startup.domain || "Tech"} venture of the DevUp Ecosystem, focusing on ${startup.tagline || "innovation"}. Explore how we're building innovation together.`;
+  const path = `/ecosystem/${id}`;
+
   return {
-    title: "Venture of DevUp Ecosystem",
-    description: "Explore the ventures and companies built within the DevUp Ecosystem.",
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl(path),
+    },
+    openGraph: buildOgMetadata({
+      title,
+      description,
+      path,
+      image: startup.logoUrl || startup.bannerUrl || undefined,
+      imageAlt: `${startup.name} — DevUp Ecosystem Venture`,
+    }),
+    twitter: buildTwitterMetadata({
+      title,
+      description,
+      image: startup.logoUrl || startup.bannerUrl || undefined,
+    }),
   };
 }
 
@@ -26,7 +53,7 @@ export default async function StartupLayout({ children, params }: { children: Re
   const { id } = await params;
   let startup = null;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/startups/${id}`, { cache: "no-store" });
+    const res = await fetch(`${API}/api/startups/${id}`, { cache: "no-store" });
     const data = await res.json();
     if (data.success && data.data) {
       startup = data.data;
@@ -46,11 +73,12 @@ export default async function StartupLayout({ children, params }: { children: Re
               "@type": "Organization",
               "name": startup.name,
               "description": startup.tagline || startup.description,
-              "url": `https://www.devupecosystem.com/ecosystem/${startup.id}`,
-              "subOrganizationOf": {
+              "url": `${seoConfig.baseUrl}/ecosystem/${startup.id}`,
+              "parentOrganization": {
                 "@type": "Organization",
-                "name": "DevUp Ecosystem",
-                "url": "https://www.devupecosystem.com"
+                "@id": `${seoConfig.baseUrl}/#organization`,
+                "name": seoConfig.organization.name,
+                "url": seoConfig.baseUrl
               }
             })
           }}
@@ -60,3 +88,4 @@ export default async function StartupLayout({ children, params }: { children: Re
     </>
   );
 }
+

@@ -50,7 +50,7 @@ export default function StartupGallery({ images }: { images: string[] }) {
           >
             <img
               src={images[lightboxIndex]}
-              alt=""
+              alt={`Startup screenshot ${lightboxIndex + 1} — full size`}
               style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 12 }}
               onClick={(e) => e.stopPropagation()}
             />
