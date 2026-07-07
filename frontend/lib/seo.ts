@@ -36,6 +36,18 @@ export const seoConfig = {
     "CineShot AI",
     "CourtAI",
   ],
+  founders: [
+    {
+      name: "Syed Asif",
+      role: "Co-Founder & CEO",
+      linkedin: "https://www.linkedin.com/in/syed-asif20",
+    },
+    {
+      name: "Faizan Mohammed",
+      role: "Co-Founder & CTO",
+      linkedin: "https://www.linkedin.com/in/faizanmohammed07tech",
+    },
+  ],
 } as const;
 
 /** Helper: Build a page title using the standard pattern. */

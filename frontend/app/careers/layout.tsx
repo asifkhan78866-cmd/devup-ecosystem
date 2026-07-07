@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { buildTitle, buildOgMetadata, buildTwitterMetadata, canonicalUrl } from "@/lib/seo";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 const title = buildTitle("Startup Jobs & Careers");
 const description =
@@ -24,6 +25,11 @@ export default function CareersLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <BreadcrumbJsonLd items={[{ name: "Careers", path: "/careers" }]} />
+      {children}
+    </>
+  );
 }
 

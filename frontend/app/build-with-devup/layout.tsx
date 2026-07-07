@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { buildTitle, buildOgMetadata, buildTwitterMetadata, canonicalUrl } from "@/lib/seo";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 const title = buildTitle("Build With DevUp");
 const description =
@@ -24,5 +25,10 @@ export default function BuildWithDevUpLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <BreadcrumbJsonLd items={[{ name: "Build With DevUp", path: "/build-with-devup" }]} />
+      {children}
+    </>
+  );
 }

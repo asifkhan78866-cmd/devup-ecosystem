@@ -87,35 +87,50 @@ export default function RootLayout({
               "@graph": [
                 {
                   "@type": "Organization",
-                  "@id": "https://www.devupecosystem.com/#organization",
-                  "name": "DevUp Ecosystem",
-                  "url": "https://www.devupecosystem.com",
-                  "logo": "https://www.devupecosystem.com/icon.png",
-                  "description": "Innovation hub for startups, hackathons, and builders",
+                  "@id": `${seoConfig.baseUrl}/#organization`,
+                  "name": seoConfig.organization.name,
+                  "legalName": seoConfig.organization.legalName,
+                  "url": seoConfig.baseUrl,
+                  "logo": {
+                    "@type": "ImageObject",
+                    "url": seoConfig.organization.logo,
+                    "width": 512,
+                    "height": 512,
+                  },
+                  "description": seoConfig.siteDescription,
+                  "foundingDate": "2024",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": seoConfig.organization.addressLocality,
+                    "addressRegion": seoConfig.organization.addressRegion,
+                    "addressCountry": seoConfig.organization.addressCountry,
+                  },
                   "sameAs": [
-                    "https://twitter.com/devupeco",
-                    "https://linkedin.com/company/devup-ecosystem"
+                    seoConfig.social.twitter,
+                    seoConfig.social.linkedin,
+                    seoConfig.social.instagram,
                   ],
-                  "subOrganization": [
-                    { "@type": "Organization", "name": "Yarnia" },
-                    { "@type": "Organization", "name": "Kroshay" },
-                    { "@type": "Organization", "name": "Elnora" },
-                    { "@type": "Organization", "name": "PortalX" },
-                    { "@type": "Organization", "name": "Zappy" },
-                    { "@type": "Organization", "name": "StartupsIndia" },
-                    { "@type": "Organization", "name": "CineShot AI" },
-                    { "@type": "Organization", "name": "CourtAI" }
-                  ]
+                  "founder": seoConfig.founders.map(f => ({
+                    "@type": "Person",
+                    "name": f.name,
+                    "jobTitle": f.role,
+                    "sameAs": [f.linkedin],
+                  })),
+                  "subOrganization": seoConfig.ventures.map(name => ({
+                    "@type": "Organization",
+                    "name": name,
+                    "@id": `${seoConfig.baseUrl}/#venture-${name.toLowerCase().replace(/\s+/g, "-")}`,
+                  })),
                 },
                 {
                   "@type": "WebSite",
-                  "@id": "https://www.devupecosystem.com/#website",
-                  "url": "https://www.devupecosystem.com",
-                  "name": "DevUp Ecosystem",
-                  "publisher": { "@id": "https://www.devupecosystem.com/#organization" },
+                  "@id": `${seoConfig.baseUrl}/#website`,
+                  "url": seoConfig.baseUrl,
+                  "name": seoConfig.siteName,
+                  "publisher": { "@id": `${seoConfig.baseUrl}/#organization` },
                   "potentialAction": {
                     "@type": "SearchAction",
-                    "target": "https://www.devupecosystem.com/ecosystem?search={search_term_string}",
+                    "target": `${seoConfig.baseUrl}/ecosystem?search={search_term_string}`,
                     "query-input": "required name=search_term_string"
                   }
                 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { buildTitle, buildOgMetadata, buildTwitterMetadata, canonicalUrl } from "@/lib/seo";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 const title = buildTitle("Apply to Cohort 4");
 const description =
@@ -24,5 +25,10 @@ export default function ApplyLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <BreadcrumbJsonLd items={[{ name: "Apply", path: "/apply" }]} />
+      {children}
+    </>
+  );
 }

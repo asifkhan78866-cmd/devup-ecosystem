@@ -1,5 +1,7 @@
 "use client";
 
+import { seoConfig } from "@/lib/seo";
+
 /**
  * HackathonSchema — Event structured data (schema.org/Event)
  * Generates the JSON-LD that Google uses to show rich event results.
@@ -27,11 +29,11 @@ export default function HackathonSchema({ hackathon }: { hackathon: any }) {
             name: hackathon.location || "Malla Reddy Deemed to be University",
             address: {
               "@type": "PostalAddress",
-              streetAddress: "Malla Reddy Deemed to be University",
-              addressLocality: "Hyderabad",
-              addressRegion: "Telangana",
+              streetAddress: hackathon.location || "Malla Reddy Deemed to be University",
+              addressLocality: hackathon.city || seoConfig.organization.addressLocality,
+              addressRegion: seoConfig.organization.addressRegion,
               postalCode: "500043",
-              addressCountry: "IN",
+              addressCountry: seoConfig.organization.addressCountry,
             },
             geo: {
               "@type": "GeoCoordinates",
@@ -41,37 +43,38 @@ export default function HackathonSchema({ hackathon }: { hackathon: any }) {
           }
         : {
             "@type": "VirtualLocation",
-            url: `https://www.devupecosystem.com/hackathons/${hackathon.id}`,
+            url: `${seoConfig.baseUrl}/hackathons/${hackathon.id}`,
           },
     image: [
       hackathon.bannerUrl ||
-        "https://www.devupecosystem.com/og/hackathons.png",
+        `${seoConfig.baseUrl}/og/hackathons.png`,
     ],
     offers: {
       "@type": "Offer",
-      name: "Free Registration",
-      price: "0",
+      name: hackathon.registrationFee ? "Registration" : "Free Registration",
+      price: hackathon.registrationFee || "0",
       priceCurrency: "INR",
       availability: "https://schema.org/InStock",
       validFrom: new Date().toISOString(),
       validThrough: hackathon.registrationDeadline,
-      url: `https://www.devupecosystem.com/hackathons/${hackathon.id}`,
+      url: `${seoConfig.baseUrl}/hackathons/${hackathon.id}`,
     },
     organizer: [
       {
         "@type": "Organization",
-        name: "DevUp Ecosystem",
-        url: "https://www.devupecosystem.com",
-        logo: "https://www.devupecosystem.com/icon.png",
+        "@id": `${seoConfig.baseUrl}/#organization`,
+        name: seoConfig.organization.name,
+        url: seoConfig.baseUrl,
+        logo: seoConfig.organization.logo,
         sameAs: [
-          "https://www.instagram.com/devupecosystem",
-          "https://www.linkedin.com/company/devupecosystem",
+          seoConfig.social.instagram,
+          seoConfig.social.linkedin,
         ],
       },
       {
         "@type": "Organization",
         name: hackathon.organizer || "Vynedam",
-        url: "https://www.devupecosystem.com/hackathons",
+        url: `${seoConfig.baseUrl}/hackathons`,
       },
     ],
     performer: {
@@ -89,7 +92,6 @@ export default function HackathonSchema({ hackathon }: { hackathon: any }) {
       "36 hour hackathon",
       "startup hackathon",
       "hackathon 2026",
-      "Malla Reddy University",
     ].join(", "),
     audience: {
       "@type": "Audience",
@@ -97,11 +99,11 @@ export default function HackathonSchema({ hackathon }: { hackathon: any }) {
     },
     typicalAgeRange: "18-30",
     inLanguage: "en-IN",
-    isAccessibleForFree: true,
-    url: `https://www.devupecosystem.com/hackathons/${hackathon.id}`,
+    isAccessibleForFree: !hackathon.registrationFee,
+    url: `${seoConfig.baseUrl}/hackathons/${hackathon.id}`,
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://www.devupecosystem.com/hackathons/${hackathon.id}`,
+      "@id": `${seoConfig.baseUrl}/hackathons/${hackathon.id}`,
     },
   };
 
@@ -128,12 +130,12 @@ export function HackathonListSchema({
     name: "Upcoming Hackathons in India 2026",
     description:
       "List of upcoming hackathons, coding competitions, and tech events in Hyderabad and India",
-    url: "https://www.devupecosystem.com/hackathons",
+    url: `${seoConfig.baseUrl}/hackathons`,
     numberOfItems: hackathons.length,
     itemListElement: hackathons.map((h, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      url: `https://www.devupecosystem.com/hackathons/${h.id}`,
+      url: `${seoConfig.baseUrl}/hackathons/${h.id}`,
       name: h.name,
     })),
   };
@@ -147,8 +149,9 @@ export function HackathonListSchema({
 }
 
 /**
- * BreadcrumbSchema — BreadcrumbList structured data.
- * Shows breadcrumb trail in Google SERPs.
+ * BreadcrumbSchema — BreadcrumbList structured data for hackathon detail pages.
+ * @deprecated Use the generic <BreadcrumbJsonLd> component instead for new routes.
+ * Kept for backward compatibility with existing hackathon pages.
  */
 export function BreadcrumbSchema({
   hackathonName,
@@ -165,19 +168,19 @@ export function BreadcrumbSchema({
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://www.devupecosystem.com",
+        item: seoConfig.baseUrl,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Hackathons",
-        item: "https://www.devupecosystem.com/hackathons",
+        item: `${seoConfig.baseUrl}/hackathons`,
       },
       {
         "@type": "ListItem",
         position: 3,
         name: hackathonName,
-        item: `https://www.devupecosystem.com/hackathons/${hackathonId}`,
+        item: `${seoConfig.baseUrl}/hackathons/${hackathonId}`,
       },
     ],
   };
@@ -189,3 +192,4 @@ export function BreadcrumbSchema({
     />
   );
 }
+

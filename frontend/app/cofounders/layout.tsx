@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { buildTitle, buildOgMetadata, buildTwitterMetadata, canonicalUrl } from "@/lib/seo";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 const title = buildTitle("Co-Founder Marketplace");
 const description =
@@ -24,6 +25,11 @@ export default function CofoundersLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <BreadcrumbJsonLd items={[{ name: "Co-Founders", path: "/cofounders" }]} />
+      {children}
+    </>
+  );
 }
 

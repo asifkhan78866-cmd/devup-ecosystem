@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import { seoConfig, buildOgMetadata, buildTwitterMetadata, canonicalUrl } from "@/lib/seo";
+import JsonLd from "@/components/seo/JsonLd";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -65,24 +67,25 @@ export default async function StartupLayout({ children, params }: { children: Re
   return (
     <>
       {startup && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
+        <>
+          <JsonLd data={{
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": startup.name,
+            "description": startup.tagline || startup.description,
+            "url": `${seoConfig.baseUrl}/ecosystem/${startup.id}`,
+            "parentOrganization": {
               "@type": "Organization",
-              "name": startup.name,
-              "description": startup.tagline || startup.description,
-              "url": `${seoConfig.baseUrl}/ecosystem/${startup.id}`,
-              "parentOrganization": {
-                "@type": "Organization",
-                "@id": `${seoConfig.baseUrl}/#organization`,
-                "name": seoConfig.organization.name,
-                "url": seoConfig.baseUrl
-              }
-            })
-          }}
-        />
+              "@id": `${seoConfig.baseUrl}/#organization`,
+              "name": seoConfig.organization.name,
+              "url": seoConfig.baseUrl
+            }
+          }} />
+          <BreadcrumbJsonLd items={[
+            { name: "Ventures", path: "/ecosystem" },
+            { name: startup.name, path: `/ecosystem/${id}` },
+          ]} />
+        </>
       )}
       {children}
     </>
