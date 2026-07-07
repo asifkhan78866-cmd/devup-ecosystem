@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { seoConfig } from "@/lib/seo";
 
 export function Footer() {
   return (
@@ -27,20 +28,19 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4 text-white">Resources</h4>
             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-              <li><a href="#" className="hover:text-white transition-colors">Playbook</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Legal Templates</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
+              <li><Link href="/build-with-devup" className="hover:text-white transition-colors">Services</Link></li>
+              <li><Link href="/apply" className="hover:text-white transition-colors">Apply to Cohort</Link></li>
+              {/* TODO: Add /blog and /faq routes when available */}
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold mb-4 text-white">Connect</h4>
             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-              <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">LinkedIn</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Discord</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
+              <li><a href={seoConfig.social.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter</a></li>
+              <li><a href={seoConfig.social.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">LinkedIn</a></li>
+              <li><a href={seoConfig.social.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a></li>
+              {/* TODO: Add Discord link when available */}
             </ul>
           </div>
         </div>
@@ -48,11 +48,13 @@ export function Footer() {
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-sm text-[var(--text-muted)]">
           <p>© {new Date().getFullYear()} DevUp Ecosystem. All rights reserved.</p>
           <div className="flex gap-4 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            {/* TODO: Create /privacy and /terms pages */}
+            <span className="text-[var(--text-disabled)]">Privacy Policy</span>
+            <span className="text-[var(--text-disabled)]">Terms of Service</span>
           </div>
         </div>
       </div>
     </footer>
   );
 }
+

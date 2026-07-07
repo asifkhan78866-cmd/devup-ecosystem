@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { seoConfig } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -12,19 +13,18 @@ export default function robots(): MetadataRoute.Robots {
           "/admin",
           "/login",
           "/signup",
-          "/change-password",
           "/invite/",
-          "/messages",
           "/api/",
         ],
       },
       {
         userAgent: "Googlebot",
         allow: "/",
-        disallow: ["/dashboard", "/api/"],
+        disallow: ["/dashboard", "/admin", "/login", "/signup", "/api/"],
       },
     ],
-    sitemap: "https://www.devupecosystem.com/sitemap.xml",
-    host: "https://www.devupecosystem.com",
+    sitemap: `${seoConfig.baseUrl}/sitemap.xml`,
+    host: seoConfig.baseUrl,
   };
 }
+

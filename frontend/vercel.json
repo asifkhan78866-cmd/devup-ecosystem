@@ -32,6 +32,19 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/:path((?!api/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "devupecosystem.com"
+        }
+      ],
+      "destination": "https://www.devupecosystem.com/:path",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
