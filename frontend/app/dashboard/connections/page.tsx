@@ -3,30 +3,59 @@
 import { useState, useEffect } from "react";
 import { UserPlus, UserCheck, MessageSquare, Clock, Check, X } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth/AuthProvider";
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const TEAM_ROLES = ["OWNER", "ADMIN", "MEMBER"];
 
 export default function ConnectionsPage() {
+  const { session, loading: authLoading } = useAuth();
+  const token = session?.access_token;
+
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [acceptedConnections, setAcceptedConnections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
+  // The caller's own startup, if they are an ACTIVE OWNER (from getMe.startupMemberships).
+  const [myStartup, setMyStartup] = useState<{ id: string; name?: string } | null>(null);
+
+  // "Add to team" modal state.
+  const [addTarget, setAddTarget] = useState<any | null>(null);
+  const [inviteRole, setInviteRole] = useState("MEMBER");
+  const [inviteError, setInviteError] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteNotice, setInviteNotice] = useState("");
+
   useEffect(() => {
+    if (authLoading) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     fetchConnections();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, token]);
 
   const fetchConnections = async () => {
     try {
-      const meRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      const meRes = await fetch(`${API}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       const meData = await meRes.json();
-      if (meData.success) setUserId(meData.data.id);
+      if (meData.success) {
+        setUserId(meData.data.id);
+        const membership = meData.data.startupMemberships?.[0];
+        if (membership) {
+          setMyStartup({ id: membership.startup?.id ?? membership.startupId, name: membership.startup?.name });
+        }
+      }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/connections`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      const res = await fetch(`${API}/api/connections`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      
+
       if (data.success) {
         setPendingRequests(data.data.pendingRequests);
         setAcceptedConnections(data.data.acceptedConnections);
@@ -40,11 +69,11 @@ export default function ConnectionsPage() {
 
   const handleRespond = async (requestId: string, status: 'ACCEPTED' | 'REJECTED') => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/connections/${requestId}/respond`, {
+      const res = await fetch(`${API}/api/connections/${requestId}/respond`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}` 
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ status })
       });
@@ -56,6 +85,37 @@ export default function ConnectionsPage() {
     }
   };
 
+  // Reuses the existing team-invite flow (POST /api/startups/:id/members/invite),
+  // pre-filled from the connection. Owner-only on the backend; sends an invite the
+  // connected user accepts to join.
+  const handleAddToTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!myStartup || !addTarget || !token) return;
+    setInviting(true);
+    setInviteError("");
+    try {
+      const res = await fetch(`${API}/api/startups/${myStartup.id}/members/invite`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ email: addTarget.email, role: inviteRole })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAddTarget(null);
+        setInviteNotice(`Invited ${addTarget.email} to ${myStartup.name || 'your team'}.`);
+      } else {
+        setInviteError(data.error || "Failed to add to team");
+      }
+    } catch (err: any) {
+      setInviteError(err?.message || "Something went wrong");
+    } finally {
+      setInviting(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-white">Loading connections...</div>;
 
   return (
@@ -64,6 +124,10 @@ export default function ConnectionsPage() {
         <h1 style={{ fontFamily: "var(--font-syne)", fontWeight: 800 }} className="text-3xl text-white mb-2">My Network</h1>
         <p style={{ fontFamily: "var(--font-inter)" }} className="text-[#a1a1a1]">Manage your founder connections and requests.</p>
       </div>
+
+      {inviteNotice && (
+        <div className="mb-6 p-3 bg-[#c8f135]/10 border border-[#c8f135]/20 text-[#c8f135] rounded-lg text-sm">{inviteNotice}</div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
@@ -96,12 +160,20 @@ export default function ConnectionsPage() {
                         <p className="text-sm text-[#a1a1a1] line-clamp-1">{partner?.profile?.bio || 'No bio available'}</p>
                         
                         <div className="mt-4 flex gap-2">
-                          <button 
+                          <button
                             className="flex-1 flex items-center justify-center gap-2 bg-[#1a1a1a] hover:bg-[#222] text-white py-2 rounded-lg text-sm transition-colors"
                             onClick={() => alert("Messaging system to be implemented!")}
                           >
                             <MessageSquare className="w-4 h-4" /> Message
                           </button>
+                          {myStartup && partner?.email && (
+                            <button
+                              onClick={() => { setInviteRole("MEMBER"); setInviteError(""); setAddTarget(partner); }}
+                              className="flex-1 flex items-center justify-center gap-2 bg-[#c8f135] text-black py-2 rounded-lg text-sm font-semibold hover:bg-[#b0d829] transition-colors"
+                            >
+                              <UserPlus className="w-4 h-4" /> Add to team
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -165,6 +237,49 @@ export default function ConnectionsPage() {
           </div>
         </div>
       </div>
+
+      {addTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl text-white font-bold" style={{ fontFamily: "var(--font-syne)" }}>
+                Add to {myStartup?.name || "your team"}
+              </h2>
+              <button onClick={() => setAddTarget(null)} className="text-[#6b6b6b] hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddToTeam} className="space-y-4">
+              {inviteError && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm">{inviteError}</div>}
+              <p className="text-sm text-[#a1a1a1]">
+                Sends a team invite to <span className="text-white">{addTarget.profile?.name || addTarget.email}</span>. They join once they accept.
+              </p>
+              <div>
+                <label className="block text-sm text-[#a1a1a1] mb-1.5">Email</label>
+                <input readOnly value={addTarget.email || ""} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-[#a1a1a1] outline-none cursor-not-allowed" />
+              </div>
+              <div>
+                <label className="block text-sm text-[#a1a1a1] mb-1.5">Role</label>
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value)}
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-[#c8f135]/50 transition-colors"
+                >
+                  {TEAM_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+              <button
+                type="submit"
+                disabled={inviting}
+                className="w-full bg-[#c8f135] text-black font-semibold rounded-lg py-3 hover:bg-[#b0d829] transition-colors mt-2 disabled:opacity-60"
+              >
+                {inviting ? "Adding..." : "Send team invite"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

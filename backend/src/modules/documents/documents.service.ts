@@ -23,9 +23,9 @@ export async function sendDocumentToStartup(params: {
   });
 
   const founders = await prisma.startupMember.findMany({
-    where: { 
+    where: {
       startupId: params.startupId, status: 'ACTIVE',
-      role: { in: ['Founder', 'Co-Founder'] },
+      role: 'OWNER',
     },
     include: { user: true },
   });
@@ -78,13 +78,13 @@ export async function signDocument(params: {
       startupId: doc.startupId!,
       userId: params.userId,
       status: 'ACTIVE',
-      role: { in: ['Founder', 'Co-Founder'] },
+      role: 'OWNER',
     },
     include: { user: { include: { profile: true } } },
   });
 
   if (!member) {
-    throw new AppError(403, 'Only an authorized founder of this startup can sign this document');
+    throw new AppError(403, 'Only an authorized owner of this startup can sign this document');
   }
 
   const signerName = member.user!.profile?.name ?? member.user!.email;

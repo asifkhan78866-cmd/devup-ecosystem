@@ -334,6 +334,49 @@ const emptyForm = {
   founderNames: [] as string[],
 }
 
+function InviteFounder({ startupId }: { startupId: string }) {
+  const [email, setEmail] = useState('')
+  const [sending, setSending] = useState(false)
+
+  const send = async () => {
+    const trimmed = email.trim()
+    if (!trimmed) { toast.error('Enter an email'); return }
+    setSending(true)
+    try {
+      await api.post(`/api/startups/${startupId}/invite`, { email: trimmed })
+      toast.success(`Invite sent to ${trimmed}`)
+      setEmail('')
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to send invite')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div className="pt-4 border-t border-white/5">
+      <label className="block text-xs text-gray-500 mb-1">Invite Founder (login-linked owner)</label>
+      <p className="text-xs text-gray-600 mb-2">
+        Emails an invite; on accept they get a real account linked as an OWNER of this startup —
+        separate from the display &ldquo;Founder Names&rdquo; above.
+      </p>
+      <div className="flex gap-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); send() } }}
+          placeholder="founder@startup.com"
+          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
+        />
+        <Button variant="primary" type="button" onClick={send} disabled={sending}>
+          {sending ? 'Sending...' : 'Send Invite'}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export default function Startups() {
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
@@ -703,6 +746,8 @@ export default function Startups() {
               )}
             </div>
           </div>
+
+          {editId && <InviteFounder startupId={editId} />}
 
           <div className="flex gap-3 pt-4 border-t border-white/5 justify-end">
             <Button variant="ghost" onClick={() => { setShowAdd(false); setEditId(null); setForm(emptyForm) }}>Cancel</Button>

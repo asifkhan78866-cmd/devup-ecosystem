@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
+import { prisma } from "../../lib/prisma";
 
 const authService = new AuthService();
 
@@ -21,6 +22,18 @@ export class AuthController {
   }
 
   async getMe(req: Request, res: Response) {
-    res.status(200).json({ success: true, data: (req as any).user });
+    const userId = (req as any).user.id;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        profile: true,
+        // ACTIVE OWNER memberships give the dashboard the caller's own startup(s).
+        startupMemberships: {
+          where: { status: "ACTIVE", role: "OWNER" },
+          include: { startup: { select: { id: true, slug: true, name: true } } },
+        },
+      },
+    });
+    res.status(200).json({ success: true, data: user });
   }
 }

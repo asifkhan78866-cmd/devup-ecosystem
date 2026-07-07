@@ -76,13 +76,13 @@ export default function DashboardPage() {
 function FounderDashboard({ user, isMobile }: { user: any, isMobile: boolean }) {
   const cards = [
     { label: 'Your Startup', value: 'Not set up yet',
-      action: 'Set up profile →', href: '/startup/setup' },
-    { label: 'Open Roles', value: '0', 
-      action: 'Post a role →', href: '/jobs/new' },
+      action: 'Set up profile →', href: '/dashboard/startup/create' },
+    { label: 'Open Roles', value: '0',
+      action: 'Post a role →', href: '/dashboard/startup' },
     { label: 'Applications', value: '0',
       action: 'View all →', href: '/applications' },
     { label: 'Documents', value: '0 signed',
-      action: 'View docs →', href: '/documents' },
+      action: 'View docs →', href: '/dashboard/documents' },
   ]
   
   return (

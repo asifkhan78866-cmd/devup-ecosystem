@@ -5,6 +5,7 @@ import { env } from "../../config/env";
 import { resend, EmailTemplates } from "../../lib/resend";
 import { ApplicationStatus, Role } from "@prisma/client";
 import { randomBytes } from "crypto";
+import { createStartupOwnership } from "../startups/ownership.service";
 
 export class ApplicationsService {
   async submitApplication(userId: string, data: any) {
@@ -103,17 +104,11 @@ export class ApplicationsService {
           },
         });
 
-        await prisma.startupMember.create({
-          data: {
-            startupId: startup.id,
-            userId: application.submittedBy,
-            email: user.email,
-            role: "Founder",
-            status: "ACTIVE",
-            invitedBy: adminId,
-            inviteToken: randomBytes(24).toString("hex"),
-            joinedAt: new Date(),
-          },
+        await createStartupOwnership(prisma, {
+          startupId: startup.id,
+          userId: application.submittedBy,
+          email: user.email,
+          invitedBy: adminId,
         });
 
         if (user.role === Role.STUDENT) {

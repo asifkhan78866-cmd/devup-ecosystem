@@ -3,6 +3,7 @@ import { AppError } from "../../middleware/errorHandler";
 import { uploadFile } from "../../lib/storage";
 import { env } from "../../config/env";
 import { Prisma } from "@prisma/client";
+import { createStartupOwnership } from "./ownership.service";
 
 export class StartupsService {
   async getStartups(query: any) {
@@ -66,13 +67,25 @@ export class StartupsService {
   }
 
   async createStartup(data: any) {
-    // Admin only creation
-    return await prisma.startup.create({
-      data: {
-        ...data,
-        isVerified: true,
-        founders: { connect: [{ id: data.founderId }] }
-      }
+    // Create the startup and its OWNER membership atomically so a startup can
+    // never exist without an owner. The owner is the founder the startup is
+    // created for (data.founderId), which the controller resolves to req.user.id
+    // for self-serve creation.
+    return await prisma.$transaction(async (tx) => {
+      const startup = await tx.startup.create({
+        data: {
+          ...data,
+          isVerified: true,
+          founders: { connect: [{ id: data.founderId }] }
+        }
+      });
+
+      await createStartupOwnership(tx, {
+        startupId: startup.id,
+        userId: data.founderId,
+      });
+
+      return startup;
     });
   }
 

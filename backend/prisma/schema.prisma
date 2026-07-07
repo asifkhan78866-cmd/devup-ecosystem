@@ -143,6 +143,17 @@ model Startup {
   members          StartupMember[]
 }
 
+enum StartupMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum StartupMemberStatus {
+  ACTIVE
+  INVITED
+}
+
 model StartupMember {
   id          String   @id @default(cuid())
   startupId   String
@@ -150,15 +161,16 @@ model StartupMember {
   userId      String?
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   email       String
-  role        String
-  status      String   @default("PENDING")
+  role        StartupMemberRole   @default(MEMBER)
+  status      StartupMemberStatus @default(INVITED)
   invitedBy   String
   inviteToken String   @unique
   invitedAt   DateTime @default(now())
   joinedAt    DateTime?
-  removedAt   DateTime?
+  createdAt   DateTime @default(now())
 
   @@unique([startupId, email])
+  @@index([userId, startupId])
 }
 
 enum ApplicationStatus {
