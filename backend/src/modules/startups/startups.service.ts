@@ -92,12 +92,18 @@ export class StartupsService {
   async updateStartup(id: string, requesterId: string, role: string, data: any) {
     const startup = await prisma.startup.findUnique({
       where: { id },
-      include: { founders: true }
+      include: { 
+        founders: true,
+        members: { where: { userId: requesterId, status: "ACTIVE" } }
+      }
     });
 
     if (!startup) throw new AppError(404, "Startup not found");
 
-    if (role !== "ADMIN" && !startup.founders.some(f => f.id === requesterId)) {
+    const isMember = startup.members && startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isLegacyFounder = startup.founders.some(f => f.id === requesterId);
+
+    if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
       throw new AppError(403, "Not authorized to update this startup");
     }
 
@@ -112,10 +118,19 @@ export class StartupsService {
   }
 
   async uploadImage(id: string, requesterId: string, role: string, type: "logo" | "banner", fileBuffer: Buffer, mimetype: string) {
-    const startup = await prisma.startup.findUnique({ where: { id }, include: { founders: true } });
+    const startup = await prisma.startup.findUnique({ 
+      where: { id }, 
+      include: { 
+        founders: true,
+        members: { where: { userId: requesterId, status: "ACTIVE" } }
+      } 
+    });
     if (!startup) throw new AppError(404, "Startup not found");
     
-    if (role !== "ADMIN" && !startup.founders.some(f => f.id === requesterId)) {
+    const isMember = startup.members && startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isLegacyFounder = startup.founders.some(f => f.id === requesterId);
+
+    if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
       throw new AppError(403, "Not authorized");
     }
 
