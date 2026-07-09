@@ -50,22 +50,25 @@ export default function StartupDashboardPage() {
   const [jobError, setJobError] = useState("");
   const [postingJob, setPostingJob] = useState(false);
 
-  // Resolve the founder's own startup from their ACTIVE OWNER StartupMember.
+  // Resolve the founder's own startup from their AuthProvider profile.
   useEffect(() => {
     if (authLoading) return;
-    if (!token) {
+    
+    // Fallback if not logged in
+    if (!token || !user) {
       setResolving(false);
       return;
     }
-    fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
-      .then((d) => {
-        const membership = d?.data?.startupMemberships?.[0];
-        setStartupId(membership?.startup?.id ?? membership?.startupId ?? null);
-      })
-      .catch(() => {})
-      .finally(() => setResolving(false));
-  }, [authLoading, token]);
+
+    // Since we added `startups` to AuthProvider's user profile, we can just read it.
+    if (user.startups && user.startups.length > 0) {
+      setStartupId(user.startups[0].id);
+    } else {
+      setStartupId(null);
+    }
+    
+    setResolving(false);
+  }, [authLoading, token, user]);
 
   // Prefill the edit form once the startup detail loads.
   useEffect(() => {
