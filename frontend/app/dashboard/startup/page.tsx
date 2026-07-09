@@ -31,7 +31,7 @@ const inputClass =
 const labelClass = "block text-sm text-[#a1a1a1] mb-1.5";
 
 export default function StartupDashboardPage() {
-  const { session, loading: authLoading } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
   const token = session?.access_token;
 
   const [startupId, setStartupId] = useState<string | null>(null);
