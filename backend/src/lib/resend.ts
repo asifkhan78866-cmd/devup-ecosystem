@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { env } from "../config/env";
+import { AppError } from "../middleware/errorHandler";
 
 export const resend = new Resend(env.RESEND_API_KEY);
 
@@ -50,7 +51,7 @@ export const EmailTemplates = {
 export async function sendTeamInviteEmail(params: {
   to: string, startupName: string, role: string, inviteLink: string
 }) {
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
     to: params.to,
     subject: `You've been invited to join ${params.startupName} on DevUp`,
@@ -70,6 +71,12 @@ export async function sendTeamInviteEmail(params: {
       </div>
     `,
   });
+
+  if (error) {
+    // Resend returns errors instead of throwing — surface them so the invite
+    // endpoint reports a real failure instead of a false "sent".
+    throw new AppError(502, `Email delivery failed: ${error.message}`, "EMAIL_SEND_FAILED");
+  }
 }
 
 export async function sendDocumentReadyEmail(to: string, documentName: string) {
