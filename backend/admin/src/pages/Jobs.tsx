@@ -1,10 +1,13 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/config/api'
 import { TopBar } from '@/components/Layout/TopBar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Trash } from 'lucide-react'
 
 export default function Jobs() {
+  const queryClient = useQueryClient()
+
   const { data, isLoading } = useQuery({
     queryKey: ['jobs'],
     queryFn: async () => {
@@ -12,6 +15,21 @@ export default function Jobs() {
       return res.data
     },
   })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/api/jobs/${id}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] })
+    },
+  })
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this job?')) {
+      deleteMutation.mutate(id)
+    }
+  }
 
   const jobs = data?.data || []
 
@@ -49,7 +67,18 @@ export default function Jobs() {
                     <td className="px-6 py-4 text-sm text-gray-400">{job.isRemote ? 'Remote' : job.location}</td>
                     <td className="px-6 py-4"><Badge label={job.isActive ? 'ACTIVE' : 'INACTIVE'} /></td>
                     <td className="px-6 py-4 text-right">
-                      <Button variant="ghost" size="sm">View</Button>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="sm">View</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDelete(job.id)}
+                          disabled={deleteMutation.isPending}
+                          className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
