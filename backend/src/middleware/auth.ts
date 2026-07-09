@@ -13,7 +13,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
   const token = authHeader.split(" ")[1];
 
-  const decoded = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload;
+  const decoded = jwt.verify(token, env.SUPABASE_JWT_SECRET) as jwt.JwtPayload;
     
     // Fetch user from our DB
     if (!decoded?.sub) {

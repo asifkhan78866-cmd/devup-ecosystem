@@ -66,7 +66,7 @@ export class AuthService {
       if (user) {
         const token = jwt.sign(
           { sub: user.id },
-          env.JWT_SECRET as jwt.Secret,
+          env.SUPABASE_JWT_SECRET as jwt.Secret,
           { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
         );
         return { user, token };
@@ -89,7 +89,7 @@ export class AuthService {
 
     const token = jwt.sign(
       { sub: user.id },
-      env.JWT_SECRET as jwt.Secret,
+      env.SUPABASE_JWT_SECRET as jwt.Secret,
       { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
     );
     return {
