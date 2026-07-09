@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { AppError } from "./errorHandler";
 import { env } from "../config/env";
 import { prisma } from "../lib/prisma";
+import { supabaseAdmin } from "../config/supabase";
 
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -13,14 +14,20 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
   const token = authHeader.split(" ")[1];
 
-  const decoded = jwt.verify(token, env.SUPABASE_JWT_SECRET) as jwt.JwtPayload;
-    
-    // Fetch user from our DB
+  let userId: string;
+  try {
+    // 1. Try Supabase Auth (for standard frontend users)
+    const { data: { user: authUser }, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !authUser) throw new Error("Supabase Auth failed");
+    userId = authUser.id;
+  } catch (err) {
+    // 2. Fallback to local JWT verification (for Admin Portal and Dev Bypass)
+    const decoded = jwt.verify(token, env.SUPABASE_JWT_SECRET) as jwt.JwtPayload;
     if (!decoded?.sub) {
       throw new AppError(401, "Invalid token", "INVALID_TOKEN");
     }
-
-  const userId = String(decoded.sub);
+    userId = String(decoded.sub);
+  }
   const user = await prisma.user.findUnique({ where: { id: userId } });
     
     if (!user) {
