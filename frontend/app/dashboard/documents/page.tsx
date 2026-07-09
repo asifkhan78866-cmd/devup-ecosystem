@@ -3,35 +3,34 @@
 import { useState, useEffect } from "react";
 import { FileText, Clock, CheckCircle } from "lucide-react";
 import { SignatureModal } from "@/components/SignatureModal";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
 
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
+  const { user, session } = useAuth();
 
-  const fetchDocuments = async () => {
+  useEffect(() => {
+    if (user?.startups?.[0] && session?.access_token) {
+      fetchDocuments(user.startups[0].id, session.access_token);
+    } else {
+      setLoading(false);
+    }
+  }, [user, session]);
+
+  const fetchDocuments = async (startupId: string, token: string) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      // In a real app, you'd have an endpoint like GET /api/startups/:id/documents
+      // For now, let's assume we can fetch them or we just mock it if the endpoint doesn't exist yet
+      // The instructions imply we should be able to get them. Let's create a generic fetch for now.
+      const docRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups/${startupId}/documents`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      const data = await res.json();
-      
-      if (data.success && data.data?.startups?.[0]) {
-        const startupId = data.data.startups[0].id;
-        // In a real app, you'd have an endpoint like GET /api/startups/:id/documents
-        // For now, let's assume we can fetch them or we just mock it if the endpoint doesn't exist yet
-        // The instructions imply we should be able to get them. Let's create a generic fetch for now.
-        const docRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups/${startupId}/documents`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (docRes.ok) {
-          const docData = await docRes.json();
-          setDocuments(docData.data);
-        }
+      if (docRes.ok) {
+        const docData = await docRes.json();
+        setDocuments(docData.data);
       }
     } catch (err) {
       console.error(err);
@@ -41,19 +40,19 @@ export default function DocumentsPage() {
   };
 
   const handleSign = async (signatureDataUrl: string) => {
-    if (!selectedDoc) return;
+    if (!selectedDoc || !session?.access_token) return;
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/documents/${selectedDoc.id}/sign`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}` 
+          Authorization: `Bearer ${session.access_token}` 
         },
         body: JSON.stringify({ signatureDataUrl })
       });
-      if (res.ok) {
+      if (res.ok && user?.startups?.[0]) {
         setSelectedDoc(null);
-        fetchDocuments(); // Refresh the list
+        fetchDocuments(user.startups[0].id, session.access_token); // Refresh the list
       }
     } catch (err) {
       console.error(err);

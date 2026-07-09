@@ -149,10 +149,19 @@ export class StartupsService {
   }
 
   async getDocuments(id: string, requesterId: string, role: string) {
-    const startup = await prisma.startup.findUnique({ where: { id }, include: { founders: true } });
+    const startup = await prisma.startup.findUnique({ 
+      where: { id }, 
+      include: { 
+        founders: true,
+        members: { where: { userId: requesterId, status: "ACTIVE" } }
+      } 
+    });
     if (!startup) throw new AppError(404, "Startup not found");
     
-    if (role !== "ADMIN" && !startup.founders.some(f => f.id === requesterId)) {
+    const isMember = startup.members && startup.members.some(m => ['OWNER', 'ADMIN', 'MEMBER'].includes(m.role));
+    const isLegacyFounder = startup.founders.some(f => f.id === requesterId);
+
+    if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
       throw new AppError(403, "Not authorized");
     }
 

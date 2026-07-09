@@ -37,10 +37,19 @@ export class JobsService {
   }
 
   async createJob(userId: string, role: string, data: any) {
-    const startup = await prisma.startup.findUnique({ where: { id: data.startupId }, include: { founders: true } });
+    const startup = await prisma.startup.findUnique({ 
+      where: { id: data.startupId }, 
+      include: { 
+        founders: true,
+        members: { where: { userId, status: "ACTIVE" } }
+      } 
+    });
     if (!startup) throw new AppError(404, "Startup not found");
 
-    if (role !== "ADMIN" && !startup.founders.some(f => f.id === userId)) {
+    const isMember = startup.members && startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isLegacyFounder = startup.founders.some(f => f.id === userId);
+
+    if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
       throw new AppError(403, "Not authorized to post a job for this startup");
     }
 
@@ -48,10 +57,23 @@ export class JobsService {
   }
 
   async updateJob(id: string, userId: string, role: string, data: any) {
-    const job = await prisma.job.findUnique({ where: { id }, include: { startup: { include: { founders: true } } } });
+    const job = await prisma.job.findUnique({ 
+      where: { id }, 
+      include: { 
+        startup: { 
+          include: { 
+            founders: true,
+            members: { where: { userId, status: "ACTIVE" } }
+          } 
+        } 
+      } 
+    });
     if (!job) throw new AppError(404, "Job not found");
 
-    if (role !== "ADMIN" && !job.startup.founders.some(f => f.id === userId)) {
+    const isMember = job.startup.members && job.startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isLegacyFounder = job.startup.founders.some(f => f.id === userId);
+
+    if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
       throw new AppError(403, "Not authorized to update this job");
     }
 
@@ -59,10 +81,23 @@ export class JobsService {
   }
 
   async deleteJob(id: string, userId: string, role: string) {
-    const job = await prisma.job.findUnique({ where: { id }, include: { startup: { include: { founders: true } } } });
+    const job = await prisma.job.findUnique({ 
+      where: { id }, 
+      include: { 
+        startup: { 
+          include: { 
+            founders: true,
+            members: { where: { userId, status: "ACTIVE" } }
+          } 
+        } 
+      } 
+    });
     if (!job) throw new AppError(404, "Job not found");
 
-    if (role !== "ADMIN" && !job.startup.founders.some(f => f.id === userId)) {
+    const isMember = job.startup.members && job.startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isLegacyFounder = job.startup.founders.some(f => f.id === userId);
+
+    if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
       throw new AppError(403, "Not authorized to delete this job");
     }
 

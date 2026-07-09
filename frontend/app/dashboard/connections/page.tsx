@@ -35,19 +35,14 @@ export default function ConnectionsPage() {
     }
     fetchConnections();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, token]);
+  }, [authLoading, token, user]);
 
   const fetchConnections = async () => {
     try {
-      const meRes = await fetch(`${API}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const meData = await meRes.json();
-      if (meData.success) {
-        setUserId(meData.data.id);
-        const membership = meData.data.startupMemberships?.[0];
-        if (membership) {
-          setMyStartup({ id: membership.startup?.id ?? membership.startupId, name: membership.startup?.name });
+      if (user) {
+        setUserId(user.id);
+        if (user.startups && user.startups.length > 0) {
+          setMyStartup({ id: user.startups[0].id, name: user.startups[0].name });
         }
       }
 

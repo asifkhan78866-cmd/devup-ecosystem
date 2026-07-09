@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, MoreVertical, Mail } from "lucide-react";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 export default function TeamPage() {
   const router = useRouter();
@@ -17,33 +18,29 @@ export default function TeamPage() {
 
   const roles = ['Founder', 'Co-Founder', 'CTO', 'Developer', 'Designer', 'Marketing', 'Operator', 'Intern'];
 
-  useEffect(() => {
-    // 1. Fetch the user's startup first (could be from profile/dashboard context, doing a direct fetch here)
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.data?.startups?.[0]) {
-          const sid = data.data.startups[0].id;
-          setStartupId(sid);
-          fetchMembers(sid);
-        } else {
-          setLoading(false);
-        }
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  const { user, session } = useAuth();
 
-  const fetchMembers = async (sid: string) => {
+  useEffect(() => {
+    if (user?.startups?.[0]) {
+      const sid = user.startups[0].id;
+      setStartupId(sid);
+      if (session?.access_token) {
+        fetchMembers(sid, session.access_token);
+      }
+    } else {
+      setLoading(false);
+    }
+  }, [user, session]);
+
+  const fetchMembers = async (sid: string, token: string) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups/${sid}/members`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       if (data.success) {
         setMembers(data.data);
-        const me = data.data.find((m: any) => m.userId === localStorage.getItem('userId')); // Assuming userId is stored, otherwise we deduce by looking for ACTIVE
+        const me = data.data.find((m: any) => m.userId === user?.id);
         if (me) setMyRole(me.role);
       }
     } catch (err) {
@@ -55,14 +52,14 @@ export default function TeamPage() {
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!startupId) return;
+    if (!startupId || !session?.access_token) return;
     setError("");
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups/${startupId}/members/invite`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}` 
+          Authorization: `Bearer ${session.access_token}` 
         },
         body: JSON.stringify({ email: inviteEmail, role: inviteRole })
       });
@@ -70,7 +67,7 @@ export default function TeamPage() {
       if (data.success) {
         setIsInviteModalOpen(false);
         setInviteEmail("");
-        fetchMembers(startupId);
+        fetchMembers(startupId, session.access_token);
       } else {
         setError(data.error || "Failed to invite member");
       }
@@ -80,14 +77,14 @@ export default function TeamPage() {
   };
 
   const removeMember = async (memberId: string) => {
-    if (!startupId) return;
+    if (!startupId || !session?.access_token) return;
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups/${startupId}/members/${memberId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${session.access_token}` }
       });
       if (res.ok) {
-        fetchMembers(startupId);
+        fetchMembers(startupId, session.access_token);
       }
     } catch (err) {
       console.error(err);
@@ -95,18 +92,18 @@ export default function TeamPage() {
   };
 
   const changeRole = async (memberId: string, newRole: string) => {
-    if (!startupId) return;
+    if (!startupId || !session?.access_token) return;
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups/${startupId}/members/${memberId}/role`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}` 
+          Authorization: `Bearer ${session.access_token}` 
         },
         body: JSON.stringify({ role: newRole })
       });
       if (res.ok) {
-        fetchMembers(startupId);
+        fetchMembers(startupId, session.access_token);
       }
     } catch (err) {
       console.error(err);
