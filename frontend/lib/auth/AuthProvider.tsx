@@ -15,6 +15,7 @@ interface UserProfile {
   avatarUrl?: string
   college?: string
   city?: string
+  startups?: any[]
 }
 
 interface AuthContextType {
@@ -67,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           avatarUrl: userData.avatarUrl || userData.profile?.avatarUrl,
           college: userData.profile?.college,
           city: userData.profile?.city,
+          startups: userData.startupMemberships?.map((m: any) => m.startup) || [],
         }
         setUser(mappedUser)
       }

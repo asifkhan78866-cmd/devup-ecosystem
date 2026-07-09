@@ -7,7 +7,13 @@ export class UsersService {
   async getUserById(id: string) {
     const user = await prisma.user.findUnique({
       where: { id },
-      include: { profile: true },
+      include: { 
+        profile: true,
+        startupMemberships: {
+          where: { status: "ACTIVE" },
+          include: { startup: true }
+        }
+      },
     });
     if (!user) throw new AppError(404, "User not found");
     return user;

@@ -74,9 +74,12 @@ export default function DashboardPage() {
 }
 
 function FounderDashboard({ user, isMobile }: { user: any, isMobile: boolean }) {
+  const hasStartup = user.startups && user.startups.length > 0;
+  const startup = hasStartup ? user.startups[0] : null;
+
   const cards = [
-    { label: 'Your Startup', value: 'Not set up yet',
-      action: 'Set up profile →', href: '/dashboard/startup/create' },
+    { label: 'Your Startup', value: hasStartup ? startup.name : 'Not set up yet',
+      action: hasStartup ? 'Manage profile →' : 'Set up profile →', href: hasStartup ? '/dashboard/startup' : '/dashboard/startup/create' },
     { label: 'Open Roles', value: '0',
       action: 'Post a role →', href: '/dashboard/startup' },
     { label: 'Applications', value: '0',

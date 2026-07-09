@@ -29,7 +29,7 @@ export class AuthController {
         profile: true,
         // ACTIVE OWNER memberships give the dashboard the caller's own startup(s).
         startupMemberships: {
-          where: { status: "ACTIVE", role: "OWNER" },
+          where: { status: "ACTIVE" },
           include: { startup: { select: { id: true, slug: true, name: true } } },
         },
       },
