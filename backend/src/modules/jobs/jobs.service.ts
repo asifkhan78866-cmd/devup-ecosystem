@@ -110,6 +110,7 @@ export class JobsService {
       throw new AppError(404, "Job not found or inactive", "JOB_NOT_FOUND");
     }
 
+    const profile = await prisma.profile.findUnique({ where: { userId } });
     let finalResumeUrl: string | undefined;
 
     if (file) {
@@ -117,7 +118,6 @@ export class JobsService {
       const path = `${userId}/job-applications/${jobId}/resume-${Date.now()}.pdf`;
       finalResumeUrl = await uploadFile(env.STORAGE_BUCKET_RESUMES, path, file.buffer, file.mimetype);
     } else {
-      const profile = await prisma.profile.findUnique({ where: { userId } });
       if (profile?.resumeUrl) {
         finalResumeUrl = profile.resumeUrl;
       }
@@ -151,7 +151,7 @@ export class JobsService {
         from: env.RESEND_FROM_EMAIL,
         to: job.startup.primaryFounder.email,
         subject: "New Job Application - DevUp Ecosystem",
-        html: EmailTemplates.jobApplicationReceived(profile.name, job.title)
+        html: EmailTemplates.jobApplicationReceived(data.applicantName || profile?.name || "A candidate", job.title)
       }).catch(err => console.error("Email error:", err));
     }
 

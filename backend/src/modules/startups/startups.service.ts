@@ -167,4 +167,32 @@ export class StartupsService {
 
     return await prisma.document.findMany({ where: { startupId: id } });
   }
+
+  async getJobApplications(startupId: string, userId: string, role: string) {
+    const startup = await prisma.startup.findUnique({
+      where: { id: startupId },
+      include: { 
+        founders: true,
+        members: { where: { userId, status: "ACTIVE" } }
+      }
+    });
+    
+    if (!startup) throw new AppError(404, "Startup not found");
+
+    const isMember = startup.members && startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isLegacyFounder = startup.founders.some(f => f.id === userId);
+
+    if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
+      throw new AppError(403, "Not authorized to view applications for this startup");
+    }
+
+    return await prisma.jobApplication.findMany({
+      where: { job: { startupId } },
+      include: {
+        job: { select: { id: true, title: true, type: true } },
+        user: { select: { id: true, email: true, profile: true } }
+      },
+      orderBy: { appliedAt: 'desc' }
+    });
+  }
 }
