@@ -17,7 +17,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div style={{
+      <div className="p-6 md:p-8 pt-28 md:pt-32 max-w-6xl mx-auto min-h-screen pb-24" style={{
         minHeight: '100vh', background: '#0a0a0a',
         display: 'flex', alignItems: 'center',
         justifyContent: 'center',
@@ -37,7 +37,7 @@ export default function DashboardPage() {
   return (
     <main style={{
       minHeight: '100vh', background: '#0a0a0a',
-      paddingTop: 80,
+      paddingTop: 112, paddingBottom: 96,
     }}>
       <div style={{
         maxWidth: 1200, margin: '0 auto', padding: isMobile ? '24px 20px' : '40px 32px',

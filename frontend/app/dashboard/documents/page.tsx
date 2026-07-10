@@ -63,7 +63,7 @@ export default function DocumentsPage() {
   if (loading) return <div className="p-8 text-white">Loading documents...</div>;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto min-h-screen">
+    <div className="p-6 md:p-8 pt-28 md:pt-32 max-w-6xl mx-auto min-h-screen pb-24">
       <div className="mb-8">
         <h1 style={{ fontFamily: "var(--font-syne)", fontWeight: 800 }} className="text-3xl text-white mb-2">Documents</h1>
         <p style={{ fontFamily: "var(--font-inter)" }} className="text-[#a1a1a1]">Review and sign important agreements.</p>

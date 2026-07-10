@@ -191,7 +191,7 @@ export default function StartupDashboardPage() {
   if (loadingStartup && !startup) return <div className="p-8 text-white">Loading your startup...</div>;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto min-h-screen">
+    <div className="p-6 md:p-8 pt-28 md:pt-32 max-w-6xl mx-auto min-h-screen pb-24">
       {/* Header */}
       <div className="flex justify-between items-center mb-8 gap-4 flex-wrap">
         <div>

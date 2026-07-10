@@ -79,7 +79,7 @@ export default function MobileBottomNav() {
                 <motion.div
                   layoutId="bottomNavActiveDot"
                   style={{
-                    position: 'absolute', top: 4,
+                    position: 'absolute', top: 4, left: '50%', x: '-50%',
                     width: 4, height: 4, borderRadius: '50%',
                     background: '#c8f135',
                   }}
@@ -122,7 +122,7 @@ export default function MobileBottomNav() {
         >
           {isMoreActive && (
             <div style={{
-              position: 'absolute', top: 4,
+              position: 'absolute', top: 4, left: '50%', transform: 'translateX(-50%)',
               width: 4, height: 4, borderRadius: '50%',
               background: '#c8f135',
             }} />
