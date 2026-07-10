@@ -520,8 +520,9 @@ export default function Startups() {
           ) : startups.length === 0 ? (
             <div className="p-16 text-center text-gray-500">No startups yet</div>
           ) : (
-            <table className="w-full">
-              <thead>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[800px]">
+                <thead>
                 <tr className="border-b border-white/5">
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Startup</th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Domain</th>
@@ -569,6 +570,7 @@ export default function Startups() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       </div>
