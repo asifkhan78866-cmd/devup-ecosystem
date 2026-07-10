@@ -7,18 +7,17 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 
 export default function TeamPage() {
   const router = useRouter();
+  const { session, user } = useAuth();
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("Developer");
+  const [inviteRole, setInviteRole] = useState("MEMBER");
   const [error, setError] = useState("");
   const [myRole, setMyRole] = useState("");
   const [startupId, setStartupId] = useState<string | null>(null);
 
-  const roles = ['Founder', 'Co-Founder', 'CTO', 'Developer', 'Designer', 'Marketing', 'Operator', 'Intern'];
-
-  const { user, session } = useAuth();
+  const roles = ['OWNER', 'ADMIN', 'MEMBER'];
 
   useEffect(() => {
     if (user?.startups?.[0]) {
@@ -111,18 +110,16 @@ export default function TeamPage() {
   };
 
   const getRoleColor = (role: string) => {
-    if (['Founder', 'Co-Founder'].includes(role)) return 'text-[#c8f135] bg-[#c8f135]/10 border-[#c8f135]/20';
-    if (['CTO', 'Developer'].includes(role)) return 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20';
-    if (role === 'Designer') return 'text-pink-400 bg-pink-400/10 border-pink-400/20';
-    if (role === 'Marketing') return 'text-green-400 bg-green-400/10 border-green-400/20';
-    if (role === 'Operator') return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
+    if (role === 'OWNER') return 'text-[#c8f135] bg-[#c8f135]/10 border-[#c8f135]/20';
+    if (role === 'ADMIN') return 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20';
+    if (role === 'MEMBER') return 'text-gray-400 bg-gray-400/10 border-gray-400/20';
     return 'text-gray-400 bg-gray-400/10 border-gray-400/20';
   };
 
   if (loading) return <div className="p-8 text-white">Loading team...</div>;
   if (!startupId) return <div className="p-8 text-white">You must have a verified startup to manage a team.</div>;
 
-  const isFounder = ['Founder', 'Co-Founder'].includes(myRole) || true; // Fallback to true if myRole detection fails for testing
+  const isFounder = ['OWNER', 'ADMIN'].includes(myRole) || true; // Fallback to true if myRole detection fails for testing
 
   return (
     <div className="p-6 md:p-8 pt-28 md:pt-32 max-w-6xl mx-auto min-h-screen pb-24">
