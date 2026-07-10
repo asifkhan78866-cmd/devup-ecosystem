@@ -9,7 +9,7 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const TEAM_ROLES = ["OWNER", "ADMIN", "MEMBER"];
 
 export default function ConnectionsPage() {
-  const { session, loading: authLoading } = useAuth();
+  const { session, user, loading: authLoading } = useAuth();
   const token = session?.access_token;
 
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
