@@ -249,6 +249,10 @@ model JobApplication {
   coverLetter    String?
   status         JobAppStatus @default(APPLIED)
   
+  applicantName  String?
+  applicantEmail String?
+  applicantPhone String?
+  
   job            Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   

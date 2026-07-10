@@ -1,12 +1,15 @@
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/config/api'
 import { TopBar } from '@/components/Layout/TopBar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Trash } from 'lucide-react'
+import { JobApplicationsSlideOver } from '@/components/JobApplicationsSlideOver'
 
 export default function Jobs() {
   const queryClient = useQueryClient()
+  const [selectedJob, setSelectedJob] = useState<{ id: string, title: string } | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['jobs'],
@@ -68,7 +71,7 @@ export default function Jobs() {
                     <td className="px-6 py-4"><Badge label={job.isActive ? 'ACTIVE' : 'INACTIVE'} /></td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm">View</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedJob({ id: job.id, title: job.title })}>View</Button>
                         <Button 
                           variant="ghost" 
                           size="sm" 
@@ -87,6 +90,12 @@ export default function Jobs() {
           )}
         </div>
       </div>
+      <JobApplicationsSlideOver
+        jobId={selectedJob?.id || null}
+        jobTitle={selectedJob?.title || ''}
+        isOpen={!!selectedJob}
+        onClose={() => setSelectedJob(null)}
+      />
     </div>
   )
 }

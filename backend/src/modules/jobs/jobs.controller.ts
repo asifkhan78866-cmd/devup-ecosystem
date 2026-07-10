@@ -30,7 +30,12 @@ export class JobsController {
   }
 
   async applyForJob(req: Request, res: Response) {
-    const data = await jobsService.applyForJob(req.params.id as string, req.user!.id, req.body);
+    const data = await jobsService.applyForJob(req.params.id as string, req.user!.id, req.body, req.file);
     res.status(201).json({ success: true, data });
+  }
+
+  async getJobApplications(req: Request, res: Response) {
+    const data = await jobsService.getJobApplications(req.params.id as string, req.user!.id, req.user!.role);
+    res.status(200).json({ success: true, data });
   }
 }

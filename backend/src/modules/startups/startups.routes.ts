@@ -48,5 +48,6 @@ router.delete("/:id", requireAuth, requireRole(["ADMIN"]), controller.deleteStar
 router.post("/:id/logo", requireAuth, upload.single("file"), controller.uploadLogo);
 router.post("/:id/banner", requireAuth, upload.single("file"), controller.uploadBanner);
 router.get("/:id/documents", requireAuth, controller.getDocuments);
+router.get("/:id/job-applications", requireAuth, controller.getJobApplications);
 
 export default router;

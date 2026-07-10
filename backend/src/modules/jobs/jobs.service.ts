@@ -104,14 +104,28 @@ export class JobsService {
     return await prisma.job.delete({ where: { id } });
   }
 
-  async applyForJob(jobId: string, userId: string, data: any) {
+  async applyForJob(jobId: string, userId: string, data: any, file?: Express.Multer.File) {
     const job = await prisma.job.findUnique({ where: { id: jobId }, include: { startup: { include: { primaryFounder: true } } } });
     if (!job?.isActive) {
       throw new AppError(404, "Job not found or inactive", "JOB_NOT_FOUND");
     }
 
-    const profile = await prisma.profile.findUnique({ where: { userId } });
-    if (!profile?.resumeUrl) throw new AppError(400, "Please upload a resume to your profile before applying");
+    let finalResumeUrl: string | undefined;
+
+    if (file) {
+      const { uploadFile } = await import("../../lib/storage");
+      const path = `${userId}/job-applications/${jobId}/resume-${Date.now()}.pdf`;
+      finalResumeUrl = await uploadFile(env.STORAGE_BUCKET_RESUMES, path, file.buffer, file.mimetype);
+    } else {
+      const profile = await prisma.profile.findUnique({ where: { userId } });
+      if (profile?.resumeUrl) {
+        finalResumeUrl = profile.resumeUrl;
+      }
+    }
+
+    if (!finalResumeUrl) {
+      throw new AppError(400, "Please upload a resume or add one to your profile before applying");
+    }
 
     const existingApplication = await prisma.jobApplication.findUnique({
       where: { jobId_userId: { jobId, userId } }
@@ -123,8 +137,11 @@ export class JobsService {
       data: {
         jobId,
         userId,
-        resumeUrl: profile.resumeUrl,
-        coverLetter: data.coverLetter
+        resumeUrl: finalResumeUrl,
+        coverLetter: data.coverLetter,
+        applicantName: data.applicantName,
+        applicantEmail: data.applicantEmail,
+        applicantPhone: data.applicantPhone,
       }
     });
 
@@ -139,5 +156,36 @@ export class JobsService {
     }
 
     return application;
+  }
+
+  async getJobApplications(jobId: string, userId: string, role: string) {
+    const job = await prisma.job.findUnique({ 
+      where: { id: jobId }, 
+      include: { 
+        startup: { 
+          include: { 
+            founders: true,
+            members: { where: { userId, status: "ACTIVE" } }
+          } 
+        } 
+      } 
+    });
+    
+    if (!job) throw new AppError(404, "Job not found");
+
+    const isMember = job.startup.members && job.startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isLegacyFounder = job.startup.founders.some(f => f.id === userId);
+
+    if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
+      throw new AppError(403, "Not authorized to view applications for this job");
+    }
+
+    return await prisma.jobApplication.findMany({
+      where: { jobId },
+      include: {
+        user: { select: { id: true, email: true, profile: true } }
+      },
+      orderBy: { appliedAt: 'desc' }
+    });
   }
 }

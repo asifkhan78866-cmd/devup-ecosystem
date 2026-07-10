@@ -139,4 +139,9 @@ export class StartupsController {
     const data = await startupsService.getDocuments(req.params.id as string, req.user!.id, req.user!.role);
     res.status(200).json({ success: true, data });
   }
+
+  async getJobApplications(req: Request, res: Response) {
+    const data = await startupsService.getJobApplications(req.params.id as string, req.user!.id, req.user!.role);
+    res.status(200).json({ success: true, data });
+  }
 }
