@@ -51,7 +51,7 @@ export default function CareersPage() {
 
   useEffect(() => {
     if (user) {
-      setApplicantName(user.name || user.profile?.name || "");
+      setApplicantName(user.name || (user as any).profile?.name || "");
       setApplicantEmail(user.email || "");
     }
   }, [user]);
