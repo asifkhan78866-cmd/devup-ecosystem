@@ -5,12 +5,13 @@ import { env } from "../../config/env";
 
 export class JobsService {
   async getJobs(query: any) {
-    const { page = 1, limit = 10, type, domain, search } = query;
+    const { page = 1, limit = 10, type, domain, search, startupId } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const where: any = { isActive: true };
     if (type) where.type = type;
     if (domain) where.domain = domain;
+    if (startupId) where.startupId = startupId;
     if (search) {
       where.OR = [
         { title: { contains: search, mode: "insensitive" } },
