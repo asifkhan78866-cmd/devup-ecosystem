@@ -1,11 +1,11 @@
 'use client'
 import { useAuth } from '@/lib/auth/AuthProvider'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 
 export default function DashboardPage() {
-  const { user, loading, signOut } = useAuth()
+  const { user, session, loading, signOut } = useAuth()
   const router = useRouter()
   const isMobile = useIsMobile()
 
@@ -65,7 +65,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Role-based dashboard content */}
-        {user.role === 'FOUNDER' && <FounderDashboard user={user} isMobile={isMobile} />}
+        {user.role === 'FOUNDER' && <FounderDashboard user={user} session={session} isMobile={isMobile} />}
         {user.role === 'STUDENT' && <StudentDashboard user={user} isMobile={isMobile} />}
         {user.role === 'INVESTOR' && <InvestorDashboard user={user} />}
       </div>
@@ -73,18 +73,51 @@ export default function DashboardPage() {
   )
 }
 
-function FounderDashboard({ user, isMobile }: { user: any, isMobile: boolean }) {
+function FounderDashboard({ user, session, isMobile }: { user: any, session: any, isMobile: boolean }) {
   const hasStartup = user.startups && user.startups.length > 0;
   const startup = hasStartup ? user.startups[0] : null;
+
+  const [counts, setCounts] = useState({ roles: 0, applications: 0, documents: 0 });
+
+  useEffect(() => {
+    if (!hasStartup || !session?.access_token) return;
+
+    const fetchCounts = async () => {
+      try {
+        const headers = { Authorization: `Bearer ${session.access_token}` };
+        const [jobsRes, appsRes, docsRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/jobs?startupId=${startup.id}&limit=100`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups/${startup.id}/job-applications`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/startups/${startup.id}/documents`, { headers })
+        ]);
+
+        const [jobsData, appsData, docsData] = await Promise.all([
+          jobsRes.json(),
+          appsRes.json(),
+          docsRes.json()
+        ]);
+
+        setCounts({
+          roles: jobsData.meta?.total || 0,
+          applications: appsData.data?.length || 0,
+          documents: docsData.data?.length || 0
+        });
+      } catch (err) {
+        console.error('Error fetching dashboard counts', err);
+      }
+    };
+
+    fetchCounts();
+  }, [hasStartup, startup?.id, session?.access_token]);
 
   const cards = [
     { label: 'Your Startup', value: hasStartup ? startup.name : 'Not set up yet',
       action: hasStartup ? 'Manage profile →' : 'Set up profile →', href: hasStartup ? '/dashboard/startup' : '/dashboard/startup/create' },
-    { label: 'Open Roles', value: '0',
+    { label: 'Open Roles', value: counts.roles.toString(),
       action: 'Post a role →', href: '/dashboard/startup' },
-    { label: 'Applications', value: '0',
+    { label: 'Applications', value: counts.applications.toString(),
       action: 'View all →', href: '/applications' },
-    { label: 'Documents', value: '0 signed',
+    { label: 'Documents', value: `${counts.documents} signed`,
       action: 'View docs →', href: '/dashboard/documents' },
   ]
   
