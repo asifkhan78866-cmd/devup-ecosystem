@@ -8,6 +8,7 @@ import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PageControls from "@/components/PageControls";
 import MobileBottomSheet from "@/components/MobileBottomSheet";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 const CareerNetworkGraph = dynamic(
   () => import("@/components/3d/CareerNetworkGraph"),
@@ -28,6 +29,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function CareersPage() {
+  const { session, user } = useAuth();
   const [activeTab, setActiveTab] = useState("Full-time Jobs");
   const [stipendValue, setStipendValue] = useState(50);
   const [selectedJob, setSelectedJob] = useState<any>(null);
@@ -36,6 +38,23 @@ export default function CareersPage() {
   
   const [searchQuery, setSearchQuery] = useState("");
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
+
+  // Application form state
+  const [applicantName, setApplicantName] = useState("");
+  const [applicantEmail, setApplicantEmail] = useState("");
+  const [applicantPhone, setApplicantPhone] = useState("");
+  const [coverLetter, setCoverLetter] = useState("");
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      setApplicantName(user.name || user.profile?.name || "");
+      setApplicantEmail(user.email || "");
+    }
+  }, [user]);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/jobs`)
@@ -59,6 +78,50 @@ export default function CareersPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  const handleApply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session?.access_token || !selectedJob) return;
+
+    setSubmitting(true);
+    setSubmitError("");
+    setSubmitSuccess(false);
+
+    try {
+      const formData = new FormData();
+      formData.append("coverLetter", coverLetter);
+      formData.append("applicantName", applicantName);
+      formData.append("applicantEmail", applicantEmail);
+      formData.append("applicantPhone", applicantPhone);
+      
+      if (resumeFile) {
+        formData.append("resume", resumeFile);
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/jobs/${selectedJob.id}/apply`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        },
+        body: formData
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setSubmitSuccess(true);
+        // Reset form except for name/email
+        setCoverLetter("");
+        setApplicantPhone("");
+        setResumeFile(null);
+      } else {
+        setSubmitError(data.error || "Failed to apply for job.");
+      }
+    } catch (err: any) {
+      setSubmitError(err.message || "An error occurred.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -474,24 +537,95 @@ export default function CareersPage() {
                   </ul>
                 </div>
                 
-                <div className="bg-[#111111] border border-white/5 rounded-[16px] p-6 mb-6">
+                <form onSubmit={handleApply} className="bg-[#111111] border border-white/5 rounded-[16px] p-6 mb-6">
                   <h3 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "18px", color: "#fff", marginBottom: 16 }}>Apply for this role</h3>
                   
-                  <div className="space-y-4 mt-4">
-                    <div>
-                      <label htmlFor="coverNote" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Cover Note (Optional)</label>
-                      <textarea 
-                        id="coverNote"
-                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-4 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors resize-none h-[100px]"
-                        placeholder="Why are you a good fit?"
-                      />
+                  {submitSuccess ? (
+                    <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 mb-4">
+                      Application submitted successfully!
                     </div>
-                    
-                    <button className="w-full py-3 bg-[#c8f135] text-black font-semibold rounded-[10px] transition-transform hover:scale-[1.01]">
-                      Submit Application (Uses profile resume)
-                    </button>
-                  </div>
-                </div>
+                  ) : (
+                    <div className="space-y-4 mt-4">
+                      {submitError && (
+                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                          {submitError}
+                        </div>
+                      )}
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="applicantName" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Full Name</label>
+                          <input 
+                            id="applicantName"
+                            type="text"
+                            required
+                            value={applicantName}
+                            onChange={e => setApplicantName(e.target.value)}
+                            className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors"
+                            placeholder="John Doe"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="applicantEmail" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Email</label>
+                          <input 
+                            id="applicantEmail"
+                            type="email"
+                            required
+                            value={applicantEmail}
+                            onChange={e => setApplicantEmail(e.target.value)}
+                            className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors"
+                            placeholder="john@example.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="applicantPhone" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Phone Number (Optional)</label>
+                        <input 
+                          id="applicantPhone"
+                          type="tel"
+                          value={applicantPhone}
+                          onChange={e => setApplicantPhone(e.target.value)}
+                          className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors"
+                          placeholder="+1 (555) 000-0000"
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="resume" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Resume (Optional if in profile)</label>
+                        <input 
+                          id="resume"
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={e => setResumeFile(e.target.files?.[0] || null)}
+                          className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#c8f135]/10 file:text-[#c8f135] hover:file:bg-[#c8f135]/20"
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="coverNote" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Cover Note (Optional)</label>
+                        <textarea 
+                          id="coverNote"
+                          value={coverLetter}
+                          onChange={e => setCoverLetter(e.target.value)}
+                          className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-4 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors resize-none h-[100px]"
+                          placeholder="Why are you a good fit?"
+                        />
+                      </div>
+                      
+                      <button 
+                        type="submit"
+                        disabled={submitting || !session?.access_token}
+                        className="w-full py-3 bg-[#c8f135] text-black font-semibold rounded-[10px] transition-transform hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Submit Application"}
+                      </button>
+                      {!session?.access_token && (
+                        <p className="text-center text-sm text-[#a1a1a1] mt-2">Please login to apply.</p>
+                      )}
+                    </div>
+                  )}
+                </form>
                 
               </div>
             </motion.div>
