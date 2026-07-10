@@ -15,6 +15,7 @@ const upload = multer({
 });
 
 router.post("/", requireAuth, requireRole(["ADMIN"]), upload.single("file"), validate(uploadDocumentSchema), controller.uploadDocument);
+router.get("/", requireAuth, requireRole(["ADMIN"]), controller.getDocuments);
 router.get("/:id", requireAuth, controller.getDocument);
 router.post("/:id/sign", requireAuth, controller.signDocument);
 

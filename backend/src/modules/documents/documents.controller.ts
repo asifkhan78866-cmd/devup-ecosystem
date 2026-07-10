@@ -59,4 +59,14 @@ export class DocumentsController {
     });
     res.status(200).json({ success: true, data });
   }
+  async getDocuments(req: Request, res: Response) {
+    if (req.user!.role !== "ADMIN") {
+      throw new AppError(403, "Not authorized");
+    }
+    const documents = await prisma.document.findMany({
+      include: { startup: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.status(200).json({ success: true, data: documents });
+  }
 }
