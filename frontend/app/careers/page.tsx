@@ -71,6 +71,7 @@ export default function CareersPage() {
             date: timeAgo(j.createdAt),
             logo: (j.startup?.name || "D")[0],
             description: j.description,
+            skills: Array.isArray(j.skills) ? j.skills : [],
           }));
           setJobs(formatted);
         }
@@ -526,15 +527,19 @@ export default function CareersPage() {
 
                 <div className="prose prose-invert max-w-none mb-10" style={{ fontFamily: "var(--font-inter), sans-serif", color: "#a1a1a1" }}>
                   <h3 style={{ color: "#fff", fontFamily: "var(--font-syne), sans-serif" }}>About the role</h3>
-                  <p>
-                    We are looking for an experienced engineer to join our core team. You will be responsible for building the foundation of our application, optimizing performance, and ensuring a seamless user experience.
+                  <p style={{ whiteSpace: "pre-wrap" }}>
+                    {selectedJob.description || "No description provided."}
                   </p>
-                  <h3 style={{ color: "#fff", fontFamily: "var(--font-syne), sans-serif" }}>Requirements</h3>
-                  <ul className="text-[14px]">
-                    <li>Strong proficiency in React and modern TypeScript.</li>
-                    <li>Experience with WebGL or Three.js is a huge plus.</li>
-                    <li>Ability to write clean, maintainable, and performant code.</li>
-                  </ul>
+                  {selectedJob.skills?.length > 0 && (
+                    <>
+                      <h3 style={{ color: "#fff", fontFamily: "var(--font-syne), sans-serif" }}>Requirements</h3>
+                      <ul className="text-[14px]">
+                        {selectedJob.skills.map((skill: string, i: number) => (
+                          <li key={i}>{skill}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 </div>
                 
                 <form onSubmit={handleApply} className="bg-[#111111] border border-white/5 rounded-[16px] p-6 mb-6">
