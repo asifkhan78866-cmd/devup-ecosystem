@@ -135,7 +135,7 @@ export default function CareersPage() {
       />
 
       <ErrorBoundary>
-        <CareerNetworkGraph />
+        <CareerNetworkGraph jobs={jobs} />
       </ErrorBoundary>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-12 pb-24">

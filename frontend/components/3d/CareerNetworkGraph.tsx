@@ -14,7 +14,61 @@ const DOMAINS = {
   "DevTools": "#a78bfa",
 };
 
+// Palette used to give each real company a distinct node color.
+const PALETTE = ["#c8f135", "#22c55e", "#38bdf8", "#a78bfa", "#f472b6", "#fb923c"];
+
 const COMPANY_NAMES = ["NexusAI", "FinEdge", "MedFlow", "BuildSpace", "Synth", "AeroDynamics"];
+
+export type GraphJob = { id?: string; company?: string };
+
+// Build the graph from real jobs: one node per company (sized by open-role
+// count), one small dot per actual job, each linked to its company.
+function buildRealGraphData(realJobs: GraphJob[]) {
+  const companies: any[] = [];
+  const jobs: any[] = [];
+  const links: any[] = [];
+
+  const byCompany = new Map<string, GraphJob[]>();
+  realJobs.forEach((j) => {
+    const name = j.company || "DevUp";
+    if (!byCompany.has(name)) byCompany.set(name, []);
+    byCompany.get(name)!.push(j);
+  });
+
+  let ci = 0;
+  byCompany.forEach((companyJobs, name) => {
+    const compId = `c-${ci}`;
+    const color = PALETTE[ci % PALETTE.length];
+
+    const targetX = (Math.random() - 0.5) * 12;
+    const targetY = (Math.random() - 0.5) * 4;
+    const targetZ = (Math.random() - 0.5) * 2;
+
+    companies.push({
+      id: compId,
+      name,
+      color,
+      targetPos: new THREE.Vector3(targetX, targetY, targetZ),
+      currPos: new THREE.Vector3(targetX + Math.random(), targetY + Math.random(), targetZ + Math.random()),
+      openRoles: companyJobs.length,
+    });
+
+    companyJobs.forEach((_, ji) => {
+      const jobId = `j-${ci}-${ji}`;
+      jobs.push({
+        id: jobId,
+        companyId: compId,
+        targetOffset: new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2),
+        currPos: new THREE.Vector3(),
+      });
+      links.push({ sourceId: compId, targetId: jobId });
+    });
+
+    ci++;
+  });
+
+  return { companies, jobs, links };
+}
 
 function generateGraphData() {
   const companies = [];
@@ -68,8 +122,11 @@ function generateGraphData() {
   return { companies, jobs, links };
 }
 
-function GraphNetwork() {
-  const { companies, jobs, links } = useMemo(() => generateGraphData(), []);
+function GraphNetwork({ realJobs }: { realJobs: GraphJob[] }) {
+  const { companies, jobs, links } = useMemo(
+    () => (realJobs.length > 0 ? buildRealGraphData(realJobs) : generateGraphData()),
+    [realJobs]
+  );
   const [hoveredCompany, setHoveredCompany] = useState<string | null>(null);
   
   // Create refs for fast position updates without React state overhead
@@ -238,7 +295,7 @@ function DynamicLine({ company, job, opacity }: { company: any, job: any, opacit
   );
 }
 
-export default function CareerNetworkGraph() {
+export default function CareerNetworkGraph({ jobs = [] }: { jobs?: GraphJob[] }) {
   const isMobile = useIsMobile();
   return (
     <div className="w-full h-[180px] md:h-[300px] relative pointer-events-auto">
@@ -247,7 +304,9 @@ export default function CareerNetworkGraph() {
         dpr={[1, 2]}
       >
         <ambientLight intensity={0.5} />
-        <GraphNetwork />
+        {/* key remounts the graph (resetting per-node refs) when the real
+            job set arrives or changes size */}
+        <GraphNetwork key={jobs.length} realJobs={jobs} />
       </Canvas3DWrapper>
     </div>
   );
