@@ -40,9 +40,12 @@ function buildRealGraphData(realJobs: GraphJob[]) {
     const compId = `c-${ci}`;
     const color = PALETTE[ci % PALETTE.length];
 
-    const targetX = (Math.random() - 0.5) * 12;
-    const targetY = (Math.random() - 0.5) * 4;
-    const targetZ = (Math.random() - 0.5) * 2;
+    // Tighter spread than the random fallback so a handful of real
+    // companies stay centered and clearly visible instead of drifting
+    // to the edges.
+    const targetX = (Math.random() - 0.5) * 8;
+    const targetY = (Math.random() - 0.5) * 3;
+    const targetZ = (Math.random() - 0.5) * 1.5;
 
     companies.push({
       id: compId,
@@ -208,37 +211,34 @@ function GraphNetwork({ realJobs }: { realJobs: GraphJob[] }) {
             onPointerOver={(e) => { e.stopPropagation(); setHoveredCompany(comp.id); document.body.style.cursor="pointer"; }}
             onPointerOut={() => { setHoveredCompany(null); document.body.style.cursor="auto"; }}
           >
-            <sphereGeometry args={[0.15, 16, 16]} />
-            <meshStandardMaterial color={comp.color} emissive={comp.color} emissiveIntensity={0.5} transparent opacity={opacity} />
-            
-            <Html center distanceFactor={15} style={{ pointerEvents: "none", opacity: isHovered ? 1 : 0.6, transition: 'opacity 0.2s' }}>
-              <div 
+            <sphereGeometry args={[0.3, 24, 24]} />
+            <meshStandardMaterial color={comp.color} emissive={comp.color} emissiveIntensity={0.9} transparent opacity={opacity} />
+
+            <Html center distanceFactor={22} style={{ pointerEvents: "none", opacity: isHovered ? 1 : 0.85, transition: 'opacity 0.2s' }}>
+              <div
                 style={{
                   fontFamily: "var(--font-inter), sans-serif",
-                  fontSize: "8px",
+                  fontSize: "15px",
+                  fontWeight: 600,
                   color: "#ffffff",
                   whiteSpace: "nowrap",
-                  textShadow: "0 2px 4px rgba(0,0,0,0.8)"
+                  textShadow: "0 2px 6px rgba(0,0,0,0.9)"
                 }}
               >
                 {comp.name}
               </div>
-              {isHovered && (
-                <div 
-                  style={{
-                    background: "#c8f135",
-                    color: "#000",
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                    fontSize: "10px",
-                    fontWeight: "bold",
-                    marginTop: "4px",
-                    boxShadow: "0 4px 12px rgba(200,241,53,0.3)"
-                  }}
-                >
-                  {comp.openRoles} open roles
-                </div>
-              )}
+              <div
+                style={{
+                  fontFamily: "var(--font-inter), sans-serif",
+                  fontSize: "12px",
+                  color: comp.color,
+                  whiteSpace: "nowrap",
+                  marginTop: "2px",
+                  textShadow: "0 2px 6px rgba(0,0,0,0.9)"
+                }}
+              >
+                {comp.openRoles} open {comp.openRoles === 1 ? "role" : "roles"}
+              </div>
             </Html>
           </mesh>
         );
@@ -254,7 +254,7 @@ function GraphNetwork({ realJobs }: { realJobs: GraphJob[] }) {
             key={job.id}
             ref={(el) => { jobRefs.current[i] = el; }}
           >
-            <sphereGeometry args={[0.05, 8, 8]} />
+            <sphereGeometry args={[0.09, 12, 12]} />
             <meshBasicMaterial color="#ffffff" transparent opacity={opacity} />
           </mesh>
         );
@@ -298,12 +298,13 @@ function DynamicLine({ company, job, opacity }: { company: any, job: any, opacit
 export default function CareerNetworkGraph({ jobs = [] }: { jobs?: GraphJob[] }) {
   const isMobile = useIsMobile();
   return (
-    <div className="w-full h-[180px] md:h-[300px] relative pointer-events-auto">
+    <div className="w-full h-[280px] md:h-[460px] relative pointer-events-auto">
       <Canvas3DWrapper
-        camera={{ position: [0, 0, 8], fov: 60 }}
+        camera={{ position: [0, 0, 7], fov: 55 }}
         dpr={[1, 2]}
       >
-        <ambientLight intensity={0.5} />
+        <ambientLight intensity={0.7} />
+        <pointLight position={[0, 0, 6]} intensity={0.6} />
         {/* key remounts the graph (resetting per-node refs) when the real
             job set arrives or changes size */}
         <GraphNetwork key={jobs.length} realJobs={jobs} />
