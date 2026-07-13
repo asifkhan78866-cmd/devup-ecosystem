@@ -269,7 +269,7 @@ export default function JobDetailPage() {
         }}
       />
 
-      <div className="relative max-w-4xl mx-auto px-4 md:px-8 pt-8 pb-32">
+      <div className="relative max-w-4xl mx-auto px-4 md:px-8 pt-28 md:pt-32 pb-32">
         {/* ═══ Back nav ═══ */}
         <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}>
           <Link
@@ -690,10 +690,11 @@ export default function JobDetailPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="jd-phone" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", display: "block", marginBottom: "6px" }}>Phone (Optional)</label>
+                    <label htmlFor="jd-phone" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", display: "block", marginBottom: "6px" }}>Phone</label>
                     <input
                       id="jd-phone"
                       type="tel"
+                      required
                       value={applicantPhone}
                       onChange={(e) => setApplicantPhone(e.target.value)}
                       className="w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors"

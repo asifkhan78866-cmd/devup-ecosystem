@@ -39,6 +39,6 @@ export const applyJobSchema = z.object({
     coverLetter: z.string().optional(),
     applicantName: z.string().optional(),
     applicantEmail: z.string().email().optional().or(z.literal('')),
-    applicantPhone: z.string().optional(),
+    applicantPhone: z.string(),
   })
 });
