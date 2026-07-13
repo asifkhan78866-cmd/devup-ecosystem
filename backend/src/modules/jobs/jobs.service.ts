@@ -8,10 +8,16 @@ export class JobsService {
     const { page = 1, limit = 10, type, domain, search, startupId } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const where: any = { isActive: true };
+    const where: any = {};
+    // When fetching by startupId (dashboard), show all jobs including inactive.
+    // Otherwise, only show active jobs (public listing).
+    if (startupId) {
+      where.startupId = startupId;
+    } else {
+      where.isActive = true;
+    }
     if (type) where.type = type;
     if (domain) where.domain = domain;
-    if (startupId) where.startupId = startupId;
     if (search) {
       where.OR = [
         { title: { contains: search, mode: "insensitive" } },
@@ -20,7 +26,16 @@ export class JobsService {
     }
 
     const [data, total] = await Promise.all([
-      prisma.job.findMany({ where, skip, take: Number(limit), orderBy: { createdAt: "desc" }, include: { startup: { select: { id: true, name: true, logoUrl: true } } } }),
+      prisma.job.findMany({
+        where,
+        skip,
+        take: Number(limit),
+        orderBy: { createdAt: "desc" },
+        include: {
+          startup: { select: { id: true, name: true, logoUrl: true } },
+          _count: { select: { applications: true } },
+        },
+      }),
       prisma.job.count({ where })
     ]);
 

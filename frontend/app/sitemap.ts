@@ -47,6 +47,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Continue with empty startup URLs
   }
 
+  // Fetch jobs for individual career pages
+  let jobUrls: MetadataRoute.Sitemap = [];
+  try {
+    const jobsRes = await fetch(`${API}/api/jobs?limit=100`, {
+      next: { revalidate: 3600 },
+    });
+    const jobsData = await jobsRes.json();
+    const jobs = jobsData.data || [];
+    jobUrls = jobs.map((j: any) => ({
+      url: `${BASE_URL}/careers/${j.id}`,
+      lastModified: new Date(j.updatedAt || j.createdAt),
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+    }));
+  } catch {
+    // Continue with empty job URLs
+  }
+
   return [
     {
       url: BASE_URL,
@@ -92,6 +110,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...hackathonUrls,
     ...startupUrls,
+    ...jobUrls,
   ];
 }
 

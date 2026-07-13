@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, Loader2, Search, Filter } from "lucide-react";
+import { motion } from "framer-motion";
+import { Upload, Loader2, Search, Filter, Share2, Check, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PageControls from "@/components/PageControls";
 import MobileBottomSheet from "@/components/MobileBottomSheet";
-import { useAuth } from "@/lib/auth/AuthProvider";
 
 const CareerNetworkGraph = dynamic(
   () => import("@/components/3d/CareerNetworkGraph"),
@@ -28,33 +28,42 @@ function timeAgo(dateStr: string): string {
   return `${weeks}w ago`;
 }
 
+/* Small share button on each card */
+function CardShareButton({ jobId, jobTitle, company }: { jobId: string; jobTitle: string; company: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleShare(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}/careers/${jobId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <button
+      onClick={handleShare}
+      title="Copy share link"
+      className="p-2 rounded-lg border border-white/[0.06] bg-white/[0.03] transition-all duration-200 hover:border-[#c8f135]/30 hover:bg-[#c8f135]/5 hover:scale-110 active:scale-95"
+    >
+      {copied ? (
+        <Check className="w-3.5 h-3.5 text-[#c8f135]" />
+      ) : (
+        <Share2 className="w-3.5 h-3.5 text-[#6b6b6b]" />
+      )}
+    </button>
+  );
+}
+
 export default function CareersPage() {
-  const { session, user } = useAuth();
   const [activeTab, setActiveTab] = useState("Full-time Jobs");
   const [stipendValue, setStipendValue] = useState(50);
-  const [selectedJob, setSelectedJob] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [searchQuery, setSearchQuery] = useState("");
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
-
-  // Application form state
-  const [applicantName, setApplicantName] = useState("");
-  const [applicantEmail, setApplicantEmail] = useState("");
-  const [applicantPhone, setApplicantPhone] = useState("");
-  const [coverLetter, setCoverLetter] = useState("");
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-
-  useEffect(() => {
-    if (user) {
-      setApplicantName(user.name || (user as any).profile?.name || "");
-      setApplicantEmail(user.email || "");
-    }
-  }, [user]);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/jobs`)
@@ -79,50 +88,6 @@ export default function CareersPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
-
-  const handleApply = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!session?.access_token || !selectedJob) return;
-
-    setSubmitting(true);
-    setSubmitError("");
-    setSubmitSuccess(false);
-
-    try {
-      const formData = new FormData();
-      formData.append("coverLetter", coverLetter);
-      formData.append("applicantName", applicantName);
-      formData.append("applicantEmail", applicantEmail);
-      formData.append("applicantPhone", applicantPhone);
-      
-      if (resumeFile) {
-        formData.append("resume", resumeFile);
-      }
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/jobs/${selectedJob.id}/apply`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        },
-        body: formData
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setSubmitSuccess(true);
-        // Reset form except for name/email
-        setCoverLetter("");
-        setApplicantPhone("");
-        setResumeFile(null);
-      } else {
-        setSubmitError(data.error || "Failed to apply for job.");
-      }
-    } catch (err: any) {
-      setSubmitError(err.message || "An error occurred.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -326,11 +291,10 @@ export default function CareersPage() {
               }
 
               return (
-                <button
+                <Link
                   key={job.id}
-                  type="button"
-                  onClick={() => setSelectedJob(job)}
-                  className="group relative flex flex-col sm:flex-row sm:items-center gap-4 bg-[#111111] border border-white/5 rounded-[12px] p-5 cursor-pointer transition-all duration-200 hover:border-white/15 hover:translate-x-1"
+                  href={`/careers/${job.id}`}
+                  className="group relative flex flex-col sm:flex-row sm:items-center gap-4 bg-[#111111] border border-white/5 rounded-[12px] p-5 cursor-pointer transition-all duration-200 hover:border-white/15 hover:translate-x-1 no-underline"
                 >
                   <div className="absolute left-[-1px] top-4 bottom-4 w-[4px] bg-[#c8f135] rounded-r-md opacity-0 group-hover:opacity-100 transition-opacity" />
                   
@@ -364,14 +328,17 @@ export default function CareersPage() {
                     <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#3d3d3d" }}>
                       {job.date}
                     </div>
-                    <span
-                      className="px-3.5 py-1.5 bg-[#c8f135] text-black font-semibold rounded-[6px]"
-                      style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
-                    >
-                      Quick Apply
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <CardShareButton jobId={job.id} jobTitle={job.role} company={job.company} />
+                      <span
+                        className="px-3.5 py-1.5 bg-[#c8f135] text-black font-semibold rounded-[6px] transition-all group-hover:shadow-[0_0_20px_rgba(200,241,53,0.2)]"
+                        style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
+                      >
+                        View & Apply
+                      </span>
+                    </div>
                   </div>
-                </button>
+                </Link>
               );
             })}
 
@@ -483,160 +450,6 @@ export default function CareersPage() {
         </div>
       </MobileBottomSheet>
     </div>
-
-      {/* Job Slide-up Panel */}
-      <AnimatePresence>
-        {selectedJob && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-              onClick={() => setSelectedJob(null)}
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed max-lg:bottom-[calc(64px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 max-h-[85vh] bg-[#0a0a0a] border-t border-white/10 rounded-t-[24px] z-50 overflow-y-auto"
-              style={{ boxShadow: "0 -20px 40px rgba(0,0,0,0.5)" }}
-            >
-              <div className="max-w-3xl mx-auto p-6 md:p-10 relative">
-                <button 
-                  onClick={() => setSelectedJob(null)}
-                  className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-[#6b6b6b] hover:text-white transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-                
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-[56px] h-[56px] bg-[#111111] rounded-[12px] flex items-center justify-center shrink-0 border border-white/10">
-                    <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "24px", fontWeight: 700, color: "#fff" }}>{selectedJob.logo}</span>
-                  </div>
-                  <div>
-                    <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "24px", fontWeight: 700, color: "#fff", marginBottom: "4px" }}>
-                      {selectedJob.role}
-                    </h2>
-                    <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#a1a1a1" }}>
-                      {selectedJob.company} · {selectedJob.location}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="prose prose-invert max-w-none mb-10" style={{ fontFamily: "var(--font-inter), sans-serif", color: "#a1a1a1" }}>
-                  <h3 style={{ color: "#fff", fontFamily: "var(--font-syne), sans-serif" }}>About the role</h3>
-                  <p style={{ whiteSpace: "pre-wrap" }}>
-                    {selectedJob.description || "No description provided."}
-                  </p>
-                  {selectedJob.skills?.length > 0 && (
-                    <>
-                      <h3 style={{ color: "#fff", fontFamily: "var(--font-syne), sans-serif" }}>Requirements</h3>
-                      <ul className="text-[14px]">
-                        {selectedJob.skills.map((skill: string, i: number) => (
-                          <li key={i}>{skill}</li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-                </div>
-                
-                <form onSubmit={handleApply} className="bg-[#111111] border border-white/5 rounded-[16px] p-6 mb-6">
-                  <h3 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "18px", color: "#fff", marginBottom: 16 }}>Apply for this role</h3>
-                  
-                  {submitSuccess ? (
-                    <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 mb-4">
-                      Application submitted successfully!
-                    </div>
-                  ) : (
-                    <div className="space-y-4 mt-4">
-                      {submitError && (
-                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-                          {submitError}
-                        </div>
-                      )}
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="applicantName" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Full Name</label>
-                          <input 
-                            id="applicantName"
-                            type="text"
-                            required
-                            value={applicantName}
-                            onChange={e => setApplicantName(e.target.value)}
-                            className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors"
-                            placeholder="John Doe"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="applicantEmail" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Email</label>
-                          <input 
-                            id="applicantEmail"
-                            type="email"
-                            required
-                            value={applicantEmail}
-                            onChange={e => setApplicantEmail(e.target.value)}
-                            className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors"
-                            placeholder="john@example.com"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label htmlFor="applicantPhone" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Phone Number (Optional)</label>
-                        <input 
-                          id="applicantPhone"
-                          type="tel"
-                          value={applicantPhone}
-                          onChange={e => setApplicantPhone(e.target.value)}
-                          className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors"
-                          placeholder="+1 (555) 000-0000"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="resume" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Resume (Optional if in profile)</label>
-                        <input 
-                          id="resume"
-                          type="file"
-                          accept=".pdf,.doc,.docx"
-                          onChange={e => setResumeFile(e.target.files?.[0] || null)}
-                          className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#c8f135]/10 file:text-[#c8f135] hover:file:bg-[#c8f135]/20"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="coverNote" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Cover Note (Optional)</label>
-                        <textarea 
-                          id="coverNote"
-                          value={coverLetter}
-                          onChange={e => setCoverLetter(e.target.value)}
-                          className="w-full bg-[#0a0a0a] border border-white/10 rounded-[10px] p-4 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors resize-none h-[100px]"
-                          placeholder="Why are you a good fit?"
-                        />
-                      </div>
-                      
-                      <button 
-                        type="submit"
-                        disabled={submitting || !session?.access_token}
-                        className="w-full py-3 bg-[#c8f135] text-black font-semibold rounded-[10px] transition-transform hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-2"
-                      >
-                        {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Submit Application"}
-                      </button>
-                      {!session?.access_token && (
-                        <p className="text-center text-sm text-[#a1a1a1] mt-2">Please login to apply.</p>
-                      )}
-                    </div>
-                  )}
-                </form>
-                
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
 
     </div>
   );
