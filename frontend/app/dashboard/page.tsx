@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { usePermissions, Permissions } from '@/hooks/usePermissions'
-import LogoutButton from '@/components/auth/logout-button'
+import LogoutButton from '@/components/auth/LogoutButton'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -12,6 +12,7 @@ import {
   Rocket, Briefcase, Trophy, Users, Settings, Bell,
   ChevronRight, Shield, Star, Zap
 } from 'lucide-react'
+import ProtectedContent from '@/components/auth/ProtectedContent'
 
 export default function DashboardPage() {
   const { user, session, loading, signOut } = useAuth()
@@ -19,11 +20,12 @@ export default function DashboardPage() {
   const isMobile = useIsMobile()
   const { isAdmin, isFounder, hasPermission } = usePermissions()
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login')
-    }
-  }, [user, loading, router])
+  // Removed redirect to let AuthGate handle it
+  // useEffect(() => {
+  //   if (!loading && !user) {
+  //     router.push('/login')
+  //   }
+  // }, [user, loading, router])
 
   if (loading) {
     return (
@@ -42,7 +44,13 @@ export default function DashboardPage() {
     )
   }
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <ProtectedContent blurRadius={12} message="Login to View Dashboard">
+        <GuestDashboardPreview isMobile={isMobile} />
+      </ProtectedContent>
+    )
+  }
 
   const roleLabel: Record<string, string> = {
     STUDENT: 'Student',
@@ -547,5 +555,91 @@ function GenericDashboard({ role }: { role: string }) {
         {info.action}
       </a>
     </div>
+  )
+}
+
+function GuestDashboardPreview({ isMobile }: { isMobile: boolean }) {
+  return (
+    <main style={{
+      minHeight: '100vh', background: '#0a0a0a',
+      paddingTop: 112, paddingBottom: 96,
+    }}>
+      <div style={{
+        maxWidth: 1200, margin: '0 auto', padding: isMobile ? '24px 20px' : '40px 32px',
+      }}>
+        
+        {/* Fake Profile Card */}
+        <div style={{
+            background: '#111111',
+            border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 20,
+            padding: isMobile ? 24 : 32,
+            marginBottom: 32,
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'center' : 'flex-start',
+            gap: 24,
+          }}>
+          <div style={{
+            width: 80, height: 80, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #c8f135 0%, #4ade80 100%)',
+          }} />
+          <div style={{ flex: 1, textAlign: isMobile ? 'center' : 'left' }}>
+            <div style={{ width: 160, height: 32, background: 'rgba(255,255,255,0.1)', borderRadius: 8, marginBottom: 12 }} />
+            <div style={{ width: 120, height: 16, background: 'rgba(255,255,255,0.05)', borderRadius: 4, marginBottom: 16 }} />
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: isMobile ? 'center' : 'flex-start' }}>
+              <div style={{ width: 80, height: 24, background: 'rgba(200,241,53,0.1)', borderRadius: 999 }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Fake Quick Actions */}
+        <h2 style={{
+          fontFamily: 'Syne, sans-serif',
+          fontSize: 18, fontWeight: 700,
+          color: '#ffffff', marginBottom: 16,
+        }}>
+          Quick Actions
+        </h2>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
+          gap: 12,
+          marginBottom: 32,
+        }}>
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{
+              height: 60,
+              background: '#111111',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 12,
+            }} />
+          ))}
+        </div>
+
+        {/* Fake Dashboard Content */}
+        <h2 style={{
+          fontFamily: 'Syne, sans-serif',
+          fontSize: 18, fontWeight: 700,
+          color: '#ffffff', marginBottom: 16,
+        }}>
+          Your Activity
+        </h2>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)',
+          gap: 16,
+        }}>
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{
+              height: 120,
+              background: '#111111',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 14,
+            }} />
+          ))}
+        </div>
+      </div>
+    </main>
   )
 }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { motion, AnimatePresence } from "framer-motion";
+import LogoutButton from "@/components/auth/LogoutButton";
 import {
   Globe2, Briefcase, Trophy, Users, Hammer, Rocket,
   LayoutDashboard, LogIn, LogOut
@@ -101,18 +102,6 @@ export function Navbar() {
       <div className="desktop-nav-links" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 16 }}>
         {loading ? null : user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {user.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt={user.name}
-                style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <span style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 13, fontWeight: 500, color: '#888888' }}>
-                {user.name.split(' ')[0]}
-              </span>
-            )}
             <Link href="/dashboard" style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '8px 18px', background: 'rgba(200,241,53,0.08)',
@@ -131,26 +120,7 @@ export function Navbar() {
               <LayoutDashboard size={14} strokeWidth={2} />
               Dashboard
             </Link>
-            <button onClick={signOut} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '8px 18px', background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10,
-              color: '#888888', fontFamily: 'var(--font-inter), sans-serif', fontSize: 13,
-              fontWeight: 500, cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                e.currentTarget.style.color = '#ffffff';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#888888';
-              }}
-            >
-              <LogOut size={14} strokeWidth={2} />
-              Sign out
-            </button>
+            <LogoutButton />
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

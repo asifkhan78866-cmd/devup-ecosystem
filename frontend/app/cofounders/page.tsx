@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, UserPlus, X, Code2, Palette, Megaphone, Settings, Briefcase, Box, Loader2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import AuthGate from "@/components/auth/AuthGate";
 
 const CofounderField = dynamic(
   () => import("@/components/3d/CofounderField"),
@@ -328,12 +329,14 @@ export default function CoFoundersPage() {
                   </div>
                 </div>
 
-                <button 
-                  className="w-full py-2.5 bg-[#c8f135] text-black font-semibold rounded-[8px] transition-transform group-hover:scale-[1.02]"
-                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
-                >
-                  Connect →
-                </button>
+                <AuthGate>
+                  <button 
+                    className="w-full py-2.5 bg-[#c8f135] text-black font-semibold rounded-[8px] transition-transform group-hover:scale-[1.02]"
+                    style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
+                  >
+                    Connect →
+                  </button>
+                </AuthGate>
               </div>
             ))}
           </div>

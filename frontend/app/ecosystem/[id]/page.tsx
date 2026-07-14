@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ExternalLink, ShieldCheck } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import ProtectedContent from "@/components/auth/ProtectedContent";
+import AuthGate from "@/components/auth/AuthGate";
 import AiAnalysisSection from "@/components/startup/AiAnalysisSection";
 import StartupGallery from "@/components/startup/StartupGallery";
 
@@ -407,57 +409,59 @@ export default function StartupProfilePage() {
                 )}
 
                 {activeTab === "Team" && (
-                  <div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-                      {startup.team.length > 0 ? startup.team.map((founder: any) => (
-                        <div 
-                          key={founder.seed}
-                          className="bg-[#111111] border border-white/5 rounded-[16px] p-5 flex flex-col gap-4"
-                        >
-                          <div className="flex items-start justify-between">
-                            <img 
-                              src={`https://api.dicebear.com/7.x/notionists/svg?seed=${founder.seed}&backgroundColor=0a0a0a`}
-                              alt={founder.name} 
-                              className="w-[56px] h-[56px] rounded-[12px] border border-white/10"
-                            />
-                            {founder.linkedin !== '#' && (
-                              <a href={founder.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#6b6b6b] hover:text-[#c8f135] transition-colors p-2">
-                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                              </a>
-                            )}
+                  <ProtectedContent blurRadius={12} message="Unlock to view Team Details">
+                    <div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                        {startup.team.length > 0 ? startup.team.map((founder: any) => (
+                          <div 
+                            key={founder.seed}
+                            className="bg-[#111111] border border-white/5 rounded-[16px] p-5 flex flex-col gap-4"
+                          >
+                            <div className="flex items-start justify-between">
+                              <img 
+                                src={`https://api.dicebear.com/7.x/notionists/svg?seed=${founder.seed}&backgroundColor=0a0a0a`}
+                                alt={founder.name} 
+                                className="w-[56px] h-[56px] rounded-[12px] border border-white/10"
+                              />
+                              {founder.linkedin !== '#' && (
+                                <a href={founder.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#6b6b6b] hover:text-[#c8f135] transition-colors p-2">
+                                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                </a>
+                              )}
+                            </div>
+                            <div>
+                              <h4 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "16px", fontWeight: 700, color: "#fff" }}>
+                                {founder.name}
+                              </h4>
+                              <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#c8f135", marginBottom: "8px" }}>
+                                {founder.role}
+                              </p>
+                              <p 
+                                className="line-clamp-3"
+                                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", lineHeight: 1.5 }}
+                              >
+                                {founder.bio}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "16px", fontWeight: 700, color: "#fff" }}>
-                              {founder.name}
-                            </h4>
-                            <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#c8f135", marginBottom: "8px" }}>
-                              {founder.role}
-                            </p>
-                            <p 
-                              className="line-clamp-3"
-                              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", lineHeight: 1.5 }}
-                            >
-                              {founder.bio}
-                            </p>
+                        )) : (
+                          <div className="col-span-full py-10 text-center text-[#6b6b6b]">
+                            Team information not available.
                           </div>
+                        )}
+                      </div>
+                      
+                      {/* Inline DNA element */}
+                      <div className="mt-8 border-t border-white/5 pt-8">
+                        <h3 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "16px", color: "#6b6b6b", marginBottom: "16px" }}>Startup DNA</h3>
+                        <div className="w-full bg-[#0a0a0a] rounded-[16px] border border-white/5 overflow-hidden">
+                          <ErrorBoundary>
+                            <StartupDNA color={startup.color} />
+                          </ErrorBoundary>
                         </div>
-                      )) : (
-                        <div className="col-span-full py-10 text-center text-[#6b6b6b]">
-                          Team information not available.
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Inline DNA element */}
-                    <div className="mt-8 border-t border-white/5 pt-8">
-                      <h3 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "16px", color: "#6b6b6b", marginBottom: "16px" }}>Startup DNA</h3>
-                      <div className="w-full bg-[#0a0a0a] rounded-[16px] border border-white/5 overflow-hidden">
-                        <ErrorBoundary>
-                          <StartupDNA color={startup.color} />
-                        </ErrorBoundary>
                       </div>
                     </div>
-                  </div>
+                  </ProtectedContent>
                 )}
 
                 {activeTab === "Open Roles" && (
@@ -497,12 +501,14 @@ export default function StartupProfilePage() {
                             )}
                           </div>
                         </div>
-                        <button 
-                          className="whitespace-nowrap px-4 py-2 bg-[#c8f135] text-black font-semibold rounded-[8px] transition-transform duration-200 hover:scale-[1.02]"
-                          style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
-                        >
-                          <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">Apply →</span>
-                        </button>
+                        <AuthGate>
+                          <button 
+                            className="whitespace-nowrap px-4 py-2 bg-[#c8f135] text-black font-semibold rounded-[8px] transition-transform duration-200 hover:scale-[1.02]"
+                            style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
+                          >
+                            <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">Apply →</span>
+                          </button>
+                        </AuthGate>
                       </div>
                     )) : (
                       <div className="py-16 text-center text-[#6b6b6b]">

@@ -15,6 +15,9 @@ const IntroAnimation = dynamic(
   { ssr: false }
 );
 
+import { AuthGateProvider } from "@/hooks/useAuthGate";
+import AuthModal from "@/components/auth/AuthModal";
+
 export default function LayoutClient({
   children,
 }: {
@@ -42,15 +45,18 @@ export default function LayoutClient({
   return (
     <Providers>
       <AuthProvider>
-        <SmoothScrollProvider>
-          <IntroAnimation />
-          <Navbar />
-          <MobilePageTransition>
-            <main className="flex-1 relative z-10">{children}</main>
-          </MobilePageTransition>
-          <MobileBottomNav />
-          <Footer />
-        </SmoothScrollProvider>
+        <AuthGateProvider>
+          <SmoothScrollProvider>
+            <IntroAnimation />
+            <Navbar />
+            <MobilePageTransition>
+              <main className="flex-1 relative z-10">{children}</main>
+            </MobilePageTransition>
+            <MobileBottomNav />
+            <Footer />
+            <AuthModal />
+          </SmoothScrollProvider>
+        </AuthGateProvider>
       </AuthProvider>
     </Providers>
   );

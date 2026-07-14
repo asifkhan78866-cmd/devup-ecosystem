@@ -60,21 +60,10 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse
   }
 
-  // Hard-protected routes: redirect to login
-  if (PROTECTED_ROUTES.some(route => path.startsWith(route))) {
-    if (!user) {
-      const redirectUrl = new URL('/login', request.url)
-      redirectUrl.searchParams.set('redirect', path)
-      return NextResponse.redirect(redirectUrl)
-    }
-  }
-
-  // Soft-protected routes: redirect to login (but allow public listing pages)
-  if (SOFT_PROTECTED.some(route => path === route || (path.startsWith(route + '/') && !path.endsWith('/new')))) {
-    // Allow browsing, but specific actions need auth (handled client-side)
-  }
-
-  // Auth routes: redirect logged-in users to dashboard
+  // All routes are now soft-protected or fully protected on the client side
+  // using AuthGate and ProtectedContent. We no longer redirect to /login.
+  
+  // Auth routes (login/signup) still redirect logged-in users to dashboard
   if (AUTH_ROUTES.some(route => path.startsWith(route))) {
     if (user) {
       return NextResponse.redirect(new URL('/dashboard', request.url))

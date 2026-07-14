@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { Download, FileText, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import ProtectedContent from "@/components/auth/ProtectedContent";
 
 export default function ApplicationsPage() {
   const { user, session, loading: authLoading } = useAuth();
@@ -39,8 +40,9 @@ export default function ApplicationsPage() {
   if (authLoading || loading) return <div className="p-8 text-white min-h-screen bg-[#0a0a0a]">Loading applications...</div>;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] pt-28 pb-24">
-      <div className="max-w-6xl mx-auto px-6 md:px-8">
+    <ProtectedContent blurRadius={12} message="Login to View Applications">
+      <div className="min-h-screen bg-[#0a0a0a] pt-28 pb-24">
+        <div className="max-w-6xl mx-auto px-6 md:px-8">
         <div className="mb-8 flex justify-between items-end">
           <div>
             <Link href="/dashboard" className="text-[#c8f135] text-sm hover:underline mb-4 inline-block">
@@ -134,6 +136,6 @@ export default function ApplicationsPage() {
           )}
         </div>
       </div>
-    </div>
+    </ProtectedContent>
   );
 }
