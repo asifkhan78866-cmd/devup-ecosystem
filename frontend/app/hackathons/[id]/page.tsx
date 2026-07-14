@@ -96,9 +96,11 @@ const LOGISTICS_ICONS: Record<string, LucideIcon> = {
   wifi: Wifi, internet: Wifi,
   support: Users, users: Users,
   clock: Clock, calendar: Calendar, trophy: Trophy,
+  mappin: MapPin, location: MapPin
 };
 
 const LOGISTICS = [
+  { icon: "location", label: "Venue", desc: "Vidya Jyothi Institute Of Technology" },
   { icon: "shield", label: "Accommodation", desc: "Separate male/female dorms on campus" },
   { icon: "meals", label: "5 Meals + Refreshments", desc: "24/7 snacks, tea, coffee, energy drinks" },
   { icon: "wifi", label: "1 Gbps Internet", desc: "Dedicated fiber + power backup" },
@@ -308,9 +310,10 @@ function RegisterModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[300] flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-[300] overflow-y-auto pointer-events-none"
           >
-            <div className="w-full max-w-lg bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl overflow-y-auto overflow-x-hidden max-h-[90dvh] overscroll-contain pointer-events-auto">
+            <div className="min-h-full flex items-center justify-center p-4">
+              <div className="w-full max-w-lg bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl pointer-events-auto my-8">
               {step === "form" ? (
                 <div className="p-6">
                   <h2
@@ -589,6 +592,7 @@ function RegisterModal({
                   </button>
                 </div>
               )}
+              </div>
             </div>
           </motion.div>
         </>
@@ -748,8 +752,8 @@ export default function HackathonDetailPage() {
               <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
               <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Dates</span><span className="flex items-center gap-1.5 font-medium"><Calendar className="w-4 h-4 text-[#c8f135]" /> {startDate} – {endDate}</span></div>
               <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
-              {hackathon.location && (
-                <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Location</span><span className="flex items-center gap-1.5 font-medium"><MapPin className="w-4 h-4 text-[#c8f135]" /> {hackathon.location}</span></div>
+              {(hackathon.location || "Vidya Jyothi Institute Of Technology") && (
+                <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Location</span><span className="flex items-center gap-1.5 font-medium"><MapPin className="w-4 h-4 text-[#c8f135]" /> {hackathon.location || "Vidya Jyothi Institute Of Technology"}</span></div>
               )}
               {hackathon.registrationFee && (
                 <>

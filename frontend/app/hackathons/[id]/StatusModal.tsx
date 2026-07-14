@@ -105,9 +105,10 @@ export default function StatusModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[300] flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-[300] overflow-y-auto pointer-events-none"
           >
-            <div className="w-full max-w-md bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl p-6 overflow-y-auto overflow-x-hidden max-h-[90dvh] overscroll-contain pointer-events-auto">
+            <div className="min-h-full flex items-center justify-center p-4">
+              <div className="w-full max-w-md bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl p-6 pointer-events-auto my-8">
               <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
                 Check Phase 1 Status
               </h2>
@@ -206,6 +207,7 @@ export default function StatusModal({
                   </button>
                 </div>
               )}
+              </div>
             </div>
           </motion.div>
         </>
