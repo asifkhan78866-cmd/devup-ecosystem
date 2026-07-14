@@ -39,6 +39,7 @@ export default function Hackathons() {
   const [showAdd, setShowAdd] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showRegistrations, setShowRegistrations] = useState<string | null>(null)
+  const [showSubmissions, setShowSubmissions] = useState<{ id: string, name: string } | null>(null)
   const [showPartners, setShowPartners] = useState<{ id: string, name: string } | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [domainInput, setDomainInput] = useState('')
@@ -229,12 +230,18 @@ export default function Hackathons() {
                     </td>
                     <td className="px-6 py-4"><Badge label={h.mode} /></td>
                     <td className="px-6 py-4 text-sm text-gray-400">{h.prizePool}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 flex flex-col gap-2">
                       <button 
                         onClick={() => setShowRegistrations(h.id)}
                         className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-colors text-sm font-medium"
                       >
                         {h._count?.leads || 0} Leads <span className="text-xs opacity-75">View →</span>
+                      </button>
+                      <button 
+                        onClick={() => setShowSubmissions({ id: h.id, name: h.title })}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 rounded-lg hover:bg-yellow-500/20 hover:text-yellow-300 transition-colors text-sm font-medium"
+                      >
+                        Submissions <span className="text-xs opacity-75">Phase 1 →</span>
                       </button>
                     </td>
                     <td className="px-6 py-4">
@@ -430,6 +437,14 @@ export default function Hackathons() {
       )}
 
       {/* Partners Modal */}
+      {showSubmissions && (
+        <SubmissionsModal
+          hackathonId={showSubmissions.id}
+          hackathonName={showSubmissions.name}
+          onClose={() => setShowSubmissions(null)}
+        />
+      )}
+
       {showPartners && (
         <PartnersModal
           hackathon={showPartners}
@@ -532,7 +547,16 @@ function RegistrationsModal({ hackathonId, onClose, hackathonName }: { hackathon
                 {filteredLeads.map((l: any, i: number) => (
                   <tr key={l.id} className="border-b border-white/5 hover:bg-white/[0.02]">
                     <td className="px-4 py-3 text-sm text-gray-500">{i + 1}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-white">{l.name}</td>
+                    <td className="px-4 py-3">
+                      {l.teamName ? (
+                        <>
+                          <div className="text-sm font-bold text-[#c8f135]">{l.teamName}</div>
+                          <div className="text-xs text-white font-medium mt-0.5">Lead: {l.name}</div>
+                        </>
+                      ) : (
+                        <div className="text-sm font-medium text-white">{l.name}</div>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-400">{l.phone}</td>
                     <td className="px-4 py-3 text-sm text-gray-400">{l.teamCount}</td>
                     <td className="px-4 py-3 text-sm text-gray-400">{l.college}</td>
@@ -666,6 +690,117 @@ function PartnersModal({ hackathon, onClose }: { hackathon: { id: string, name: 
                     <td className="px-4 py-3 text-white">{p.name}</td>
                     <td className="px-4 py-3 text-right">
                       <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300" onClick={() => deleteMutation.mutate(p.id)}>Remove</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+function SubmissionsModal({ hackathonId, onClose, hackathonName }: { hackathonId: string, onClose: () => void, hackathonName: string }) {
+  const queryClient = useQueryClient()
+  
+  const { data, isLoading } = useQuery({
+    queryKey: ['hackathon-submissions', hackathonId],
+    queryFn: async () => {
+      const res = await api.get(`/api/hackathons/${hackathonId}/submissions`)
+      return res.data
+    },
+    enabled: !!hackathonId
+  })
+
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string, status: string }) => {
+      await api.patch(`/api/hackathons/${hackathonId}/submissions/${id}/status`, { status })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hackathon-submissions', hackathonId] })
+      toast.success('Status updated')
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to update status')
+    }
+  })
+
+  const submissions = data?.data || []
+
+  return (
+    <Modal isOpen={true} onClose={onClose} title={`Phase 1 Submissions: ${hackathonName}`}>
+      <div className="space-y-4">
+        <div className="bg-[#0d0d0d] border border-white/5 rounded-xl overflow-x-auto max-h-[70vh] overflow-y-auto">
+          {isLoading ? (
+            <div className="p-8 space-y-3">
+              {[...Array(5)].map((_, i) => <div key={i} className="h-10 bg-white/5 rounded-lg animate-pulse" />)}
+            </div>
+          ) : submissions.length === 0 ? (
+            <div className="p-12 text-center text-gray-500 text-sm">
+              No submissions yet.
+            </div>
+          ) : (
+            <table className="w-full whitespace-nowrap">
+              <thead className="sticky top-0 bg-[#0d0d0d] z-10 shadow-[0_1px_0_0_rgba(255,255,255,0.05)]">
+                <tr>
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 py-3">Team/Lead</th>
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 py-3">File</th>
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 py-3">Submitted At</th>
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 py-3">Status</th>
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {submissions.map((sub: any) => (
+                  <tr key={sub.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                    <td className="px-4 py-3">
+                      {sub.lead?.teamName ? (
+                        <>
+                          <div className="text-sm text-[#c8f135] font-bold">{sub.lead.teamName} <span className="text-gray-500 text-xs font-normal">({sub.lead.teamCount} members)</span></div>
+                          <div className="text-xs text-white font-medium mt-1">Lead: {sub.lead.name}</div>
+                        </>
+                      ) : (
+                        <div className="text-sm text-white font-medium">{sub.lead?.name} <span className="text-gray-500 text-xs font-normal">(Individual)</span></div>
+                      )}
+                      <div className="text-xs text-gray-500 mt-1">{sub.lead?.phone} · {sub.lead?.college}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <a href={sub.fileUrl} target="_blank" rel="noreferrer" className="text-indigo-400 hover:text-indigo-300 text-sm font-medium underline">
+                        View File
+                      </a>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-400">
+                      {format(new Date(sub.createdAt), 'dd MMM, h:mm a')}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge 
+                        label={sub.status} 
+                        color={sub.status === 'SELECTED' ? 'green' : sub.status === 'REJECTED' ? 'red' : 'gray'}
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-green-400 hover:text-green-300 bg-green-400/10 hover:bg-green-400/20"
+                          onClick={() => updateStatus.mutate({ id: sub.id, status: 'SELECTED' })}
+                          disabled={sub.status === 'SELECTED'}
+                        >
+                          Select
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-red-400 hover:text-red-300 bg-red-400/10 hover:bg-red-400/20"
+                          onClick={() => updateStatus.mutate({ id: sub.id, status: 'REJECTED' })}
+                          disabled={sub.status === 'REJECTED'}
+                        >
+                          Reject
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

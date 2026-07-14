@@ -43,4 +43,10 @@ router.patch("/:id/lead/:leadId/redirect", controller.markLeadRedirected);
 // Admin: list leads from the website
 router.get("/:id/leads", requireAuth, requireRole(["ADMIN"]), controller.getLeads);
 
+// Submissions (Phase 1)
+router.post("/:id/leads/:leadId/submission", upload.single("file"), controller.uploadSubmission);
+router.get("/:id/submissions/status", controller.getSubmissionStatus); // use query ?phone=...
+router.get("/:id/submissions", requireAuth, requireRole(["ADMIN"]), controller.getAllSubmissions);
+router.patch("/:id/submissions/:submissionId/status", requireAuth, requireRole(["ADMIN"]), controller.updateSubmissionStatus);
+
 export default router;

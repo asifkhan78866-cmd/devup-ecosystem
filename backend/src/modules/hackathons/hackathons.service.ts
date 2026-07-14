@@ -146,7 +146,7 @@ export class HackathonsService {
     return reg;
   }
 
-  async createLead(hackathonId: string, data: { name: string; phone: string; teamCount: number; college: string }) {
+  async createLead(hackathonId: string, data: { name: string; email?: string; phone: string; teamName?: string; teamCount: number; members?: { name: string; email: string; phone: string }[]; college: string }) {
     const hackathon = await prisma.hackathon.findUnique({ where: { id: hackathonId } });
     if (!hackathon?.isActive) {
       throw new AppError(404, "Hackathon not found or inactive", "HACKATHON_NOT_FOUND");
@@ -161,8 +161,11 @@ export class HackathonsService {
         data: {
           hackathonId,
           name: data.name,
+          email: data.email,
           phone: data.phone,
+          teamName: data.teamName,
           teamCount: data.teamCount,
+          members: data.members ? JSON.stringify(data.members) : undefined,
           college: data.college,
           source: "website",
         },
@@ -194,5 +197,75 @@ export class HackathonsService {
     ]);
 
     return { data: leads, meta: { total } };
+  }
+
+  async uploadSubmission(hackathonId: string, leadId: string, fileBuffer: Buffer, mimetype: string) {
+    const lead = await prisma.hackathonLead.findUnique({
+      where: { id: leadId },
+      include: { hackathon: true, submission: true }
+    });
+
+    if (!lead || lead.hackathonId !== hackathonId) {
+      throw new AppError(404, "Registration not found");
+    }
+
+    if (lead.hackathon.registrationDeadline < new Date()) {
+       throw new AppError(400, "Submission deadline has passed");
+    }
+
+    if (lead.submission) {
+      throw new AppError(400, "You have already submitted your pitch.");
+    }
+
+    const bucket = env.STORAGE_BUCKET_PITCHDECKS || "pitchdecks";
+    const path = `hackathons/${hackathonId}/submissions/${leadId}-${Date.now()}`;
+    const fileUrl = await uploadFile(bucket, path, fileBuffer, mimetype);
+
+    const submission = await prisma.hackathonSubmission.create({
+      data: {
+        leadId,
+        hackathonId,
+        fileUrl,
+        status: "PENDING"
+      }
+    });
+
+    return submission;
+  }
+
+  async getSubmissionStatusByPhone(hackathonId: string, phone: string) {
+    const lead = await prisma.hackathonLead.findUnique({
+      where: { hackathonId_phone: { hackathonId, phone } },
+      include: { submission: true }
+    });
+    
+    if (!lead) throw new AppError(404, "No registration found for this phone number");
+    
+    return {
+      id: lead.id,
+      name: lead.name,
+      teamCount: lead.teamCount,
+      college: lead.college,
+      submission: lead.submission
+    };
+  }
+
+  async getAllSubmissions(hackathonId: string) {
+    const [submissions, total] = await Promise.all([
+      prisma.hackathonSubmission.findMany({
+        where: { hackathonId },
+        include: { lead: true },
+        orderBy: { createdAt: "desc" }
+      }),
+      prisma.hackathonSubmission.count({ where: { hackathonId } })
+    ]);
+    return { data: submissions, meta: { total } };
+  }
+
+  async updateSubmissionStatus(hackathonId: string, submissionId: string, status: "PENDING" | "SELECTED" | "REJECTED") {
+    return await prisma.hackathonSubmission.update({
+      where: { id: submissionId, hackathonId },
+      data: { status }
+    });
   }
 }

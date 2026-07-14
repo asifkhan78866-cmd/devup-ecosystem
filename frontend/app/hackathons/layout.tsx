@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title:
     "Hackathons in Hyderabad 2026 | DevUp Ecosystem",
   description:
-    "Find upcoming hackathons in Hyderabad, India 2026. Student hackathons, coding competitions, ₹1,00,000+ prizes, internships & mentorship. Register on DevUp.",
+    "Find upcoming hackathons in Hyderabad, India 2026. Student hackathons, coding competitions, ₹1,50,000+ prizes, internships & mentorship. Register on DevUp.",
   keywords: [
     "hackathon in Hyderabad",
     "hackathon near me",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Hackathons in Hyderabad 2026 | DevUp Ecosystem",
     description:
-      "Upcoming hackathons, coding competitions, and startup challenges in Hyderabad and across India. ₹1,00,000+ prizes, paid internships, mentorship.",
+      "Upcoming hackathons, coding competitions, and startup challenges in Hyderabad and across India. ₹1,50,000+ prizes, paid internships, mentorship.",
     url: canonicalUrl("/hackathons"),
     siteName: seoConfig.siteName,
     images: [

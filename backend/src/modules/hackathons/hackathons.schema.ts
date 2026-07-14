@@ -88,8 +88,15 @@ export const registerHackathonSchema = z.object({
 export const leadRegistrationSchema = z.object({
   body: z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email").optional(),
     phone: z.string().regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian phone number"),
     teamCount: z.number().int().min(1).max(10),
+    teamName: z.string().optional(),
+    members: z.array(z.object({
+      name: z.string(),
+      email: z.string().email(),
+      phone: z.string()
+    })).optional(),
     college: z.string().min(2, "College must be at least 2 characters"),
   })
 });

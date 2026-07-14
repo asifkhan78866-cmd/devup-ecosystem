@@ -1,0 +1,478 @@
+// ─── REGISTER MODAL ───
+function RegisterModal({
+  isOpen,
+  onClose,
+  hackathonId,
+  registrationLink,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  hackathonId: string;
+  registrationLink: string | null;
+}) {
+  const [step, setStep] = useState<"form" | "members" | "upload" | "success">("form");
+  const [form, setForm] = useState({ name: "", email: "", phone: "", teamName: "", teamCount: 1, college: "" });
+  const [members, setMembers] = useState<{name: string, email: string, phone: string}[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [registrationId, setRegistrationId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const validateForm = () => {
+    const e: Record<string, string> = {};
+    if (form.name.trim().length < 2) e.name = "Name must be at least 2 characters";
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Invalid email";
+    if (!/^[6-9]\d{9}$/.test(form.phone)) e.phone = "Enter a valid 10-digit Indian phone number";
+    if (form.teamCount < 1 || form.teamCount > 5) e.teamCount = "Team count must be 1–5";
+    if (form.teamCount > 1 && form.teamName.trim().length < 2) e.teamName = "Team Name is required for teams";
+    if (form.college.trim().length < 2) e.college = "College must be at least 2 characters";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const validateMembers = () => {
+    const e: Record<string, string> = {};
+    members.forEach((m, i) => {
+      if (m.name.trim().length < 2) e[`member_${i}_name`] = "Required";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m.email)) e[`member_${i}_email`] = "Invalid email";
+      if (!/^[6-9]\d{9}$/.test(m.phone)) e[`member_${i}_phone`] = "Invalid phone";
+    });
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const fireConfetti = useCallback(() => {
+    const colors = ["#c8f135", "#ffffff", "#FFD700", "#a78bfa", "#38bdf8"];
+    const end = Date.now() + 2500;
+    const frame = () => {
+      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors });
+      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+    setTimeout(() => {
+      confetti({ particleCount: 100, spread: 100, origin: { y: 0.6 }, colors });
+    }, 300);
+  }, []);
+
+  const triggerRedirect = async (leadId: string) => {
+    try {
+      await fetch(`${API}/api/hackathons/${hackathonId}/lead/${leadId}/redirect`, { method: "PATCH" });
+    } catch (e) {}
+    window.open(registrationLink || GOOGLE_FORM_BASE, "_blank");
+  };
+
+  const handleNextToMembers = () => {
+    if (!validateForm()) return;
+    if (form.teamCount > 1) {
+      // Initialize members array to teamCount - 1 (since lead is 1st member)
+      const newMembers = [...members];
+      while (newMembers.length < form.teamCount - 1) {
+        newMembers.push({ name: "", email: "", phone: "" });
+      }
+      setMembers(newMembers.slice(0, form.teamCount - 1));
+      setStep("members");
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (form.teamCount > 1 && !validateMembers()) return;
+    
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API}/api/hackathons/${hackathonId}/lead`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          teamName: form.teamName.trim(),
+          teamCount: form.teamCount,
+          college: form.college.trim(),
+          members: form.teamCount > 1 ? members : undefined
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.errors?.[0]?.message || data?.error || data?.message || "Registration failed");
+      const newLeadId = data.data?.registrationId || null;
+      setRegistrationId(newLeadId);
+      setStep("upload");
+    } catch (err: any) {
+      setErrors({ submit: err.message || "Something went wrong" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUploadSubmit = async () => {
+    if (!file) {
+      setErrors({ upload: "Please select a file to upload" });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setErrors({ upload: "File must be smaller than 10MB" });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`${API}/api/hackathons/${hackathonId}/leads/${registrationId}/submission`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || data?.message || "Upload failed");
+      
+      setStep("success");
+      fireConfetti();
+      setTimeout(() => {
+        if (registrationId) triggerRedirect(registrationId);
+      }, 2500);
+    } catch (err: any) {
+      setErrors({ upload: err.message || "Upload failed" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const skipUpload = () => {
+    setStep("success");
+    fireConfetti();
+    setTimeout(() => {
+      if (registrationId) triggerRedirect(registrationId);
+    }, 2500);
+  };
+
+  const handleContinueToForm = () => {
+    if (registrationId) triggerRedirect(registrationId);
+    else window.open(registrationLink || GOOGLE_FORM_BASE, "_blank");
+  };
+
+  // Reset on open
+  useEffect(() => {
+    if (isOpen) {
+      setStep("form");
+      setForm({ name: "", email: "", phone: "", teamName: "", teamCount: 1, college: "" });
+      setMembers([]);
+      setErrors({});
+      setRegistrationId(null);
+    }
+  }, [isOpen]);
+
+  const inputClass =
+    "w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white text-base md:text-sm outline-none focus:border-[#c8f135]/50 transition-colors placeholder:text-[#4a4a4a]";
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[300]"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+          >
+            <div className="w-full max-w-lg bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl overflow-y-auto overflow-x-hidden max-h-[90dvh]">
+              {step === "form" ? (
+                <div className="p-6">
+                  <h2
+                    className="text-xl font-bold text-white mb-1"
+                    style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                  >
+                    Register Now
+                  </h2>
+                  <p
+                    className="text-sm text-[#6b6b6b] mb-6"
+                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                  >
+                    Secure your spot — {registrationLink?.includes("whatsapp") ? "we'll redirect you to the official WhatsApp group next." : "we'll redirect you to the official form next."}
+                  </p>
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-[#888] mb-1.5">Full Name (Lead) *</label>
+                        <input
+                          value={form.name}
+                          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                          className={inputClass}
+                          placeholder="Your full name"
+                        />
+                        {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-xs text-[#888] mb-1.5">Email Address</label>
+                        <input
+                          type="email"
+                          value={form.email}
+                          onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                          className={inputClass}
+                          placeholder="Lead's email"
+                        />
+                        {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-[#888] mb-1.5">Phone Number (WhatsApp) *</label>
+                      <input
+                        value={form.phone}
+                        onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))}
+                        className={inputClass}
+                        placeholder="10-digit Indian phone number"
+                        inputMode="numeric"
+                      />
+                      {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-[#888] mb-1.5">Team Size (max 5) *</label>
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setForm((p) => ({ ...p, teamCount: Math.max(1, p.teamCount - 1) }))}
+                            className="w-12 h-12 rounded-xl bg-[#111] border border-white/10 text-white text-xl font-bold flex items-center justify-center hover:bg-white/5 active:scale-95 transition-all"
+                          >
+                            −
+                          </button>
+                          <div
+                            className="flex-1 h-12 bg-[#111] border border-white/10 rounded-xl flex items-center justify-center text-white text-lg font-bold"
+                            style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                          >
+                            {form.teamCount}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setForm((p) => ({ ...p, teamCount: Math.min(5, p.teamCount + 1) }))}
+                            className="w-12 h-12 rounded-xl bg-[#111] border border-white/10 text-white text-xl font-bold flex items-center justify-center hover:bg-white/5 active:scale-95 transition-all"
+                          >
+                            +
+                          </button>
+                        </div>
+                        {errors.teamCount && <p className="text-red-400 text-xs mt-1">{errors.teamCount}</p>}
+                      </div>
+                      
+                      {form.teamCount > 1 && (
+                        <div>
+                          <label className="block text-xs text-[#888] mb-1.5">Team Name *</label>
+                          <input
+                            value={form.teamName}
+                            onChange={(e) => setForm((p) => ({ ...p, teamName: e.target.value }))}
+                            className={inputClass}
+                            placeholder="Awesome Team"
+                          />
+                          {errors.teamName && <p className="text-red-400 text-xs mt-1">{errors.teamName}</p>}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs text-[#888] mb-1.5">College / University *</label>
+                      <input
+                        value={form.college}
+                        onChange={(e) => setForm((p) => ({ ...p, college: e.target.value }))}
+                        className={inputClass}
+                        placeholder="Your institution name"
+                      />
+                      {errors.college && <p className="text-red-400 text-xs mt-1">{errors.college}</p>}
+                    </div>
+                  </div>
+
+                  {errors.submit && (
+                    <p className="text-red-400 text-sm mt-4 text-center">{errors.submit}</p>
+                  )}
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={onClose}
+                      className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-[#888] text-sm font-medium hover:bg-white/5 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleNextToMembers}
+                      disabled={submitting}
+                      className="flex-1 px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors disabled:opacity-50"
+                    >
+                      {form.teamCount > 1 ? "Next: Members →" : "Register →"}
+                    </button>
+                  </div>
+                </div>
+              ) : step === "members" ? (
+                <div className="p-6">
+                  <h2
+                    className="text-xl font-bold text-white mb-1"
+                    style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                  >
+                    Team Members
+                  </h2>
+                  <p
+                    className="text-sm text-[#6b6b6b] mb-6"
+                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                  >
+                    Enter the details for the remaining {form.teamCount - 1} members.
+                  </p>
+
+                  <div className="space-y-6">
+                    {members.map((m, i) => (
+                      <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-3">
+                        <h4 className="text-xs font-bold text-[#c8f135] uppercase">Member {i + 2}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <input
+                              value={m.name}
+                              onChange={(e) => {
+                                const newM = [...members];
+                                newM[i].name = e.target.value;
+                                setMembers(newM);
+                              }}
+                              className={inputClass}
+                              placeholder="Full Name"
+                            />
+                            {errors[`member_${i}_name`] && <p className="text-red-400 text-xs mt-1">{errors[`member_${i}_name`]}</p>}
+                          </div>
+                          <div>
+                            <input
+                              type="email"
+                              value={m.email}
+                              onChange={(e) => {
+                                const newM = [...members];
+                                newM[i].email = e.target.value;
+                                setMembers(newM);
+                              }}
+                              className={inputClass}
+                              placeholder="Email Address"
+                            />
+                            {errors[`member_${i}_email`] && <p className="text-red-400 text-xs mt-1">{errors[`member_${i}_email`]}</p>}
+                          </div>
+                        </div>
+                        <div>
+                          <input
+                            value={m.phone}
+                            onChange={(e) => {
+                              const newM = [...members];
+                              newM[i].phone = e.target.value.replace(/\D/g, "").slice(0, 10);
+                              setMembers(newM);
+                            }}
+                            className={inputClass}
+                            placeholder="Phone Number"
+                            inputMode="numeric"
+                          />
+                          {errors[`member_${i}_phone`] && <p className="text-red-400 text-xs mt-1">{errors[`member_${i}_phone`]}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {errors.submit && (
+                    <p className="text-red-400 text-sm mt-4 text-center">{errors.submit}</p>
+                  )}
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={() => setStep("form")}
+                      className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-[#888] text-sm font-medium hover:bg-white/5 transition-colors"
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={submitting}
+                      className="flex-1 px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors disabled:opacity-50"
+                    >
+                      {submitting ? "Submitting..." : "Register →"}
+                    </button>
+                  </div>
+                </div>
+              ) : step === "upload" ? (
+                <div className="p-6">
+                  <h2
+                    className="text-xl font-bold text-white mb-1"
+                    style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                  >
+                    Phase 1 Submission
+                  </h2>
+                  <p
+                    className="text-sm text-[#6b6b6b] mb-6"
+                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                  >
+                    Upload your 1-page PDF abstract or Pitch Deck. Max size 10MB.
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <input
+                        type="file"
+                        accept=".pdf,.ppt,.pptx"
+                        onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        className="w-full text-sm text-[#888] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#c8f135] file:text-black hover:file:bg-[#b0d829] transition-all cursor-pointer"
+                      />
+                      {errors.upload && <p className="text-red-400 text-xs mt-2">{errors.upload}</p>}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={skipUpload}
+                      className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-[#888] text-sm font-medium hover:bg-white/5 transition-colors"
+                    >
+                      Skip for now
+                    </button>
+                    <button
+                      onClick={handleUploadSubmit}
+                      disabled={submitting || !file}
+                      className="flex-1 px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors disabled:opacity-50"
+                    >
+                      {submitting ? "Uploading..." : "Submit & Continue"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-10 text-center">
+                  <div className="w-20 h-20 bg-[#c8f135]/10 text-[#c8f135] rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Check className="w-10 h-10" />
+                  </div>
+                  <h2
+                    className="text-2xl font-bold text-white mb-2"
+                    style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                  >
+                    Registration Complete!
+                  </h2>
+                  <p className="text-[#888] mb-8 max-w-sm mx-auto">
+                    You're successfully registered for Vynedam 2K26. We will now redirect you to the official WhatsApp community to stay updated!
+                  </p>
+
+                  <button
+                    onClick={handleContinueToForm}
+                    className="w-full px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors"
+                  >
+                    Join WhatsApp Community →
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}

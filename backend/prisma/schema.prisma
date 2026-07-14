@@ -300,6 +300,7 @@ model Hackathon {
   registrations        HackathonRegistration[]
   leads                HackathonLead[]
   partners             HackathonPartner[]
+  submissions          HackathonSubmission[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -322,12 +323,17 @@ model HackathonLead {
   hackathonId  String
   hackathon    Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   name         String
+  email        String?
   phone        String
+  teamName     String?
   teamCount    Int
+  members      Json?     // Array of { name, email, phone }
   college      String
   source       String    @default("website")
   redirectedAt DateTime?
   createdAt    DateTime  @default(now())
+
+  submission   HackathonSubmission?
 
   @@index([hackathonId])
   @@unique([hackathonId, phone])
@@ -532,4 +538,24 @@ model AiResearchLog {
   createdAt       DateTime @default(now())
 
   startup         Startup? @relation(fields: [startupId], references: [id])
+}
+
+enum SubmissionStatus {
+  PENDING
+  SELECTED
+  REJECTED
+}
+
+model HackathonSubmission {
+  id            String   @id @default(uuid())
+  leadId        String   @unique
+  hackathonId   String
+  fileUrl       String
+  status        SubmissionStatus @default(PENDING)
+  
+  lead          HackathonLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  hackathon     Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

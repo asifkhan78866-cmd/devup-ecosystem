@@ -96,4 +96,30 @@ export class HackathonsController {
     const { data, meta } = await hackathonsService.getLeads(req.params.id as string);
     res.status(200).json({ success: true, data, meta });
   }
+
+  async uploadSubmission(req: Request, res: Response) {
+    if (!req.file) throw new AppError(400, "No file uploaded");
+    
+    if (req.file.size > 10 * 1024 * 1024) {
+      throw new AppError(400, "File size must be less than 10MB");
+    }
+    
+    const submission = await hackathonsService.uploadSubmission(req.params.id as string, req.params.leadId as string, req.file.buffer, req.file.mimetype);
+    res.status(201).json({ success: true, data: submission });
+  }
+
+  async getSubmissionStatus(req: Request, res: Response) {
+    const status = await hackathonsService.getSubmissionStatusByPhone(req.params.id as string, req.query.phone as string);
+    res.status(200).json({ success: true, data: status });
+  }
+
+  async getAllSubmissions(req: Request, res: Response) {
+    const { data, meta } = await hackathonsService.getAllSubmissions(req.params.id as string);
+    res.status(200).json({ success: true, data, meta });
+  }
+
+  async updateSubmissionStatus(req: Request, res: Response) {
+    const submission = await hackathonsService.updateSubmissionStatus(req.params.id as string, req.params.submissionId as string, req.body.status);
+    res.status(200).json({ success: true, data: submission });
+  }
 }

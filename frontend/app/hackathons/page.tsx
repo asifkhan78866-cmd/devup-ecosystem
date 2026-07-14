@@ -382,6 +382,16 @@ export default function HackathonsPage() {
                   >
                     {/* Top Color Strip */}
                     <div className="w-full h-[8px]" style={{ background: hackathon.color }} />
+
+                    {hackathon.bannerUrl && (
+                      <div className="w-full h-[160px] relative overflow-hidden shrink-0 border-b border-white/5">
+                        <img 
+                          src={hackathon.bannerUrl} 
+                          alt={hackathon.name} 
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
+                    )}
                     
                     <div className="p-6 flex flex-col flex-1">
                       <div className="flex items-start justify-between mb-6">
