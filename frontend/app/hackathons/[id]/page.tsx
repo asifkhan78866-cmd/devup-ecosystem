@@ -237,7 +237,7 @@ function RegisterModal({
                     className="text-sm text-[#6b6b6b] mb-6"
                     style={{ fontFamily: "var(--font-inter), sans-serif" }}
                   >
-                    Secure your spot — we&apos;ll redirect you to the official form next.
+                    Secure your spot — {registrationLink?.includes("whatsapp") ? "we'll redirect you to the official WhatsApp group next." : "we'll redirect you to the official form next."}
                   </p>
 
                   <div className="space-y-4">
@@ -340,7 +340,7 @@ function RegisterModal({
                     You will be receiving your ticket shortly after your registration is completed by DevUp Ecosystem.
                   </p>
                   <p className="text-xs text-[#6b6b6b] mb-6" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-                    One last step — complete your official registration on the form below.
+                    One last step — {registrationLink?.includes("whatsapp") ? "join the official WhatsApp group to proceed." : "complete your official registration on the form below."}
                   </p>
 
                   <div className="flex flex-col gap-3">
@@ -348,7 +348,7 @@ function RegisterModal({
                       onClick={handleContinueToForm}
                       className="px-6 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors"
                     >
-                      Continue to Official Form →
+                      {registrationLink?.includes("whatsapp") ? "Join WhatsApp Group →" : "Continue to Official Form →"}
                     </button>
 
                     <a
@@ -467,33 +467,34 @@ export default function HackathonDetailPage() {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="max-w-7xl mx-auto px-4 md:px-8 mt-6"
       >
-        <div className="relative rounded-[20px] overflow-hidden border border-white/10">
-          {/* Banner image */}
-          <div className="relative w-full h-[280px] md:h-[380px]">
+        <div className="bg-[#111111] border border-white/10 rounded-[24px] overflow-hidden flex flex-col md:flex-row relative shadow-[0_8px_30px_rgb(0,0,0,0.4)]">
+          
+          {/* Poster Section */}
+          <div className="w-full md:w-[400px] lg:w-[480px] h-[300px] md:h-auto min-h-[400px] relative overflow-hidden shrink-0 group bg-[#0a0a0a]">
             <Image
               src={bannerSrc}
               alt={hackathon.title}
               fill
-              sizes="(max-width: 1280px) 100vw, 1280px"
-              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 480px"
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-[#111111] via-[#111111]/20 to-transparent md:from-[#111111] md:via-[#111111]/40 md:to-transparent" />
           </div>
 
-          {/* Hero content overlay */}
-          <div className="relative -mt-40 px-8 pb-8 z-10">
-            <div className="flex flex-wrap gap-2 mb-4">
+          {/* Hero content */}
+          <div className="relative p-8 md:p-12 flex-1 flex flex-col justify-center z-10 bg-[#111111]">
+            <div className="flex flex-wrap gap-2 mb-6">
               <span
                 className="px-3 py-1 bg-[rgba(200,241,53,0.15)] border border-[rgba(200,241,53,0.3)] text-[#c8f135] rounded-full"
-                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em" }}
+                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", fontWeight: 600, letterSpacing: "0.05em" }}
               >
                 {prettyMode(hackathon.mode)}
               </span>
               {hackathon.isFeatured && (
                 <span
                   className="px-3 py-1 bg-[rgba(167,139,250,0.1)] border border-[rgba(167,139,250,0.3)] text-[#a78bfa] rounded-full"
-                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 600 }}
+                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", fontWeight: 600 }}
                 >
                   FEATURED
                 </span>
@@ -501,25 +502,29 @@ export default function HackathonDetailPage() {
             </div>
 
             <h1
-              className="text-3xl md:text-5xl font-bold text-white mb-2"
-              style={{ fontFamily: "var(--font-syne), sans-serif", lineHeight: 1.1 }}
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
+              style={{ fontFamily: "var(--font-syne), sans-serif", lineHeight: 1.1, letterSpacing: "-0.02em" }}
             >
               {hackathon.title}
             </h1>
-            <p className="text-sm text-[#a1a1a1] mb-4" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+            <p className="text-base md:text-lg text-[#a1a1a1] mb-8 max-w-2xl" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
               {subtitle}
             </p>
 
-            <div className="flex flex-wrap items-center gap-6 text-sm text-[#888]" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-              <span className="flex items-center gap-1.5"><Trophy className="w-4 h-4 text-[#c8f135]" /> {hackathon.prizePool} Prize Pool</span>
-              {hackathon.registrationFee && (
-                <span className="flex items-center gap-1.5"><Ticket className="w-4 h-4 text-[#c8f135]" /> Registration Fee: {hackathon.registrationFee}</span>
-              )}
-              <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-[#c8f135]" /> {startDate} – {endDate}</span>
+            <div className="flex flex-wrap items-center gap-6 text-sm text-[#e4e4e4] bg-white/5 border border-white/10 rounded-2xl p-5" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+              <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Prize Pool</span><span className="flex items-center gap-1.5 font-semibold text-[#c8f135]"><Trophy className="w-4 h-4" /> {hackathon.prizePool}</span></div>
+              <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
+              <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Dates</span><span className="flex items-center gap-1.5 font-medium"><Calendar className="w-4 h-4 text-[#c8f135]" /> {startDate} – {endDate}</span></div>
+              <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
               {hackathon.location && (
-                <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[#c8f135]" /> {hackathon.location}</span>
+                <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Location</span><span className="flex items-center gap-1.5 font-medium"><MapPin className="w-4 h-4 text-[#c8f135]" /> {hackathon.location}</span></div>
               )}
-              <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-[#c8f135]" /> 36 Hours Non-Stop</span>
+              {hackathon.registrationFee && (
+                <>
+                  <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
+                  <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Registration Fee</span><span className="flex items-center gap-1.5 font-medium"><Ticket className="w-4 h-4 text-[#c8f135]" /> {hackathon.registrationFee}</span></div>
+                </>
+              )}
             </div>
 
             {id === 'f40eb44c-138c-4b86-86bd-2da45ae60b3a' && (
@@ -538,25 +543,25 @@ export default function HackathonDetailPage() {
             {/* Presented By Strip */}
             {hackathon.partners && hackathon.partners.length > 0 && (
               <div className="mt-8 pt-6 border-t border-white/5">
-                <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", letterSpacing: "0.1em", marginBottom: "12px" }}>
+                <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", letterSpacing: "0.15em", marginBottom: "12px", fontWeight: 600 }}>
                   PRESENTED BY
                 </div>
                 <div className="flex flex-wrap gap-4 items-center">
                   {hackathon.partners.map((p: any) => (
-                    <div key={p.id} className="group relative flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all">
+                    <div key={p.id} className="group relative flex items-center justify-center w-12 h-12 rounded-[14px] bg-[#1a1a1a] border border-white/5 hover:border-[#c8f135]/30 hover:bg-[#222] transition-all cursor-pointer">
                       {p.logoUrl ? (
                         <img 
                           src={p.logoUrl} 
                           alt={p.name} 
-                          className="w-8 h-8 object-contain filter md:grayscale md:group-hover:grayscale-0 transition-all" 
+                          className="w-8 h-8 object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300" 
                         />
                       ) : (
-                        <span className="text-xs font-bold text-gray-400 group-hover:text-white" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+                        <span className="text-xs font-bold text-gray-500 group-hover:text-[#c8f135] transition-colors" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
                           {p.name.substring(0, 2).toUpperCase()}
                         </span>
                       )}
                       {/* Tooltip */}
-                      <div className="absolute -top-8 bg-black border border-white/10 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      <div className="absolute -top-10 bg-[#222] border border-white/10 text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none text-[#e4e4e4] shadow-xl">
                         {p.name}
                       </div>
                     </div>

@@ -129,50 +129,65 @@ export default function HackathonsPage() {
         </div>
       ) : featuredHackathon ? (
         <div className="max-w-7xl mx-auto px-4 md:px-8 mb-4 relative z-10">
-          <div className="bg-[#111111] border border-white/10 rounded-[20px] overflow-hidden flex flex-col md:flex-row relative">
+          <div className="bg-[#111111] border border-white/10 rounded-[20px] overflow-hidden flex flex-col md:flex-row relative shadow-[0_8px_30px_rgb(0,0,0,0.4)]">
+            
+            {/* Poster / Banner Section */}
             {featuredHackathon.bannerUrl && (
-              <div 
-                className="absolute inset-0 z-0 opacity-20 pointer-events-none"
-                style={{
-                  backgroundImage: `url(${featuredHackathon.bannerUrl})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              />
-            )}
-            {/* Left section */}
-            <div className="p-6 sm:p-10 flex-1 border-b md:border-b-0 md:border-r border-white/5 relative z-10 bg-gradient-to-r from-[#111111] via-[#111111]/90 to-transparent">
-              <div 
-                className="inline-block px-3 py-1 bg-[rgba(200,241,53,0.1)] border border-[rgba(200,241,53,0.2)] text-[#c8f135] rounded-full mb-6"
-                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em" }}
-              >
-                FEATURED
+              <div className="w-full md:w-[320px] lg:w-[380px] h-[250px] md:h-auto relative overflow-hidden shrink-0 group">
+                <div 
+                  className="absolute inset-0 z-0 bg-[#0a0a0a]"
+                />
+                <img 
+                  src={featuredHackathon.bannerUrl} 
+                  alt={featuredHackathon.title} 
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-[#111111] via-[#111111]/40 to-transparent md:from-[#111111] md:via-transparent md:to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent h-24" />
+                <div 
+                  className="absolute top-6 left-6 inline-block px-3 py-1 bg-[rgba(200,241,53,0.9)] text-black rounded-full"
+                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 700, letterSpacing: "0.05em", boxShadow: "0 2px 10px rgba(200,241,53,0.3)" }}
+                >
+                  FEATURED
+                </div>
               </div>
+            )}
+
+            {/* Middle section (Details) */}
+            <div className={`p-6 sm:p-10 flex-1 border-b md:border-b-0 md:border-r border-white/5 relative z-10 bg-[#111111] ${featuredHackathon.bannerUrl ? 'md:pl-8' : ''}`}>
+              {!featuredHackathon.bannerUrl && (
+                <div 
+                  className="inline-block px-3 py-1 bg-[rgba(200,241,53,0.1)] border border-[rgba(200,241,53,0.2)] text-[#c8f135] rounded-full mb-6"
+                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em" }}
+                >
+                  FEATURED
+                </div>
+              )}
               
-              <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(26px, 7vw, 36px)", fontWeight: 800, color: "#fff", marginBottom: "8px", lineHeight: 1.1 }}>
+              <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(26px, 7vw, 42px)", fontWeight: 800, color: "#fff", marginBottom: "8px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
                 {featuredHackathon.title}
               </h2>
-              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", marginBottom: "24px" }}>
-                Hosted by {featuredHackathon.organizer}
+              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#888", marginBottom: "24px" }}>
+                Hosted by <span className="text-[#e4e4e4] font-medium">{featuredHackathon.organizer}</span>
               </div>
               
               <div className="mb-6">
-                <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(34px, 9vw, 48px)", fontWeight: 700, color: "#c8f135", lineHeight: 1 }}>
+                <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(34px, 9vw, 48px)", fontWeight: 700, color: "#c8f135", lineHeight: 1, textShadow: "0 0 40px rgba(200,241,53,0.2)" }}>
                   {featuredHackathon.prizePool}
                 </div>
-                <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", marginTop: "4px", letterSpacing: "0.05em" }}>
+                <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", marginTop: "8px", letterSpacing: "0.1em", fontWeight: 600 }}>
                   PRIZE POOL {featuredHackathon.registrationFee && `· REGISTRATION FEE: ${featuredHackathon.registrationFee.toUpperCase()}`}
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-6">
-                <span className="px-3 py-1.5 bg-[#1a1a1a] border border-white/5 text-[#a1a1a1] rounded-[6px]" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px" }}>
+              <div className="flex flex-wrap gap-2 mb-8">
+                <span className="px-3 py-1.5 bg-[#1a1a1a] border border-white/10 text-[#e4e4e4] rounded-[8px]" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", fontWeight: 500 }}>
                   {prettyMode(featuredHackathon.mode)}
                 </span>
                 {featuredHackathon.domain?.slice(0, 3).map((tag: string) => (
                   <span 
                     key={tag}
-                    className="px-3 py-1.5 bg-[#1a1a1a] border border-white/5 text-[#a1a1a1] rounded-[6px]"
+                    className="px-3 py-1.5 bg-[#1a1a1a] border border-white/5 text-[#a1a1a1] rounded-[8px]"
                     style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px" }}
                   >
                     {tag}
@@ -180,14 +195,17 @@ export default function HackathonsPage() {
                 ))}
               </div>
 
-              <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#a1a1a1", marginBottom: "32px" }}>
-                Starts: {new Date(featuredHackathon.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} &nbsp;·&nbsp; Ends: {new Date(featuredHackathon.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+              <div className="flex items-center gap-3 mb-8 bg-white/5 border border-white/10 rounded-[10px] p-4 inline-flex">
+                <Calendar className="w-5 h-5 text-[#c8f135]" />
+                <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#e4e4e4" }}>
+                  <span className="text-[#888]">Starts:</span> {new Date(featuredHackathon.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} <span className="mx-2 text-white/20">|</span> <span className="text-[#888]">Ends:</span> {new Date(featuredHackathon.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-4 mb-8">
                 <Link href={`/hackathons/${featuredHackathon.id}`}>
                   <button 
-                    className="h-[52px] px-8 bg-[#c8f135] text-black font-bold rounded-[10px] hover:bg-[#b0d829] transition-colors"
+                    className="h-[52px] px-8 bg-[#c8f135] text-black font-bold rounded-[12px] hover:bg-[#b0d829] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(200,241,53,0.3)]"
                     style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
                   >
                     Register Now
@@ -195,10 +213,10 @@ export default function HackathonsPage() {
                 </Link>
                 <Link href={`/hackathons/${featuredHackathon.id}`}>
                   <button 
-                    className="h-[52px] px-8 bg-[#111111] text-[#e4e4e4] border border-white/10 font-semibold rounded-[10px] hover:bg-white/5 transition-colors group"
+                    className="h-[52px] px-8 bg-[#1a1a1a] text-[#e4e4e4] border border-white/10 font-semibold rounded-[12px] hover:bg-white/10 hover:border-white/20 transition-all group"
                     style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
                   >
-                    Learn More <span className="inline-block transition-transform group-hover:translate-x-1 ml-1">→</span>
+                    Learn More <span className="inline-block transition-transform group-hover:translate-x-1 ml-1 text-[#c8f135]">→</span>
                   </button>
                 </Link>
               </div>
@@ -206,25 +224,25 @@ export default function HackathonsPage() {
               {/* Presented By Strip */}
               {featuredHackathon.partners && featuredHackathon.partners.length > 0 && (
                 <div className="pt-6 border-t border-white/5">
-                  <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", letterSpacing: "0.1em", marginBottom: "12px" }}>
+                  <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", letterSpacing: "0.15em", marginBottom: "12px", fontWeight: 600 }}>
                     PRESENTED BY
                   </div>
                   <div className="flex flex-wrap gap-4 items-center">
                     {featuredHackathon.partners.map((p: any) => (
-                      <div key={p.id} className="group relative flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all">
+                      <div key={p.id} className="group relative flex items-center justify-center w-12 h-12 rounded-[14px] bg-[#1a1a1a] border border-white/5 hover:border-[#c8f135]/30 hover:bg-[#222] transition-all cursor-pointer">
                         {p.logoUrl ? (
                           <img 
                             src={p.logoUrl} 
                             alt={p.name} 
-                            className="w-8 h-8 object-contain filter md:grayscale md:group-hover:grayscale-0 transition-all" 
+                            className="w-8 h-8 object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300" 
                           />
                         ) : (
-                          <span className="text-xs font-bold text-gray-400 group-hover:text-white" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+                          <span className="text-xs font-bold text-gray-500 group-hover:text-[#c8f135] transition-colors" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
                             {p.name.substring(0, 2).toUpperCase()}
                           </span>
                         )}
                         {/* Tooltip */}
-                        <div className="absolute -top-8 bg-black border border-white/10 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        <div className="absolute -top-10 bg-[#222] border border-white/10 text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none text-[#e4e4e4] shadow-xl">
                           {p.name}
                         </div>
                       </div>
@@ -235,7 +253,7 @@ export default function HackathonsPage() {
             </div>
             
             {/* Right section (Timer) */}
-            <div className="p-6 sm:p-10 md:w-[400px] bg-[#0a0a0a]/90 backdrop-blur-sm flex flex-col items-center justify-center relative overflow-hidden z-10 border-l border-white/5">
+            <div className="p-6 sm:p-10 md:w-[380px] bg-[#0a0a0a] flex flex-col items-center justify-center relative overflow-hidden z-10 border-l border-white/5">
               <div className="absolute inset-0 bg-[#c8f135] opacity-[0.02]" />
               
               {new Date(featuredHackathon.registrationDeadline).getTime() < Date.now() ? (
