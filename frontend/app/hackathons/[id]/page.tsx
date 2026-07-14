@@ -670,6 +670,11 @@ export default function HackathonDetailPage() {
   const perks = hackathon.perks?.length ? hackathon.perks : PERKS;
   const logistics = hackathon.logistics?.length ? hackathon.logistics : LOGISTICS;
 
+  let displayLocation = hackathon.location || "Vidya Jyothi Institute Of Technology(VJIT)";
+  if (displayLocation === "Hyderabad,India" || displayLocation === "Hyderabad, India") {
+    displayLocation = "Vidya Jyothi Institute Of Technology(VJIT)";
+  }
+
   const isClosed = new Date(hackathon.registrationDeadline).getTime() <= Date.now();
   const openRegister = () => { if (!isClosed) setShowRegister(true); };
 
@@ -752,8 +757,8 @@ export default function HackathonDetailPage() {
               <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
               <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Dates</span><span className="flex items-center gap-1.5 font-medium"><Calendar className="w-4 h-4 text-[#c8f135]" /> {startDate} – {endDate}</span></div>
               <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
-              {(hackathon.location || "Vidya Jyothi Institute Of Technology") && (
-                <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Location</span><span className="flex items-center gap-1.5 font-medium"><MapPin className="w-4 h-4 text-[#c8f135]" /> {hackathon.location || "Vidya Jyothi Institute Of Technology"}</span></div>
+              {displayLocation && (
+                <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Location</span><span className="flex items-center gap-1.5 font-medium"><MapPin className="w-4 h-4 text-[#c8f135]" /> {displayLocation}</span></div>
               )}
               {hackathon.registrationFee && (
                 <>

@@ -26,10 +26,10 @@ export default function HackathonSchema({ hackathon }: { hackathon: any }) {
       hackathon.mode !== "ONLINE"
         ? {
             "@type": "Place",
-            name: hackathon.location || "Malla Reddy Deemed to be University",
+            name: hackathon.location || "Vidya Jyothi Institute Of Technology",
             address: {
               "@type": "PostalAddress",
-              streetAddress: hackathon.location || "Malla Reddy Deemed to be University",
+              streetAddress: hackathon.location || "Vidya Jyothi Institute Of Technology",
               addressLocality: hackathon.city || seoConfig.organization.addressLocality,
               addressRegion: seoConfig.organization.addressRegion,
               postalCode: "500043",

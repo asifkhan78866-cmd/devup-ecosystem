@@ -5,8 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function HackathonFAQ({ hackathon }: { hackathon: any }) {
   const city = hackathon.city || "Hyderabad";
-  const location =
-    hackathon.location || "Malla Reddy Deemed to be University, Hyderabad";
+  let location = hackathon.location || "Vidya Jyothi Institute Of Technology(VJIT)";
+  if (location === "Hyderabad,India" || location === "Hyderabad, India") {
+    location = "Vidya Jyothi Institute Of Technology(VJIT)";
+  }
   const startDateStr = hackathon.startDate
     ? new Date(hackathon.startDate).toLocaleDateString("en-IN", {
         day: "numeric",
@@ -38,7 +40,7 @@ export default function HackathonFAQ({ hackathon }: { hackathon: any }) {
     },
     {
       q: `Where is ${name} located?`,
-      a: `${name} is an offline event held at Malla Reddy Deemed to be University (MRDU), ${city}, Telangana, India. It is easily accessible from all parts of ${city}.`,
+      a: `${name} is an offline event held at ${location}, ${city}, Telangana, India. It is easily accessible from all parts of ${city}.`,
     },
     {
       q: `How do I register for ${name}?`,
