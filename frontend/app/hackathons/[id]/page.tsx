@@ -1130,7 +1130,8 @@ export default function HackathonDetailPage() {
               className="flex-1 md:flex-none h-[52px] px-8 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#c8f135]"
               style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
             >
-              <Sparkles className="w-4 h-4 hidden sm:block" /> {isClosed ? "Closed" : "Register Now"}
+              {isClosed ? "Closed" : "Register Now"}
+              {!isClosed && <ChevronRight className="w-4 h-4 hidden sm:block" />}
             </button>
           </div>
         </div>
