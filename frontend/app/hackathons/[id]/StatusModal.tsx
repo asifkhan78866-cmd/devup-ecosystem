@@ -23,11 +23,15 @@ export default function StatusModal({
   useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (isOpen) {
+      document.body.style.overflow = "hidden";
       setPhone("");
       setStatus(null);
       setError("");
       setFile(null);
+    } else {
+      document.body.style.overflow = "unset";
     }
+    return () => { document.body.style.overflow = "unset"; };
   }, [isOpen]);
 
   const checkStatus = async () => {
@@ -101,9 +105,9 @@ export default function StatusModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[300] flex items-center justify-center p-4 pointer-events-none"
           >
-            <div className="w-full max-w-md bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl p-6">
+            <div className="w-full max-w-md bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl p-6 overflow-y-auto overflow-x-hidden max-h-[90dvh] overscroll-contain pointer-events-auto">
               <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
                 Check Phase 1 Status
               </h2>

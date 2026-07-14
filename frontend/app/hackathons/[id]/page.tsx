@@ -135,6 +135,12 @@ function RegisterModal({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  useEffect(() => {
+    if (isOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "unset";
+    return () => { document.body.style.overflow = "unset"; };
+  }, [isOpen]);
+
   const validateForm = () => {
     const e: Record<string, string> = {};
     if (form.name.trim().length < 2) e.name = "Name must be at least 2 characters";
@@ -302,9 +308,9 @@ function RegisterModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[300] flex items-center justify-center p-4 pointer-events-none"
           >
-            <div className="w-full max-w-lg bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl overflow-y-auto overflow-x-hidden max-h-[90dvh]">
+            <div className="w-full max-w-lg bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl overflow-y-auto overflow-x-hidden max-h-[90dvh] overscroll-contain pointer-events-auto">
               {step === "form" ? (
                 <div className="p-6">
                   <h2
