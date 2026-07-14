@@ -61,6 +61,7 @@ export default function HackathonsPage() {
             fee: h.registrationFee || null,
             daysLeft: h.registrationDeadline ? getDaysLeft(h.registrationDeadline) : (h.endDate ? getDaysLeft(h.endDate) : 30),
             color: COLORS[i % COLORS.length],
+            bannerUrl: h.bannerUrl || null,
           }));
           setHackathons(formatted);
         }
@@ -141,9 +142,9 @@ export default function HackathonsPage() {
                   src={featuredHackathon.bannerUrl} 
                   alt={featuredHackathon.title} 
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  style={{ WebkitMaskImage: "linear-gradient(to right, black 60%, transparent)", maskImage: "linear-gradient(to right, black 60%, transparent)" }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-[#111111] via-[#111111]/40 to-transparent md:from-[#111111] md:via-transparent md:to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent h-24" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent h-24 bottom-0 top-auto md:hidden" />
                 <div 
                   className="absolute top-6 left-6 inline-block px-3 py-1 bg-[rgba(200,241,53,0.9)] text-black rounded-full"
                   style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", fontWeight: 700, letterSpacing: "0.05em", boxShadow: "0 2px 10px rgba(200,241,53,0.3)" }}
@@ -164,15 +165,16 @@ export default function HackathonsPage() {
                 </div>
               )}
               
-              <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(26px, 7vw, 42px)", fontWeight: 800, color: "#fff", marginBottom: "8px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+              <h2 className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60" style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(26px, 7vw, 42px)", fontWeight: 800, marginBottom: "8px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
                 {featuredHackathon.title}
               </h2>
               <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#888", marginBottom: "24px" }}>
                 Hosted by <span className="text-[#e4e4e4] font-medium">{featuredHackathon.organizer}</span>
               </div>
               
-              <div className="mb-6">
-                <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(34px, 9vw, 48px)", fontWeight: 700, color: "#c8f135", lineHeight: 1, textShadow: "0 0 40px rgba(200,241,53,0.2)" }}>
+              <div className="mb-6 relative">
+                <div className="absolute -inset-8 bg-[rgba(200,241,53,0.15)] blur-3xl rounded-full z-0 pointer-events-none" />
+                <div className="relative z-10" style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(34px, 9vw, 48px)", fontWeight: 700, color: "#c8f135", lineHeight: 1, textShadow: "0 0 40px rgba(200,241,53,0.4)" }}>
                   {featuredHackathon.prizePool}
                 </div>
                 <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "11px", color: "#6b6b6b", marginTop: "8px", letterSpacing: "0.1em", fontWeight: 600 }}>
@@ -181,13 +183,13 @@ export default function HackathonsPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 mb-8">
-                <span className="px-3 py-1.5 bg-[#1a1a1a] border border-white/10 text-[#e4e4e4] rounded-[8px]" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", fontWeight: 500 }}>
+                <span className="px-3 py-1.5 bg-white/5 backdrop-blur-md border border-white/10 text-[#e4e4e4] rounded-[8px] shadow-sm" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", fontWeight: 500 }}>
                   {prettyMode(featuredHackathon.mode)}
                 </span>
                 {featuredHackathon.domain?.slice(0, 3).map((tag: string) => (
                   <span 
                     key={tag}
-                    className="px-3 py-1.5 bg-[#1a1a1a] border border-white/5 text-[#a1a1a1] rounded-[8px]"
+                    className="px-3 py-1.5 bg-white/5 backdrop-blur-md border border-white/10 text-[#a1a1a1] rounded-[8px] shadow-sm hover:text-white hover:border-white/20 transition-colors cursor-default"
                     style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px" }}
                   >
                     {tag}
@@ -253,7 +255,7 @@ export default function HackathonsPage() {
             </div>
             
             {/* Right section (Timer) */}
-            <div className="p-6 sm:p-10 md:w-[380px] bg-[#0a0a0a] flex flex-col items-center justify-center relative overflow-hidden z-10 border-l border-white/5">
+            <div className="p-6 sm:p-10 md:w-[380px] bg-white/[0.02] backdrop-blur-xl flex flex-col items-center justify-center relative overflow-hidden z-10 border-t md:border-t-0 md:border-l border-white/10">
               <div className="absolute inset-0 bg-[#c8f135] opacity-[0.02]" />
               
               {new Date(featuredHackathon.registrationDeadline).getTime() < Date.now() ? (
@@ -280,7 +282,7 @@ export default function HackathonsPage() {
                       <div key={item.label} className="flex items-center gap-2 sm:gap-4">
                         <div className="flex flex-col items-center">
                           <div
-                            className="w-[clamp(44px,14vw,72px)] h-[clamp(44px,14vw,72px)] bg-[#0a0a0a] border border-white/10 rounded-[12px] flex items-center justify-center overflow-hidden relative shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
+                            className="w-[clamp(44px,14vw,72px)] h-[clamp(44px,14vw,72px)] bg-white/5 border border-white/10 rounded-[12px] flex items-center justify-center overflow-hidden relative shadow-lg backdrop-blur-sm"
                           >
                             <AnimatePresence mode="popLayout">
                               <motion.div

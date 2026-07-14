@@ -670,7 +670,7 @@ export default function HackathonDetailPage() {
         loop
         muted
         playsInline
-        className="fixed inset-0 w-full h-full object-cover z-0 hidden md:block opacity-25 pointer-events-none"
+        className="fixed inset-0 w-full h-full object-cover z-0 opacity-25 pointer-events-none"
       >
         <source src="/videos/interstellar-bg.mp4" type="video/mp4" />
       </video>
