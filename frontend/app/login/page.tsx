@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
+import GoogleLogin from '@/components/auth/google-login'
 
 import { Suspense } from 'react'
 
@@ -104,10 +105,28 @@ function LoginContent() {
         <p style={{
           fontFamily: 'Inter, sans-serif',
           fontSize: 14, color: '#6b6b6b',
-          textAlign: 'center', marginBottom: 32,
+          textAlign: 'center', marginBottom: 28,
         }}>
           Sign in to your DevUp account.
         </p>
+
+        {/* Google Login */}
+        <GoogleLogin redirectTo={redirect} />
+
+        {/* Divider */}
+        <div style={{
+          display: 'flex', alignItems: 'center',
+          gap: 12, margin: '24px 0',
+        }}>
+          <div style={{ flex: 1, height: 1,
+            background: 'rgba(255,255,255,0.06)' }} />
+          <span style={{ fontFamily: 'Inter',
+            fontSize: 12, color: '#3d3d3d' }}>
+            or continue with email
+          </span>
+          <div style={{ flex: 1, height: 1,
+            background: 'rgba(255,255,255,0.06)' }} />
+        </div>
 
         {/* Error */}
         {error && (

@@ -11,5 +11,6 @@ router.post("/register", validate(registerSchema), controller.register);
 router.post("/login", validate(loginSchema), controller.login);
 router.post("/logout", requireAuth, controller.logout);
 router.get("/me", requireAuth, controller.getMe);
+router.post("/google/sync", controller.syncGoogle);
 
 export default router;

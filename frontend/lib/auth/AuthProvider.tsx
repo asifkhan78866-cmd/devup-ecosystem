@@ -7,14 +7,26 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import type { User, Session } from '@supabase/supabase-js'
 
-interface UserProfile {
+export type UserRole = 
+  | 'ADMIN' 
+  | 'SUPER_ADMIN' 
+  | 'FOUNDER' 
+  | 'STARTUP_MEMBER' 
+  | 'STUDENT' 
+  | 'INVESTOR' 
+  | 'MENTOR' 
+  | 'JUDGE'
+
+export interface UserProfile {
   id: string
   email: string
   name: string
-  role: 'ADMIN' | 'FOUNDER' | 'STUDENT' | 'INVESTOR'
+  role: UserRole
   avatarUrl?: string
   college?: string
   city?: string
+  provider?: string
+  lastLoginAt?: string
   startups?: any[]
 }
 
@@ -24,6 +36,7 @@ interface AuthContextType {
   loading: boolean
   signUp: (data: SignUpData) => Promise<{ error?: string }>
   signIn: (email: string, password: string) => Promise<{ error?: string }>
+  signInWithGoogle: (redirectTo?: string) => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (data: Partial<UserProfile>) => Promise<void>
 }
@@ -68,6 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           avatarUrl: userData.avatarUrl || userData.profile?.avatarUrl,
           college: userData.profile?.college,
           city: userData.profile?.city,
+          provider: userData.authProvider,
+          lastLoginAt: userData.lastLoginAt,
           startups: userData.startupMemberships?.map((m: any) => m.startup) || [],
         }
         setUser(mappedUser)
@@ -157,10 +172,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const signInWithGoogle = async (redirectTo?: string) => {
+    const callbackUrl = `${window.location.origin}/auth/callback${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`
+    
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: callbackUrl,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    })
+  }
+
   const signOut = async () => {
     await supabase.auth.signOut()
     setUser(null)
     setSession(null)
+
+    // Clear Supabase cookies
+    document.cookie.split(';').forEach((c) => {
+      const name = c.trim().split('=')[0]
+      if (name.startsWith('sb-')) {
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
+      }
+    })
   }
 
   const updateProfile = async (data: Partial<UserProfile>) => {
@@ -187,7 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, session, loading,
-      signUp, signIn, signOut, updateProfile
+      signUp, signIn, signInWithGoogle, signOut, updateProfile
     }}>
       {children}
     </AuthContext.Provider>

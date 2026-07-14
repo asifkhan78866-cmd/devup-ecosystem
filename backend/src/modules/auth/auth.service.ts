@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { supabaseAdmin } from "../../config/supabase";
 import { AppError } from "../../middleware/errorHandler";
-import { Role } from "@prisma/client";
+import { Role, AuthProvider } from "@prisma/client";
 import { env } from "../../config/env";
 import jwt from "jsonwebtoken";
 
@@ -41,6 +41,7 @@ export class AuthService {
         id: authData.user.id,
         email,
         role: finalRole,
+        authProvider: AuthProvider.EMAIL,
         profile: {
           create: {
             name: name || email.split('@')[0],
@@ -61,7 +62,7 @@ export class AuthService {
     const { email, password } = data;
 
     // DEV BYPASS: Allow dummy admin login locally without real Supabase instance
-    if (email === "admin@devup.in" && password === "admin123") {
+    if (process.env.NODE_ENV === "development" && email === "admin@devup.in" && password === "admin123") {
       const user = await prisma.user.findUnique({ where: { email } });
       if (user) {
         const token = jwt.sign(
@@ -87,6 +88,12 @@ export class AuthService {
       throw new AppError(404, "User record not found", "USER_NOT_FOUND");
     }
 
+    // Update last login
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
     const token = jwt.sign(
       { sub: user.id },
       env.SUPABASE_JWT_SECRET as jwt.Secret,
@@ -96,6 +103,86 @@ export class AuthService {
       user,
       token,
     };
+  }
+
+  /**
+   * Sync a Google OAuth user from Supabase Auth into the Prisma database.
+   * Called after the frontend callback receives a valid session.
+   * Idempotent: creates on first login, updates on subsequent logins.
+   */
+  async syncGoogleUser(accessToken: string) {
+    // Verify the token with Supabase
+    const { data: { user: authUser }, error } = await supabaseAdmin.auth.getUser(accessToken);
+
+    if (error || !authUser) {
+      throw new AppError(401, "Invalid or expired token", "INVALID_TOKEN");
+    }
+
+    const email = authUser.email;
+    if (!email) {
+      throw new AppError(400, "No email found in Google account", "NO_EMAIL");
+    }
+
+    const fullName =
+      authUser.user_metadata?.full_name ||
+      authUser.user_metadata?.name ||
+      email.split("@")[0];
+    const avatarUrl =
+      authUser.user_metadata?.avatar_url ||
+      authUser.user_metadata?.picture ||
+      null;
+
+    // Check if user already exists
+    const existing = await prisma.user.findUnique({
+      where: { email },
+      include: { profile: true },
+    });
+
+    if (existing) {
+      // Update avatar, name, last login
+      const updated = await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          avatarUrl: avatarUrl || existing.avatarUrl,
+          authProvider: AuthProvider.GOOGLE,
+          lastLoginAt: new Date(),
+          profile: existing.profile
+            ? {
+                update: {
+                  name: fullName || existing.profile.name,
+                },
+              }
+            : {
+                create: {
+                  name: fullName,
+                },
+              },
+        },
+        include: { profile: true },
+      });
+      return updated;
+    }
+
+    // Create new user — Supabase auth ID as Prisma ID
+    const newUser = await prisma.user.create({
+      data: {
+        id: authUser.id,
+        email,
+        role: Role.STUDENT, // default role
+        isVerified: true,
+        avatarUrl,
+        authProvider: AuthProvider.GOOGLE,
+        lastLoginAt: new Date(),
+        profile: {
+          create: {
+            name: fullName,
+          },
+        },
+      },
+      include: { profile: true },
+    });
+
+    return newUser;
   }
 
   async logout(token: string) {

@@ -10,11 +10,13 @@ datasource db {
 
 enum Role {
   ADMIN
+  SUPER_ADMIN
   FOUNDER
   STARTUP_MEMBER
   STUDENT
   INVESTOR
   MENTOR
+  JUDGE
 }
 
 enum AuthProvider {
@@ -30,6 +32,7 @@ model User {
   isVerified       Boolean  @default(false)
   avatarUrl        String?
   authProvider     AuthProvider @default(EMAIL)
+  lastLoginAt      DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

@@ -101,9 +101,18 @@ export function Navbar() {
       <div className="desktop-nav-links" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 16 }}>
         {loading ? null : user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 13, fontWeight: 500, color: '#888888' }}>
-              {user.name.split(' ')[0]}
-            </span>
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.name}
+                style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 13, fontWeight: 500, color: '#888888' }}>
+                {user.name.split(' ')[0]}
+              </span>
+            )}
             <Link href="/dashboard" style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '8px 18px', background: 'rgba(200,241,53,0.08)',
@@ -201,7 +210,16 @@ export function Navbar() {
                 cursor: 'pointer', padding: 0
               }}
             >
-              {user.name.charAt(0).toUpperCase()}
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                user.name.charAt(0).toUpperCase()
+              )}
             </button>
             <AnimatePresence>
               {mobileDropdownOpen && (

@@ -36,4 +36,21 @@ export class AuthController {
     });
     res.status(200).json({ success: true, data: user });
   }
+
+  /**
+   * POST /api/auth/google/sync
+   * Called by the frontend after Google OAuth callback.
+   * Verifies the Supabase token and creates/updates the user in the DB.
+   */
+  async syncGoogle(req: Request, res: Response) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ success: false, error: "Missing token" });
+      return;
+    }
+
+    const token = authHeader.split(" ")[1];
+    const user = await authService.syncGoogleUser(token);
+    res.status(200).json({ success: true, data: user });
+  }
 }
