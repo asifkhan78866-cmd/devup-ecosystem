@@ -107,3 +107,121 @@ export function buildTwitterMetadata(opts: {
     images: [opts.image ?? seoConfig.defaultOgImage],
   };
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   DEVTHON 2026 — Dedicated SEO configuration
+   Used by hackathon detail pages and hackathon listing layouts.
+   ══════════════════════════════════════════════════════════════════ */
+
+export const devthonConfig = {
+  title: "DEVTHON 2026 | Building Asia's Largest Innovation Hackathon",
+  metaTitle:
+    "DEVTHON 2026 – Building Asia's Largest Innovation Hackathon | Innovation, Startups, AI, Placements & Incubation",
+  description:
+    "DEVTHON 2026 is a national innovation ecosystem bringing together developers, designers, entrepreneurs, startups, mentors, recruiters, investors, and innovators. Participate across 36 innovation domains, build impactful solutions, gain internship and placement opportunities, receive startup incubation, and network with industry leaders.",
+  ogDescription:
+    "Join thousands of innovators, developers, startups, mentors, investors and recruiters in one of India's most ambitious innovation ecosystems.",
+  twitterDescription: "Build. Innovate. Launch. Join the innovation movement.",
+  ogImage: "/images/devthon-og.jpg",
+  ogImageAlt: "DEVTHON 2026 – Building Asia's Largest Innovation Hackathon banner",
+  themeColor: "#000000",
+  author: "DevUp Ecosystem",
+  publisher: "DevUp Ecosystem",
+  keywords: [
+    "DEVTHON",
+    "Hackathon India",
+    "Innovation Hackathon",
+    "AI Hackathon",
+    "National Hackathon",
+    "Student Hackathon",
+    "Startup Hackathon",
+    "Technology Competition",
+    "Coding Competition",
+    "Programming Contest",
+    "Artificial Intelligence",
+    "Machine Learning",
+    "Cybersecurity",
+    "Blockchain",
+    "Web Development",
+    "Mobile Development",
+    "Cloud Computing",
+    "DevOps",
+    "Startup Incubation",
+    "Internship Drive",
+    "Placement Drive",
+    "Innovation Challenge",
+    "Engineering Hackathon",
+    "College Hackathon",
+    "Software Development",
+    "Entrepreneurship",
+    "Developer Event",
+    "Innovation Festival",
+    "Future Technology",
+    "Open Innovation",
+    "Smart India",
+    "Tech Competition",
+    "Startup Ecosystem",
+    "India Innovation",
+    "Technology Event",
+    "Innovation Summit",
+    "Hackathon Hyderabad",
+  ],
+  targetSearchQueries: [
+    "Hackathon India",
+    "Best Hackathon",
+    "Innovation Hackathon",
+    "AI Hackathon India",
+    "National Level Hackathon",
+    "Student Innovation Challenge",
+    "Coding Competition India",
+    "Engineering Hackathon",
+    "Software Development Competition",
+    "Startup Competition",
+    "Innovation Event",
+    "Tech Fest",
+    "Startup Incubation Program",
+    "Internship Opportunities",
+    "Placement Drive",
+    "Innovation Ecosystem",
+  ],
+} as const;
+
+/** Helper: Build DEVTHON-specific OpenGraph metadata. */
+export function buildDevthonOgMetadata(opts: {
+  title?: string;
+  description?: string;
+  path: string;
+  image?: string;
+}) {
+  return {
+    title: opts.title ?? devthonConfig.title,
+    description: opts.description ?? devthonConfig.ogDescription,
+    url: canonicalUrl(opts.path),
+    siteName: "DEVTHON",
+    locale: seoConfig.locale,
+    type: "website" as const,
+    images: [
+      {
+        url: opts.image ?? devthonConfig.ogImage,
+        width: 1200,
+        height: 630,
+        alt: devthonConfig.ogImageAlt,
+      },
+    ],
+  };
+}
+
+/** Helper: Build DEVTHON-specific Twitter card metadata. */
+export function buildDevthonTwitterMetadata(opts?: {
+  title?: string;
+  description?: string;
+  image?: string;
+}) {
+  return {
+    card: "summary_large_image" as const,
+    site: seoConfig.twitterHandle,
+    title: opts?.title ?? "DEVTHON 2026",
+    description: opts?.description ?? devthonConfig.twitterDescription,
+    images: [opts?.image ?? devthonConfig.ogImage],
+  };
+}

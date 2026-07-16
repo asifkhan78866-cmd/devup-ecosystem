@@ -8,7 +8,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
  * Stable date for static routes so that the sitemap doesn't change on every
  * request. Update this when you deploy meaningful content changes to static pages.
  */
-const STATIC_LAST_MODIFIED = new Date("2026-07-07T00:00:00Z");
+const STATIC_LAST_MODIFIED = new Date("2026-07-16T00:00:00Z");
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fetch hackathons

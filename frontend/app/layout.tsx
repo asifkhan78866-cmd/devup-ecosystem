@@ -30,7 +30,21 @@ export const metadata: Metadata = {
     template: `%s | ${seoConfig.siteName}`,
   },
   description: homepageDescription,
-  keywords: "DevUp Ecosystem, student startup ecosystem India, student innovation hub Hyderabad, hackathons, co-founder matching, college innovation, Indian startups, entrepreneurship",
+  keywords: "DevUp Ecosystem, DEVTHON, student startup ecosystem India, student innovation hub Hyderabad, hackathons, co-founder matching, college innovation, Indian startups, entrepreneurship, innovation hackathon, AI hackathon, startup incubation, placement drive, internship drive",
+  authors: [{ name: "DevUp Ecosystem" }],
+  creator: "DevUp Ecosystem",
+  publisher: "DevUp Ecosystem",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large" as const,
+      "max-video-preview": -1,
+      "max-snippet": -1,
+    },
+  },
   alternates: {
     canonical: seoConfig.baseUrl,
   },
@@ -54,6 +68,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} antialiased dark`}>
       <head>
         <link rel="preload" as="image" href="/video/hero-space-poster.jpg" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="author" content="DevUp Ecosystem" />
         {/* Geo targeting for India/Hyderabad — helps local search ranking */}
         <meta name="geo.region" content="IN-TG" />
         <meta name="geo.placename" content="Hyderabad" />

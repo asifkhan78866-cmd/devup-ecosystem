@@ -15,6 +15,7 @@ import confetti from "canvas-confetti";
 import HackathonSchema, { BreadcrumbSchema } from "@/components/seo/HackathonSchema";
 import HackathonFAQ from "@/components/seo/HackathonFAQ";
 import StatusModal from "./StatusModal";
+import { ALL_DOMAINS } from "../../../data/domains";
 
 // Pretty-print the uppercase Prisma enum mode (ONLINE -> Online)
 const prettyMode = (mode?: string) =>
@@ -71,14 +72,6 @@ const TIMELINE: TimelineDay[] = [
 ];
 
 const DOMAIN_COLORS = ["#c8f135", "#a78bfa", "#38bdf8", "#fb923c", "#f472b6"];
-
-const DOMAINS = [
-  { label: "AI & ML", sub: "GenAI, Predictive Analytics", color: "#c8f135" },
-  { label: "Cybersecurity & Blockchain", sub: "Smart contracts, Pen testing", color: "#a78bfa" },
-  { label: "Web & Mobile Dev", sub: "Full-stack, PWA, Flutter", color: "#38bdf8" },
-  { label: "Cloud & IoT", sub: "Edge computing, Serverless", color: "#fb923c" },
-  { label: "Social Impact", sub: "Accessibility, GreenTech", color: "#f472b6" },
-];
 
 const PERKS = [
   { icon: "🏆", title: "₹1,50,000+ Prize Pool", desc: "Cash prizes & trophies for top teams" },
@@ -665,7 +658,14 @@ export default function HackathonDetailPage() {
   // Prefer the rich per-event cards; fall back to the full default domain cards
   // (with their sub-lines) so existing hackathons keep all their detail.
   const domains: { label: string; sub?: string; color?: string }[] =
-    hackathon.domainsDetailed?.length ? hackathon.domainsDetailed : DOMAINS;
+    hackathon.domainsDetailed?.length
+      ? hackathon.domainsDetailed
+      : hackathon.domain?.length
+      ? hackathon.domain.map((dName: string) => {
+          const found = ALL_DOMAINS.find(d => d.label === dName);
+          return found || { label: dName, color: "#c8f135" };
+        })
+      : ALL_DOMAINS;
   const timeline = hackathon.timeline?.length ? hackathon.timeline : TIMELINE;
   const perks = hackathon.perks?.length ? hackathon.perks : PERKS;
   const logistics = hackathon.logistics?.length ? hackathon.logistics : LOGISTICS;
@@ -685,6 +685,7 @@ export default function HackathonDetailPage() {
         loop
         muted
         playsInline
+        preload="none"
         className="fixed inset-0 w-full h-full object-cover z-0 opacity-25 pointer-events-none"
       >
         <source src="/videos/interstellar-bg.mp4" type="video/mp4" />
@@ -714,11 +715,12 @@ export default function HackathonDetailPage() {
           <div className="w-full md:w-[400px] lg:w-[480px] h-[300px] md:h-auto min-h-[400px] relative overflow-hidden shrink-0 group bg-transparent">
             <Image
               src={bannerSrc}
-              alt={hackathon.title}
+              alt={`${hackathon.title} – Innovation Hackathon banner poster by DevUp Ecosystem`}
               fill
               sizes="(max-width: 768px) 100vw, 480px"
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               priority
+              fetchPriority="high"
             />
             <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-[#111111] via-[#111111]/20 to-transparent md:from-[#111111] md:via-[#111111]/40 md:to-transparent" />
           </div>
@@ -748,6 +750,12 @@ export default function HackathonDetailPage() {
             >
               {hackathon.title}
             </h1>
+            <h2 className="text-lg md:text-xl text-[#c8f135] font-semibold mb-2" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+              Building Asia&apos;s Largest Innovation Hackathon
+            </h2>
+            <p className="text-sm text-[#888] italic mb-4" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+              Where Innovation Meets Opportunity
+            </p>
             <p className="text-base md:text-lg text-[#a1a1a1] mb-8 max-w-2xl" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
               {subtitle}
             </p>
@@ -930,10 +938,14 @@ export default function HackathonDetailPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, duration: 0.5 }}
         className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
+        aria-labelledby="domains-heading"
       >
-                <h2 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-          Core Technical Domains
+                <h2 id="domains-heading" className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+          Innovation Domains
         </h2>
+        <p className="text-sm text-[#a1a1a1] mb-6" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+          Compete across 36 innovation domains spanning AI, Cybersecurity, Blockchain, HealthTech, SpaceTech, and more.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {domains.map((d, i) => (
             <motion.div
@@ -955,9 +967,6 @@ export default function HackathonDetailPage() {
               )}
             </motion.div>
           ))}
-        </div>
-        <div className="mt-6">
-            <p className="text-xs text-[#6b6b6b] uppercase tracking-widest">+ 21 MORE DOMAINS ANNOUNCED SOON</p>
         </div>
       </motion.section>
 

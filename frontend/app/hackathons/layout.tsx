@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { canonicalUrl, seoConfig } from "@/lib/seo";
+import { canonicalUrl, seoConfig, devthonConfig, buildDevthonOgMetadata, buildDevthonTwitterMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title:
-    "Hackathons in Hyderabad 2026 | DevUp Ecosystem",
-  description:
-    "Find upcoming hackathons in Hyderabad, India 2026. Student hackathons, coding competitions, ₹1,50,000+ prizes, internships & mentorship. Register on DevUp.",
+    "DEVTHON 2026 – Building Asia's Largest Innovation Hackathon | Hackathons in Hyderabad",
+  description: devthonConfig.description,
   keywords: [
+    ...devthonConfig.keywords,
     "hackathon in Hyderabad",
     "hackathon near me",
     "hackathon 2026",
@@ -19,37 +19,27 @@ export const metadata: Metadata = {
     "startup hackathon India",
     "tech competition Hyderabad",
     "national hackathon 2026",
-    "hackathon in July 2026",
+    "hackathon in August 2026",
     "VJIT hackathon",
     "Vidya Jyothi hackathon",
     "DevUp hackathon",
     "hackathon for students India",
     "coding hackathon 2026",
   ],
-  openGraph: {
-    title: "Hackathons in Hyderabad 2026 | DevUp Ecosystem",
-    description:
-      "Upcoming hackathons, coding competitions, and startup challenges in Hyderabad and across India. ₹1,50,000+ prizes, paid internships, mentorship.",
-    url: canonicalUrl("/hackathons"),
-    siteName: seoConfig.siteName,
-    images: [
-      {
-        url: "https://www.devupecosystem.com/og/hackathons.png",
-        width: 1200,
-        height: 630,
-        alt: "Hackathons in Hyderabad 2026 — DevUp Ecosystem",
-      },
-    ],
-    locale: "en_IN",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Hackathons in Hyderabad 2026 | DevUp Ecosystem",
-    description:
-      "Find the best upcoming hackathons in Hyderabad and India. Register now.",
-    images: ["https://www.devupecosystem.com/og/hackathons.png"],
-  },
+  authors: [{ name: devthonConfig.author }],
+  creator: devthonConfig.publisher,
+  publisher: devthonConfig.publisher,
+  openGraph: buildDevthonOgMetadata({
+    title: "DEVTHON 2026 – Building Asia's Largest Innovation Hackathon | Hackathons in Hyderabad",
+    description: devthonConfig.ogDescription,
+    path: "/hackathons",
+    image: devthonConfig.ogImage,
+  }),
+  twitter: buildDevthonTwitterMetadata({
+    title: "DEVTHON 2026 | Hackathons in Hyderabad & India",
+    description: devthonConfig.twitterDescription,
+    image: devthonConfig.ogImage,
+  }),
   alternates: {
     canonical: canonicalUrl("/hackathons"),
   },

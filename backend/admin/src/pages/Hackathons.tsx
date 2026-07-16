@@ -10,6 +10,8 @@ import toast from 'react-hot-toast'
 
 const MODES = ['ONLINE', 'OFFLINE', 'HYBRID'] as const
 
+import { PREDEFINED_DOMAINS } from '../constants/domains'
+
 const emptyForm = {
   title: '',
   description: '',
@@ -362,12 +364,16 @@ export default function Hackathons() {
             <label className="block text-xs text-gray-500 mb-1">Domains *</label>
             <div className="flex gap-2 mb-2">
               <input
+                list="predefined-domains"
                 value={domainInput}
                 onChange={(e) => setDomainInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addDomain() } }}
                 className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
                 placeholder="Type a domain and press Enter"
               />
+              <datalist id="predefined-domains">
+                {PREDEFINED_DOMAINS.map(d => <option key={d} value={d} />)}
+              </datalist>
               <Button variant="ghost" size="sm" type="button" onClick={addDomain}>Add</Button>
             </div>
             <div className="flex flex-wrap gap-2">
