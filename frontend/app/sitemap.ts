@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { seoConfig } from "@/lib/seo";
 import { LOCATIONS } from "@/lib/locations";
+import { BLOG_POSTS } from "@/lib/blog";
 
 const BASE_URL = seoConfig.baseUrl;
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -74,6 +75,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: loc.tier === "primary" ? 0.9 : 0.7,
   }));
 
+  // Static content / SEO pages
+  const contentUrls: MetadataRoute.Sitemap = [
+    { path: "/about", priority: 0.8, freq: "monthly" },
+    { path: "/domains", priority: 0.9, freq: "monthly" },
+    { path: "/faq", priority: 0.8, freq: "monthly" },
+    { path: "/schedule", priority: 0.8, freq: "weekly" },
+    { path: "/contact", priority: 0.6, freq: "monthly" },
+    { path: "/campus-ambassador", priority: 0.7, freq: "monthly" },
+    { path: "/blog", priority: 0.7, freq: "weekly" },
+    { path: "/privacy", priority: 0.3, freq: "yearly" },
+    { path: "/terms", priority: 0.3, freq: "yearly" },
+    { path: "/code-of-conduct", priority: 0.3, freq: "yearly" },
+  ].map((p) => ({
+    url: `${BASE_URL}${p.path}`,
+    lastModified: STATIC_LAST_MODIFIED,
+    changeFrequency: p.freq as MetadataRoute.Sitemap[number]["changeFrequency"],
+    priority: p.priority,
+  }));
+
+  // Blog posts
+  const blogUrls: MetadataRoute.Sitemap = BLOG_POSTS.map((p) => ({
+    url: `${BASE_URL}/blog/${p.slug}`,
+    lastModified: new Date(p.updated ?? p.date),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
   return [
     {
       url: BASE_URL,
@@ -117,6 +145,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.6,
     },
+    ...contentUrls,
+    ...blogUrls,
     ...locationUrls,
     ...hackathonUrls,
     ...startupUrls,

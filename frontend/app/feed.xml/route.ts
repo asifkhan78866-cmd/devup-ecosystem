@@ -1,5 +1,6 @@
 import { seoConfig } from "@/lib/seo";
 import { LOCATIONS } from "@/lib/locations";
+import { sortedPosts } from "@/lib/blog";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -47,6 +48,17 @@ export async function GET() {
     }
   } catch {
     // fall through to static items only
+  }
+
+  // Blog posts (classic RSS content)
+  for (const post of sortedPosts()) {
+    items.push({
+      title: post.title,
+      link: `${base}/blog/${post.slug}`,
+      description: post.description,
+      pubDate: new Date(post.date).toUTCString(),
+      guid: `${base}/blog/${post.slug}`,
+    });
   }
 
   // Location landing pages as evergreen feed items
