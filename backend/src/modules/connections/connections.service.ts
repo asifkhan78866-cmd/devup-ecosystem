@@ -62,29 +62,43 @@ export async function respondToConnection(params: {
   userId: string;
   status: 'ACCEPTED' | 'REJECTED';
 }) {
-  const request = await prisma.connectionRequest.findUnique({
-    where: { id: params.requestId },
+  const { requestId, userId, status } = params;
+  let request: any = await prisma.connectionRequest.findUnique({
+    where: { id: requestId },
   });
+  let isCofounder = false;
 
-  if (!request) throw new AppError(404, "Request not found");
-  if (request.toUserId !== params.userId) throw new AppError(403, "Not authorized");
-
-  const updated = await prisma.connectionRequest.update({
-    where: { id: params.requestId },
-    data: { status: params.status, respondedAt: new Date() },
-  });
-
-  if (params.status === 'ACCEPTED') {
-    const user = await prisma.user.findUnique({
-      where: { id: params.userId },
-      select: { profile: true },
+  if (!request) {
+    request = await prisma.cofounderRequest.findUnique({
+      where: { id: requestId }
     });
+    isCofounder = true;
+  }
 
+  if (!request) throw new AppError(404, "Connection request not found");
+  if (request.toUserId !== userId) throw new AppError(403, "Not authorized to respond to this request");
+  if (request.status !== 'PENDING') throw new AppError(400, "Request already processed");
+
+  let updated;
+  if (isCofounder) {
+    updated = await prisma.cofounderRequest.update({
+      where: { id: requestId },
+      data: { status }
+    });
+  } else {
+    updated = await prisma.connectionRequest.update({
+      where: { id: requestId },
+      data: { status, respondedAt: new Date() },
+    });
+  }
+
+  // Create notification for the sender
+  if (status === 'ACCEPTED') {
     await prisma.notification.create({
       data: {
         userId: request.fromUserId,
         title: 'Connection Accepted',
-        message: `${user?.profile?.name || 'Someone'} accepted your connection request.`,
+        message: `Your connection request has been accepted.`,
         type: 'CONNECTION_ACCEPTED',
         link: '/dashboard/connections',
       },
@@ -95,7 +109,12 @@ export async function respondToConnection(params: {
 }
 
 export async function getConnections(userId: string) {
-  const pendingRequests = await prisma.connectionRequest.findMany({
+  const pendingConnections = await prisma.connectionRequest.findMany({
+    where: { toUserId: userId, status: 'PENDING' },
+    include: { fromUser: { include: { profile: true } } },
+  });
+
+  const pendingCofounder = await prisma.cofounderRequest.findMany({
     where: { toUserId: userId, status: 'PENDING' },
     include: { fromUser: { include: { profile: true } } },
   });
@@ -103,10 +122,7 @@ export async function getConnections(userId: string) {
   const acceptedConnections = await prisma.connectionRequest.findMany({
     where: {
       status: 'ACCEPTED',
-      OR: [
-        { fromUserId: userId },
-        { toUserId: userId },
-      ],
+      OR: [{ fromUserId: userId }, { toUserId: userId }],
     },
     include: {
       fromUser: { include: { profile: true } },
@@ -114,5 +130,19 @@ export async function getConnections(userId: string) {
     },
   });
 
-  return { pendingRequests, acceptedConnections };
+  const acceptedCofounder = await prisma.cofounderRequest.findMany({
+    where: {
+      status: 'ACCEPTED',
+      OR: [{ fromUserId: userId }, { toUserId: userId }],
+    },
+    include: {
+      fromUser: { include: { profile: true } },
+      toUser: { include: { profile: true } },
+    },
+  });
+
+  return {
+    pendingRequests: [...pendingConnections, ...pendingCofounder].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
+    acceptedConnections: [...acceptedConnections, ...acceptedCofounder].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
+  };
 }

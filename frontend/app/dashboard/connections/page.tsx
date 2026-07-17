@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { UserPlus, UserCheck, MessageSquare, Clock, Check, X } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import ChatBox from "@/components/dashboard/ChatBox";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const TEAM_ROLES = ["OWNER", "ADMIN", "MEMBER"];
@@ -26,6 +27,9 @@ export default function ConnectionsPage() {
   const [inviteError, setInviteError] = useState("");
   const [inviting, setInviting] = useState(false);
   const [inviteNotice, setInviteNotice] = useState("");
+  
+  // Chat state
+  const [chatContact, setChatContact] = useState<{id: string, name: string, avatarUrl?: string} | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -157,7 +161,11 @@ export default function ConnectionsPage() {
                         <div className="mt-4 flex gap-2">
                           <button
                             className="flex-1 flex items-center justify-center gap-2 bg-[#1a1a1a] hover:bg-[#222] text-white py-2 rounded-lg text-sm transition-colors"
-                            onClick={() => alert("Messaging system to be implemented!")}
+                            onClick={() => setChatContact({
+                              id: partner.id,
+                              name: partner.profile?.name || 'Unknown User',
+                              avatarUrl: partner.avatarUrl
+                            })}
                           >
                             <MessageSquare className="w-4 h-4" /> Message
                           </button>
@@ -274,6 +282,13 @@ export default function ConnectionsPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {chatContact && (
+        <ChatBox 
+          contact={chatContact} 
+          onClose={() => setChatContact(null)} 
+        />
       )}
     </div>
   );

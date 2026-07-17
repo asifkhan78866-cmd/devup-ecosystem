@@ -7,6 +7,7 @@ import { Search, UserPlus, X, Code2, Palette, Megaphone, Settings, Briefcase, Bo
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AuthGate from "@/components/auth/AuthGate";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 const CofounderField = dynamic(
   () => import("@/components/3d/CofounderField"),
@@ -35,6 +36,51 @@ export default function CoFoundersPage() {
   const [buildStage, setBuildStage] = useState("I have an idea");
   const [needRoles, setNeedRoles] = useState<string[]>([]);
   const [availability, setAvailability] = useState<string[]>([]);
+  const [ideaSummary, setIdeaSummary] = useState("");
+  const [founderCity, setFounderCity] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [collegeBackground, setCollegeBackground] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [shortBio, setShortBio] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { session } = useAuth();
+  
+  const [connectProfile, setConnectProfile] = useState<any>(null);
+  const [connectMessage, setConnectMessage] = useState("");
+  const [sendingRequest, setSendingRequest] = useState(false);
+
+  const handleConnectClick = (p: any) => {
+    setConnectProfile(p);
+    setConnectMessage(`Hi ${p.name.split(' ')[0]},\n\nI saw your profile on the Co-Founder Marketplace and I'd love to connect to discuss building something together!`);
+  };
+
+  const submitConnectionRequest = async () => {
+    if (!connectProfile || !session?.access_token) return;
+    setSendingRequest(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/cofounders/${connectProfile.userId}/request`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ message: connectMessage })
+      });
+      
+      if (res.ok) {
+        alert("Request sent successfully!");
+        setConnectProfile(null);
+      } else {
+        const err = await res.json();
+        alert(err.message || "Failed to send request");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Failed to send request");
+    } finally {
+      setSendingRequest(false);
+    }
+  };
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/cofounders`)
@@ -46,9 +92,10 @@ export default function CoFoundersPage() {
             const roleStyle = ROLE_STYLES[roleLabel] || DEFAULT_ROLE_STYLE;
             return {
               id: p.id,
-              name: p.user?.name || p.name || "Anonymous",
-              college: p.user?.college || p.college || "",
-              city: p.city || p.user?.city || "Remote",
+              userId: p.userId,
+              name: p.user?.profile?.name || p.name || "Anonymous",
+              college: p.user?.profile?.college || p.college || "",
+              city: p.city || p.user?.profile?.city || "Remote",
               role: { label: roleLabel, ...roleStyle },
               stage: p.stage || "Idea Phase",
               stageClass: (p.stage || "").toLowerCase().includes("mvp") ? "mvp" : (p.stage || "").toLowerCase().includes("launch") ? "launched" : "idea",
@@ -56,7 +103,7 @@ export default function CoFoundersPage() {
               needs: p.lookingFor || "Co-founder",
               time: p.availability || "Part-time",
               active: p.isActive ?? true,
-              seed: p.user?.name?.split(" ")[0] || p.name?.split(" ")[0] || "User",
+              seed: p.user?.profile?.name?.split(" ")[0] || p.name?.split(" ")[0] || "User",
             };
           });
           setProfiles(formatted);
@@ -111,12 +158,53 @@ export default function CoFoundersPage() {
     setFormStep(step);
   };
 
-  const handleNext = () => {
-    if (formStep < 4) goToStep(formStep + 1);
-    else {
-      // Submit logic
-      setShowForm(false);
-      setFormStep(1);
+  const handleNext = async () => {
+    if (formStep < 4) {
+      goToStep(formStep + 1);
+    } else {
+      setSubmitting(true);
+      try {
+        const payload = {
+          role: bringRole.toUpperCase(),
+          stage: buildStage === "I have an idea" ? "IDEA" : buildStage === "Building an MVP" ? "MVP" : "LAUNCHED",
+          seeking: needRoles.map(r => r.toUpperCase()),
+          availability: availability[0]?.toUpperCase().replace("-", "_") || "PART_TIME",
+          idea: ideaSummary,
+          fullName,
+          city: founderCity,
+          collegeBackground,
+          linkedinUrl,
+          shortBio
+        };
+
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/cofounders`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session?.access_token}`
+            },
+            body: JSON.stringify(payload)
+          });
+          
+          if (res.ok) {
+            setShowForm(false);
+            setFormStep(1);
+            window.location.reload();
+          } else {
+            const err = await res.json();
+            alert(err.message || 'Failed to create profile');
+          }
+        } catch (err: any) {
+          console.error(err);
+          alert(err.message || 'Failed to create profile');
+        }
+      } catch (err: any) {
+        console.error(err);
+        alert('An error occurred');
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -131,7 +219,7 @@ export default function CoFoundersPage() {
       />
 
       <ErrorBoundary>
-        <CofounderField />
+        <CofounderField data={profiles} />
       </ErrorBoundary>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-8 relative z-10">
@@ -163,13 +251,15 @@ export default function CoFoundersPage() {
             <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px", color: "#a1a1a1", marginBottom: "auto", maxWidth: "280px", lineHeight: 1.5 }}>
               Tell us what you're building and what kind of co-founder you need.
             </p>
-            <button 
-              className="w-full py-3.5 bg-transparent border border-white/10 text-[#e4e4e4] font-semibold rounded-[10px] hover:bg-white/5 transition-colors mt-6"
-              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
-              onClick={() => setShowForm(true)}
-            >
-              Create Profile
-            </button>
+            <AuthGate>
+              <button 
+                className="w-full py-3.5 bg-transparent border border-white/10 text-[#e4e4e4] font-semibold rounded-[10px] hover:bg-white/5 transition-colors mt-6"
+                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
+                onClick={() => setShowForm(true)}
+              >
+                Create Profile
+              </button>
+            </AuthGate>
           </div>
         </div>
 
@@ -331,6 +421,7 @@ export default function CoFoundersPage() {
 
                 <AuthGate>
                   <button 
+                    onClick={() => handleConnectClick(p)}
                     className="w-full py-2.5 bg-[#c8f135] text-black font-semibold rounded-[8px] transition-transform group-hover:scale-[1.02]"
                     style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px" }}
                   >
@@ -477,6 +568,8 @@ export default function CoFoundersPage() {
                           </label>
                           <textarea 
                             id="ideaSummary"
+                            value={ideaSummary}
+                            onChange={(e) => setIdeaSummary(e.target.value)}
                             className="w-full h-[80px] resize-none bg-[#111111] border border-white/10 rounded-[10px] p-4 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors"
                             placeholder="e.g. A marketplace for unused compute power."
                           />
@@ -552,6 +645,8 @@ export default function CoFoundersPage() {
                           <input 
                             id="founderCity"
                             type="text"
+                            value={founderCity}
+                            onChange={(e) => setFounderCity(e.target.value)}
                             className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-4 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors"
                             placeholder="e.g. Bengaluru / Remote"
                           />
@@ -567,22 +662,22 @@ export default function CoFoundersPage() {
                         
                         <div>
                           <label htmlFor="fullName" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Full Name</label>
-                          <input id="fullName" type="text" className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
+                          <input id="fullName" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
                         </div>
                         
                         <div>
                           <label htmlFor="collegeBackground" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>College / Background</label>
-                          <input id="collegeBackground" type="text" className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
+                          <input id="collegeBackground" type="text" value={collegeBackground} onChange={(e) => setCollegeBackground(e.target.value)} className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
                         </div>
 
                         <div>
                           <label htmlFor="linkedinUrl" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>LinkedIn URL</label>
-                          <input id="linkedinUrl" type="url" className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
+                          <input id="linkedinUrl" type="url" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} className="w-full bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
                         </div>
 
                         <div>
                           <label htmlFor="shortBio" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1", display: "block", marginBottom: "8px" }}>Short Bio</label>
-                          <textarea id="shortBio" className="w-full h-[80px] resize-none bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
+                          <textarea id="shortBio" value={shortBio} onChange={(e) => setShortBio(e.target.value)} className="w-full h-[80px] resize-none bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors" />
                         </div>
                       </div>
                     )}
@@ -603,19 +698,69 @@ export default function CoFoundersPage() {
                     Previous
                   </button>
                 )}
-                <button 
-                  className="flex-1 py-3.5 bg-[#c8f135] text-black font-semibold rounded-[10px] hover:bg-[#b0d829] transition-colors"
-                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
-                  onClick={handleNext}
-                >
-                  {formStep === 4 ? "Create Profile" : "Next →"}
-                </button>
+                <AuthGate>
+                    <button 
+                      onClick={handleNext}
+                      disabled={submitting}
+                      className="flex-1 py-3.5 bg-[#c8f135] text-black font-semibold rounded-[10px] hover:bg-[#b0d829] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
+                    >
+                      {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                      {formStep === 4 ? "Create Profile" : "Next →"}
+                    </button>
+                </AuthGate>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* Connect Modal */}
+      <AnimatePresence>
+        {connectProfile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#0f0f0f] border border-white/10 rounded-[16px] w-full max-w-md overflow-hidden flex flex-col"
+            >
+              <div className="h-14 border-b border-white/10 flex items-center justify-between px-5">
+                <div style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "16px", fontWeight: 700, color: "#fff" }}>
+                  Connect with {connectProfile.name}
+                </div>
+                <button onClick={() => setConnectProfile(null)} className="text-[#6b6b6b] hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-5 flex flex-col gap-4">
+                <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#a1a1a1" }}>
+                  Send a message to introduce yourself and share why you'd be a great fit to build together.
+                </p>
+                <textarea 
+                  value={connectMessage}
+                  onChange={(e) => setConnectMessage(e.target.value)}
+                  className="w-full h-[120px] resize-none bg-[#111111] border border-white/10 rounded-[10px] p-3 text-[#e4e4e4] outline-none focus:border-[#c8f135]/50 transition-colors"
+                />
+                <button 
+                  onClick={submitConnectionRequest}
+                  disabled={sendingRequest}
+                  className="w-full py-3 bg-[#c8f135] text-black font-semibold rounded-[8px] hover:bg-[#b0d829] transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
+                >
+                  {sendingRequest && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Send Request
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

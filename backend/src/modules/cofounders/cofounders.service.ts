@@ -43,8 +43,24 @@ export class CofoundersService {
     const existing = await prisma.cofounderProfile.findUnique({ where: { userId } });
     if (existing) throw new AppError(400, "Profile already exists");
 
+    const { fullName, collegeBackground, linkedinUrl, shortBio, city, ...cofounderData } = data;
+
+    // Update user profile with the missing data
+    if (fullName || collegeBackground || linkedinUrl || shortBio || city) {
+        await prisma.profile.update({
+            where: { userId },
+            data: {
+                ...(fullName && { name: fullName }),
+                ...(collegeBackground && { college: collegeBackground }),
+                ...(linkedinUrl && { linkedinUrl }),
+                ...(shortBio && { bio: shortBio }),
+                ...(city && { city })
+            }
+        })
+    }
+
     return await prisma.cofounderProfile.create({
-      data: { ...data, userId }
+      data: { ...cofounderData, userId }
     });
   }
 

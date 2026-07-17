@@ -220,9 +220,23 @@ function ConnectionArcs({ profiles }: { profiles: any[] }) {
   );
 }
 
-export default function CofounderField() {
+export default function CofounderField({ data = [] }: { data?: any[] }) {
   const isMobile = useIsMobile();
-  const profiles = useMemo(() => generateProfiles(12), []);
+  
+  const displayProfiles = useMemo(() => {
+    if (!data || data.length === 0) return generateProfiles(12);
+    
+    return data.slice(0, 12).map((p, i) => ({
+      ...p,
+      roles: p.roles ? p.roles : (p.role ? [p.role] : []),
+      basePos: new THREE.Vector3(
+        (Math.random() - 0.5) * 10,
+        (Math.random() - 0.5) * 3,
+        (Math.random() - 0.5) * 4
+      ),
+      currPos: new THREE.Vector3()
+    }));
+  }, [data]);
   
   return (
     <div className="w-full h-[220px] md:h-[360px] relative pointer-events-none">
@@ -232,10 +246,10 @@ export default function CofounderField() {
       >
         <ambientLight intensity={0.5} />
         <group>
-          {profiles.map((p, i) => (
+          {displayProfiles.map((p, i) => (
             <ProfileCard key={p.id} profile={p} index={i} />
           ))}
-          <ConnectionArcs profiles={profiles} />
+          <ConnectionArcs profiles={displayProfiles} />
         </group>
       </Canvas3DWrapper>
     </div>
