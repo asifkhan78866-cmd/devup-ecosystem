@@ -8,7 +8,7 @@ import { LogOut, User as UserIcon, Settings, LayoutDashboard, ChevronDown } from
 import { useAuth } from '@/lib/auth/AuthProvider'
 import Link from 'next/link'
 
-export default function LogoutButton() {
+export default function LogoutButton({ variant }: { variant?: 'button' | 'icon' }) {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
