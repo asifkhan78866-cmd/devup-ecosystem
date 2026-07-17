@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { seoConfig } from "@/lib/seo";
+import { LOCATIONS } from "@/lib/locations";
 
 const BASE_URL = seoConfig.baseUrl;
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -65,6 +66,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Continue with empty job URLs
   }
 
+  // Programmatic local-SEO landing pages (/hackathons-in/<city>)
+  const locationUrls: MetadataRoute.Sitemap = LOCATIONS.map((loc) => ({
+    url: `${BASE_URL}/hackathons-in/${loc.slug}`,
+    lastModified: STATIC_LAST_MODIFIED,
+    changeFrequency: "weekly" as const,
+    priority: loc.tier === "primary" ? 0.9 : 0.7,
+  }));
+
   return [
     {
       url: BASE_URL,
@@ -108,6 +117,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.6,
     },
+    ...locationUrls,
     ...hackathonUrls,
     ...startupUrls,
     ...jobUrls,

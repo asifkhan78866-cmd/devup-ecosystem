@@ -48,6 +48,25 @@ export const metadata: Metadata = {
   alternates: {
     canonical: seoConfig.baseUrl,
   },
+  // Search-engine ownership verification. Set these in the frontend env:
+  //   NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION  (Google Search Console)
+  //   NEXT_PUBLIC_BING_SITE_VERIFICATION    (Bing Webmaster Tools)
+  //   NEXT_PUBLIC_YANDEX_SITE_VERIFICATION  (Yandex, optional)
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    yandex: process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : {},
+  },
+  // Default geo targeting (Hyderabad HQ). Location landing pages override the
+  // whole `other` object with their own city-specific geo tags.
+  other: {
+    "geo.region": "IN-TG",
+    "geo.placename": "Hyderabad",
+    "geo.position": "17.3850;78.4867",
+    ICBM: "17.3850, 78.4867",
+  },
   openGraph: buildOgMetadata({
     title: homepageTitle,
     description: homepageDescription,
@@ -69,13 +88,11 @@ export default function RootLayout({
       <head>
         <link rel="preload" as="image" href="/video/hero-space-poster.jpg" />
         <meta name="theme-color" content="#000000" />
-        <meta name="author" content="DevUp Ecosystem" />
-        {/* Geo targeting for India/Hyderabad — helps local search ranking */}
-        <meta name="geo.region" content="IN-TG" />
-        <meta name="geo.placename" content="Hyderabad" />
-        <meta name="geo.position" content="17.3850;78.4867" />
-        <meta name="ICBM" content="17.3850, 78.4867" />
         <meta httpEquiv="content-language" content="en-IN" />
+        {/* NOTE: geo.* and author meta are emitted via the Metadata API
+            (see `metadata.other` / `metadata.authors` below) so that per-route
+            metadata — e.g. the /hackathons-in/<city> location pages — can
+            override them cleanly without producing duplicate/conflicting tags. */}
         {/* Synchronous script — runs BEFORE paint, before React hydrates.
             Tags <html> with data-skip-intro for returning visitors so CSS
             can instantly hide the overlay with zero flash. */}
