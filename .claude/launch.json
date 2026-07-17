@@ -4,8 +4,8 @@
     {
       "name": "frontend",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend", "run", "dev", "--", "--port", "3002"],
-      "port": 3002
+      "runtimeArgs": ["--prefix", "frontend", "run", "dev", "--", "--port", "3007"],
+      "port": 3007
     }
   ]
 }
