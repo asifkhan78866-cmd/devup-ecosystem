@@ -10,9 +10,9 @@ what ranks. ✅ = already published.
 2. How to Win a Hackathon: 12 Proven Strategies from Winning Teams ✅
 3. Best Hackathons in India in 2026: The Ultimate List for Students
 4. Best Hackathons in Hyderabad in 2026
-5. What Is a Hackathon? A Simple Guide for First-Timers
+5. What Is a Hackathon? A Simple Guide for First-Timers ✅
 6. Online vs Offline Hackathons: Which Should You Join?
-7. How to Find a Team for a Hackathon (Even If You Know No One)
+7. How to Find a Team for a Hackathon (Even If You Know No One) ✅
 8. Hackathon Judging Criteria Explained: What Judges Really Look For
 9. The Ultimate Hackathon Checklist: What to Bring and Prepare
 10. 15 Common Hackathon Mistakes and How to Avoid Them
@@ -44,7 +44,7 @@ what ranks. ✅ = already published.
 32. Capture The Flag (CTF) for Beginners: How to Start
 
 ## Coding & Development
-33. Best Programming Languages to Learn in 2026
+33. Best Programming Languages to Learn in 2026 ✅
 34. How to Build a Portfolio That Gets You Hired
 35. Full-Stack Roadmap for Students in 2026
 36. Git and GitHub for Beginners: A Practical Guide
@@ -56,7 +56,7 @@ what ranks. ✅ = already published.
 42. 10 Beginner Coding Projects That Teach Real Skills
 
 ## Career, Internships & Placements
-43. How to Get Your First Tech Internship in India
+43. How to Get Your First Tech Internship in India ✅
 44. Resume Tips for Engineering Students in 2026
 45. How to Prepare for Campus Placements
 46. Coding Interview Preparation: A 60-Day Plan
@@ -70,7 +70,7 @@ what ranks. ✅ = already published.
 54. How to Get Noticed by Recruiters as a Fresher
 
 ## Startups & Entrepreneurship
-55. How to Turn a Hackathon Project Into a Startup
+55. How to Turn a Hackathon Project Into a Startup ✅
 56. Startup Ideas for College Students in 2026
 57. What Is Startup Incubation and How Does It Work?
 58. How to Find a Co-Founder in College
