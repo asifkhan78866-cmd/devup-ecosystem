@@ -88,4 +88,65 @@ export class UsersService {
       orderBy: { createdAt: "desc" },
     });
   }
+
+  async getUserActivity(id: string) {
+    const [hackathons, jobs, founded, joined] = await Promise.all([
+      prisma.hackathonRegistration.findMany({
+        where: { userId: id },
+        include: { hackathon: true },
+        orderBy: { registeredAt: 'desc' }
+      }),
+      prisma.jobApplication.findMany({
+        where: { userId: id },
+        include: { job: { include: { startup: true } } },
+        orderBy: { appliedAt: 'desc' }
+      }),
+      prisma.startup.findMany({
+        where: { founderId: id },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.startupMember.findMany({
+        where: { userId: id, status: 'ACTIVE' },
+        include: { startup: true },
+        orderBy: { joinedAt: 'desc' }
+      })
+    ]);
+
+    const activity = [
+      ...hackathons.map(h => ({ type: 'HACKATHON', title: `Registered for ${h.hackathon.title}`, date: h.registeredAt })),
+      ...jobs.map(j => ({ type: 'JOB', title: `Applied to ${j.job.title} at ${j.job.startup.name}`, date: j.appliedAt })),
+      ...founded.map(f => ({ type: 'STARTUP_FOUNDED', title: `Founded ${f.name}`, date: f.createdAt })),
+      ...joined.map(j => ({ type: 'STARTUP_JOINED', title: `Joined ${j.startup.name} as ${j.role}`, date: j.joinedAt || j.createdAt }))
+    ];
+
+    return activity.sort((a, b) => b.date.getTime() - a.date.getTime());
+  }
+
+  async deleteUser(id: string, requesterId: string) {
+    const requester = await prisma.user.findUnique({ where: { id: requesterId } });
+    if (requester?.role !== "ADMIN" && requester?.role !== "SUPER_ADMIN") {
+      throw new AppError(403, "Not authorized to delete users");
+    }
+
+    const foundedStartups = await prisma.startup.findMany({ where: { founderId: id } });
+    if (foundedStartups.length > 0) {
+      throw new AppError(400, `Cannot delete user. They are the primary founder of ${foundedStartups.length} startup(s). Please transfer ownership or delete the startup(s) first.`);
+    }
+
+    const userToDelete = await prisma.user.findUnique({ where: { id }, include: { profile: true } });
+    
+    await prisma.user.delete({ where: { id } });
+
+    await prisma.auditLog.create({
+      data: {
+        adminId: requesterId,
+        action: "DELETE_USER",
+        entity: "User",
+        entityId: id,
+        metadata: { deletedEmail: userToDelete?.email, deletedName: userToDelete?.profile?.name }
+      }
+    });
+
+    return { success: true };
+  }
 }

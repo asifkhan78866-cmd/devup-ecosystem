@@ -8,6 +8,7 @@ import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PageControls from "@/components/PageControls";
+import AuthGate from "@/components/auth/AuthGate";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import MobileStartupCard from "@/components/mobile/MobileStartupCard";
 
@@ -176,8 +177,9 @@ export default function EcosystemPage() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.5), ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <Link href={`/ecosystem/${startup.id}`} className="block h-full group">
-                    {isMobile ? (
+                  <AuthGate>
+                    <Link href={`/ecosystem/${startup.id}`} className="block h-full group">
+                      {isMobile ? (
                       <MobileStartupCard startup={startup} />
                     ) : (
                       <div 
@@ -261,7 +263,8 @@ export default function EcosystemPage() {
                       </div>
                     </div>
                     )}
-                  </Link>
+                    </Link>
+                  </AuthGate>
                 </motion.div>
               ))}
             </AnimatePresence>

@@ -38,4 +38,14 @@ export class UsersController {
     const notifications = await usersService.getUserNotifications(req.params.id as string, (req as any).user!.id);
     res.status(200).json({ success: true, data: notifications });
   }
+
+  async getActivity(req: Request, res: Response) {
+    const activity = await usersService.getUserActivity(req.params.id as string);
+    res.status(200).json({ success: true, data: activity });
+  }
+
+  async deleteUser(req: Request, res: Response) {
+    const result = await usersService.deleteUser(req.params.id as string, (req as any).user!.id);
+    res.status(200).json(result);
+  }
 }

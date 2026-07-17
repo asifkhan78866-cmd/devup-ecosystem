@@ -3,7 +3,7 @@ import multer from "multer";
 import { UsersController } from "./users.controller";
 import { validate } from "../../middleware/validate";
 import { updateUserSchema } from "./users.schema";
-import { requireAuth } from "../../middleware/auth";
+import { requireAuth, requireRole } from "../../middleware/auth";
 import { env } from "../../config/env";
 
 const router = Router();
@@ -20,5 +20,7 @@ router.patch("/:id", requireAuth, validate(updateUserSchema), controller.updateU
 router.post("/:id/resume", requireAuth, upload.single("resume"), controller.uploadResume);
 router.get("/:id/applications", requireAuth, controller.getApplications);
 router.get("/:id/notifications", requireAuth, controller.getNotifications);
+router.get("/:id/activity", requireAuth, controller.getActivity);
+router.delete("/:id", requireAuth, requireRole(["ADMIN", "SUPER_ADMIN"]), controller.deleteUser);
 
 export default router;

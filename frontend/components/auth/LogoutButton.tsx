@@ -132,23 +132,17 @@ export default function LogoutButton() {
             </div>
 
             <div style={{ padding: 8 }}>
-              <Link href="/profile" passHref legacyBehavior>
-                <a style={menuItemStyle} onClick={() => setIsOpen(false)}>
-                  <UserIcon size={16} />
-                  Profile
-                </a>
+              <Link href="/profile" style={menuItemStyle} onClick={() => setIsOpen(false)}>
+                <UserIcon size={16} />
+                Profile
               </Link>
-              <Link href="/dashboard" passHref legacyBehavior>
-                <a style={menuItemStyle} onClick={() => setIsOpen(false)}>
-                  <LayoutDashboard size={16} />
-                  Dashboard
-                </a>
+              <Link href="/dashboard" style={menuItemStyle} onClick={() => setIsOpen(false)}>
+                <LayoutDashboard size={16} />
+                Dashboard
               </Link>
-              <Link href="/settings" passHref legacyBehavior>
-                <a style={menuItemStyle} onClick={() => setIsOpen(false)}>
-                  <Settings size={16} />
-                  Settings
-                </a>
+              <Link href="/settings" style={menuItemStyle} onClick={() => setIsOpen(false)}>
+                <Settings size={16} />
+                Settings
               </Link>
               <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '8px 0' }} />
               <button 
