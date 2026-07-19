@@ -71,25 +71,25 @@ export default function PWAInstallPrompt() {
   if (!showPrompt || isStandalone) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 md:bottom-4 md:left-auto md:right-8 md:w-[400px] z-50 animate-in slide-in-from-bottom-full duration-500 pb-[env(safe-area-inset-bottom)]">
-      <div className="bg-[#111111]/95 backdrop-blur-xl border-t md:border border-white/10 md:rounded-2xl rounded-t-3xl p-5 shadow-[0_-8px_30px_rgba(0,0,0,0.5)] md:shadow-[0_8px_30px_rgba(0,0,0,0.5)] flex flex-col gap-4">
+    <div className="fixed bottom-[80px] left-4 right-4 md:bottom-6 md:left-auto md:right-8 md:w-[400px] z-50 animate-in slide-in-from-bottom-10 duration-500">
+      <div className="bg-[#111111]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.5)] flex flex-col gap-3">
         
         {/* Header with Icon and Close Button */}
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#c8f135] to-[#9dbd27] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[#c8f135]/20">
-              <Download className="w-6 h-6 text-black" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#c8f135] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[#c8f135]/20">
+              <Download className="w-5 h-5 text-black" />
             </div>
             <div>
-              <h3 className="text-white font-bold text-base tracking-tight mb-0.5" style={{ fontFamily: "var(--font-syne), sans-serif" }}>Install DevUp App</h3>
+              <h3 className="text-white font-bold text-sm tracking-tight mb-0.5" style={{ fontFamily: "var(--font-syne), sans-serif" }}>Install DevUp App</h3>
               <p className="text-[#a1a1a1] text-xs leading-relaxed">
-                Add to your home screen for quick access and a better experience.
+                Add to home screen for the best experience.
               </p>
             </div>
           </div>
           <button 
             onClick={handleDismiss}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-[#a1a1a1] hover:text-white hover:bg-white/10 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 text-[#a1a1a1] hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -98,15 +98,15 @@ export default function PWAInstallPrompt() {
         {/* Action Area */}
         <div className="w-full">
           {isIOS ? (
-            <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-              <p className="text-white text-xs flex items-center justify-center gap-2 font-medium">
-                Tap <Share className="w-5 h-5 text-blue-500 bg-white/10 p-1 rounded-md" /> then <PlusSquare className="w-5 h-5 text-white bg-white/10 p-1 rounded-md" /> <strong>Add to Home Screen</strong>
+            <div className="bg-white/5 rounded-lg p-2.5 border border-white/5">
+              <p className="text-white text-[11px] flex items-center justify-center gap-1.5 font-medium">
+                Tap <Share className="w-4 h-4 text-blue-500 bg-white/10 p-0.5 rounded" /> then <PlusSquare className="w-4 h-4 text-white bg-white/10 p-0.5 rounded" /> <strong>Add to Home Screen</strong>
               </p>
             </div>
           ) : (
             <button 
               onClick={handleInstallClick}
-              className="w-full bg-[#c8f135] text-black text-sm font-bold py-3.5 rounded-xl hover:bg-[#b0d62a] active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(200,241,53,0.3)]"
+              className="w-full bg-[#c8f135] text-black text-sm font-bold py-2.5 rounded-xl hover:bg-[#b0d62a] active:scale-[0.98] transition-all"
             >
               Install App
             </button>
