@@ -1,6 +1,13 @@
 import type { NextConfig } from 'next'
 
 import path from 'node:path'
+import withSerwistInit from '@serwist/next'
+
+const withSerwist = withSerwistInit({
+  swSrc: 'app/sw.ts',
+  swDest: 'public/sw.js',
+  disable: process.env.NODE_ENV === 'development', // Only enable PWA in production
+})
 
 const nextConfig: NextConfig = {
   transpilePackages: ['three'],
@@ -55,4 +62,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withSerwist(nextConfig)

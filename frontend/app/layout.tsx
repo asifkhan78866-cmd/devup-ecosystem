@@ -3,6 +3,7 @@ import { Inter, Syne, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import LayoutClient from "@/components/LayoutClient";
 import BackendWakeUp from "@/components/BackendWakeUp";
+import PWAInstallPrompt from "@/components/ui/PWAInstallPrompt";
 import { seoConfig, buildTitle, buildOgMetadata, buildTwitterMetadata } from "@/lib/seo";
 
 const inter = Inter({
@@ -86,8 +87,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} antialiased dark`}>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="preload" as="image" href="/video/hero-space-poster.jpg" />
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#0a0a0a" />
         <meta httpEquiv="content-language" content="en-IN" />
         {/* NOTE: geo.* and author meta are emitted via the Metadata API
             (see `metadata.other` / `metadata.authors` below) so that per-route
@@ -187,6 +192,7 @@ export default function RootLayout({
         />
         <LayoutClient>{children}</LayoutClient>
         <BackendWakeUp />
+        <PWAInstallPrompt />
       </body>
     </html>
   );
