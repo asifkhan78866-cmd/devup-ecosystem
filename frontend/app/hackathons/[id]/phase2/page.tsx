@@ -144,10 +144,16 @@ export default function Phase2Page() {
               <div className="bg-[#1a1a1a] p-6 rounded-xl border border-white/5 flex flex-col justify-between">
                 <div>
                   <h3 className="font-bold text-[#c8f135] mb-2 flex items-center gap-2"><Gift className="w-4 h-4" /> Benefits & Discounts</h3>
-                  <p className="text-sm text-[#888] mb-4">Claim your exclusive Phase 2 benefits and discounts on hackathon tickets.</p>
+                  <p className="text-sm text-[#888] mb-4">
+                    Official registration will open soon here with exclusive discounts only for you and other shortlisted candidates.
+                  </p>
+                  <div className="text-xs text-[#a1a1a1] space-y-2 mb-4 bg-white/5 p-3 rounded-lg border border-white/10">
+                    <p>🔥 <strong>Stay Tuned:</strong> Registration may open by 28th or 31st of July.</p>
+                    <p>📅 <strong>Hackathon Dates:</strong> Tentative dates (20th and 21st) will be announced on 30th of July.</p>
+                  </div>
                 </div>
-                <button className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium transition-colors">
-                  Claim Benefits
+                <button disabled className="w-full py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-medium transition-colors opacity-50 cursor-not-allowed">
+                  Opening Soon
                 </button>
               </div>
               <div className="bg-[#1a1a1a] p-6 rounded-xl border border-white/5 relative flex flex-col">
