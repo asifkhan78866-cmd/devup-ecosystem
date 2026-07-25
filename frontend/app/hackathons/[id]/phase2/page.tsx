@@ -239,8 +239,6 @@ export default function Phase2Page() {
             </motion.div>
           </div>
         )}
-          </motion.div>
-        </div>
       </div>
     );
   }
