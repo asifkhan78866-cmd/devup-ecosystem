@@ -335,6 +335,7 @@ model HackathonLead {
   members      Json?     // Array of { name, email, phone }
   college      String
   source       String    @default("website")
+  preferences  Json?
   redirectedAt DateTime?
   createdAt    DateTime  @default(now())
 

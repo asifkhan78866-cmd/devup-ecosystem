@@ -180,6 +180,28 @@ export class HackathonsService {
     }
   }
 
+  async updateLead(hackathonId: string, leadId: string, data: { teamName?: string; college?: string; members?: { name: string; email: string; phone: string }[]; preferences?: any }) {
+    const lead = await prisma.hackathonLead.findUnique({
+      where: { id: leadId, hackathonId },
+    });
+
+    if (!lead) {
+      throw new AppError(404, "Lead not found");
+    }
+
+    const updated = await prisma.hackathonLead.update({
+      where: { id: leadId },
+      data: {
+        teamName: data.teamName,
+        college: data.college,
+        members: data.members ? JSON.stringify(data.members) : undefined,
+        preferences: data.preferences ? data.preferences : undefined,
+      },
+    });
+
+    return updated;
+  }
+
   async markLeadRedirected(leadId: string) {
     return await prisma.hackathonLead.update({
       where: { id: leadId },
@@ -245,7 +267,9 @@ export class HackathonsService {
       id: lead.id,
       name: lead.name,
       teamCount: lead.teamCount,
+      teamName: lead.teamName,
       college: lead.college,
+      preferences: lead.preferences,
       submission: lead.submission
     };
   }

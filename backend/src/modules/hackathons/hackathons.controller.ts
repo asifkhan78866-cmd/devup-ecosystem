@@ -87,6 +87,11 @@ export class HackathonsController {
     res.status(201).json({ success: true, data: { registrationId: data.id } });
   }
 
+  async updateLead(req: Request, res: Response) {
+    const data = await hackathonsService.updateLead(req.params.id as string, req.params.leadId as string, req.body);
+    res.status(200).json({ success: true, data });
+  }
+
   async markLeadRedirected(req: Request, res: Response) {
     const data = await hackathonsService.markLeadRedirected(req.params.leadId);
     res.status(200).json({ success: true, data });

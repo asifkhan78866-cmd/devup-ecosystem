@@ -43,6 +43,9 @@ router.patch("/:id/lead/:leadId/redirect", controller.markLeadRedirected);
 // Admin: list leads from the website
 router.get("/:id/leads", requireAuth, requireRole(["ADMIN"]), controller.getLeads);
 
+// Participant: update lead details (name, college, preferences)
+router.patch("/:id/leads/:leadId", controller.updateLead);
+
 // Submissions (Phase 1)
 router.post("/:id/leads/:leadId/submission", upload.single("file"), controller.uploadSubmission);
 router.get("/:id/submissions/status", controller.getSubmissionStatus); // use query ?phone=...
