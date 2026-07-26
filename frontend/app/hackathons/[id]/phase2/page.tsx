@@ -192,6 +192,14 @@ export default function Phase2Page() {
                     <p className="text-xs text-[#666] uppercase tracking-wider">College</p>
                     <p className="text-sm text-white font-medium">{status.college}</p>
                   </div>
+                  {status.preferences && (
+                    <div>
+                      <p className="text-xs text-[#666] uppercase tracking-wider">Preferences</p>
+                      <p className="text-sm text-white font-medium capitalize">
+                        {typeof status.preferences === 'object' ? status.preferences.note || JSON.stringify(status.preferences) : status.preferences}
+                      </p>
+                    </div>
+                  )}
                   {status.members && status.members.length > 0 && (
                     <div className="pt-3 mt-3 border-t border-white/5">
                       <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Members</p>
