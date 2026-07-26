@@ -193,6 +193,7 @@ export class HackathonsService {
       where: { id: leadId },
       data: {
         teamName: data.teamName,
+        teamCount: data.members ? data.members.length + 1 : undefined,
         college: data.college,
         members: data.members ? JSON.stringify(data.members) : undefined,
         preferences: data.preferences ? data.preferences : undefined,
@@ -270,6 +271,7 @@ export class HackathonsService {
       teamName: lead.teamName,
       college: lead.college,
       preferences: lead.preferences,
+      members: lead.members,
       submission: lead.submission
     };
   }

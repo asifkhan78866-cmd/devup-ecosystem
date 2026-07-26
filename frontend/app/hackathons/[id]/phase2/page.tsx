@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Lock, ArrowLeft, Loader2, Sparkles, AlertTriangle, Gift, Edit2, X } from "lucide-react";
+import { Lock, ArrowLeft, Loader2, Sparkles, AlertTriangle, Gift, Edit2, X, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -24,6 +24,7 @@ export default function Phase2Page() {
     teamName: "",
     college: "",
     preferences: "",
+    members: [] as { name: string; email: string; phone: string }[],
   });
   const [updating, setUpdating] = useState(false);
   const [updateError, setUpdateError] = useState("");
@@ -49,7 +50,15 @@ export default function Phase2Page() {
         throw new Error("You have not been selected for Phase 2 yet.");
       }
 
-      setStatus(data.data);
+      let parsedMembers = data.data.members;
+      if (typeof parsedMembers === "string") {
+        try { parsedMembers = JSON.parse(parsedMembers); } catch(e) { parsedMembers = []; }
+      }
+
+      setStatus({
+        ...data.data,
+        members: parsedMembers || []
+      });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -83,6 +92,7 @@ export default function Phase2Page() {
           teamName: editForm.teamName,
           college: editForm.college,
           preferences: parsedPrefs,
+          members: editForm.members,
         }),
       });
 
@@ -94,6 +104,8 @@ export default function Phase2Page() {
         teamName: editForm.teamName || status.teamName,
         college: editForm.college || status.college,
         preferences: parsedPrefs || status.preferences,
+        members: editForm.members,
+        teamCount: 1 + editForm.members.length,
       });
       setUpdateSuccess("Details updated successfully!");
       setTimeout(() => setIsEditing(false), 2000);
@@ -108,7 +120,8 @@ export default function Phase2Page() {
     setEditForm({
       teamName: status.teamName || "",
       college: status.college || "",
-      preferences: status.preferences ? JSON.stringify(status.preferences, null, 2) : "",
+      preferences: status.preferences ? (typeof status.preferences === "string" ? status.preferences : status.preferences.note || JSON.stringify(status.preferences, null, 2)) : "",
+      members: status.members || [],
     });
     setIsEditing(true);
     setUpdateSuccess("");
@@ -179,6 +192,19 @@ export default function Phase2Page() {
                     <p className="text-xs text-[#666] uppercase tracking-wider">College</p>
                     <p className="text-sm text-white font-medium">{status.college}</p>
                   </div>
+                  {status.members && status.members.length > 0 && (
+                    <div className="pt-3 mt-3 border-t border-white/5">
+                      <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Members</p>
+                      <ul className="text-sm text-gray-300 space-y-2">
+                        {status.members.map((m: any, idx: number) => (
+                          <li key={idx} className="bg-white/5 px-3 py-2 rounded-lg border border-white/5">
+                            <p className="text-white font-medium">{m.name}</p>
+                            <p className="text-xs text-[#888]">{m.email} · {m.phone}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -191,7 +217,7 @@ export default function Phase2Page() {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-[#111] border border-white/10 rounded-2xl p-6 w-full max-w-md relative"
+              className="bg-[#111] border border-white/10 rounded-2xl p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto"
             >
               <button 
                 onClick={() => setIsEditing(false)}
@@ -229,6 +255,75 @@ export default function Phase2Page() {
                     className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-[#c8f135]/50 h-24 resize-none"
                     placeholder="e.g. Vegetarian, Large T-Shirt"
                   />
+                </div>
+
+                <div className="pt-4 border-t border-white/10">
+                  <div className="flex justify-between items-center mb-4">
+                    <label className="block text-sm font-bold text-white">Team Members</label>
+                    <span className="text-xs text-[#888]">{1 + editForm.members.length}/5 Max</span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {editForm.members.map((member, index) => (
+                      <div key={index} className="bg-white/5 p-4 rounded-xl border border-white/5 relative space-y-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newMembers = [...editForm.members];
+                            newMembers.splice(index, 1);
+                            setEditForm({ ...editForm, members: newMembers });
+                          }}
+                          className="absolute top-3 right-3 text-[#888] hover:text-red-400 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <div>
+                          <input 
+                            type="text" placeholder="Name" required
+                            value={member.name}
+                            onChange={(e) => {
+                              const newMembers = [...editForm.members];
+                              newMembers[index].name = e.target.value;
+                              setEditForm({ ...editForm, members: newMembers });
+                            }}
+                            className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#c8f135]/50"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <input 
+                            type="email" placeholder="Email" required
+                            value={member.email}
+                            onChange={(e) => {
+                              const newMembers = [...editForm.members];
+                              newMembers[index].email = e.target.value;
+                              setEditForm({ ...editForm, members: newMembers });
+                            }}
+                            className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#c8f135]/50"
+                          />
+                          <input 
+                            type="tel" placeholder="Phone" required
+                            value={member.phone}
+                            onChange={(e) => {
+                              const newMembers = [...editForm.members];
+                              newMembers[index].phone = e.target.value;
+                              setEditForm({ ...editForm, members: newMembers });
+                            }}
+                            className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#c8f135]/50"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {1 + editForm.members.length < 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, members: [...editForm.members, { name: "", email: "", phone: "" }] })}
+                      className="mt-4 w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 border-dashed rounded-lg text-sm text-[#888] hover:text-white transition-colors flex justify-center items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" /> Add Member
+                    </button>
+                  )}
                 </div>
 
                 {updateError && <p className="text-red-400 text-sm">{updateError}</p>}
