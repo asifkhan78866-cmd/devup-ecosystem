@@ -28,15 +28,19 @@ export function Badge({
   children,
   label,
   variant,
+  color,
+  className,
 }: {
   children?: string
   label?: string
   variant?: string
+  color?: string
+  className?: string
 }) {
   const value = label || children || variant || ''
   const style = variants[value] || (variant ? semanticVariants[variant] : '') || semanticVariants.default
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${style}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${style} ${className || ''}`}>
       {value || variant}
     </span>
   )

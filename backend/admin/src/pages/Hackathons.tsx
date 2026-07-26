@@ -771,6 +771,11 @@ function SubmissionsModal({ hackathonId, onClose, hackathonName }: { hackathonId
                         <div className="text-sm text-white font-medium">{sub.lead?.name} <span className="text-gray-500 text-xs font-normal">(Individual)</span></div>
                       )}
                       <div className="text-xs text-gray-500 mt-1">{sub.lead?.phone} · {sub.lead?.college}</div>
+                      {sub.lead?.preferences && (
+                        <div className="mt-2 text-[11px] text-gray-400 bg-white/5 p-1.5 rounded border border-white/5 inline-block">
+                          <span className="text-gray-300 font-medium">Prefs:</span> {typeof sub.lead.preferences === 'object' ? sub.lead.preferences.note || JSON.stringify(sub.lead.preferences) : sub.lead.preferences}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <a href={sub.fileUrl} target="_blank" rel="noreferrer" className="text-indigo-400 hover:text-indigo-300 text-sm font-medium underline">
