@@ -776,6 +776,26 @@ function SubmissionsModal({ hackathonId, onClose, hackathonName }: { hackathonId
                           <span className="text-gray-300 font-medium">Prefs:</span> {typeof sub.lead.preferences === 'object' ? sub.lead.preferences.note || JSON.stringify(sub.lead.preferences) : sub.lead.preferences}
                         </div>
                       )}
+                      {(() => {
+                        let parsedMembers = [];
+                        if (sub.lead?.members) {
+                          if (typeof sub.lead.members === 'string') {
+                            try { parsedMembers = JSON.parse(sub.lead.members); } catch (e) {}
+                          } else {
+                            parsedMembers = sub.lead.members;
+                          }
+                        }
+                        return parsedMembers.length > 0 && (
+                          <div className="mt-2 text-[11px] text-gray-400 bg-white/5 p-2 rounded border border-white/5 max-w-sm">
+                            <span className="text-gray-300 font-medium block mb-1">Members:</span>
+                            <ul className="list-disc pl-4 space-y-0.5">
+                              {parsedMembers.map((m: any, idx: number) => (
+                                <li key={idx}>{m.name} <span className="text-gray-500">({m.phone})</span></li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3">
                       <a href={sub.fileUrl} target="_blank" rel="noreferrer" className="text-indigo-400 hover:text-indigo-300 text-sm font-medium underline">
