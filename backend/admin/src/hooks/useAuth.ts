@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '@/config/api'
-import { supabase } from '@/config/supabase'
 import type { User } from '@/types'
 
 interface AuthState {

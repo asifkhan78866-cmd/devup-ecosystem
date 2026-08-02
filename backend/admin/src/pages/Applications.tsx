@@ -23,13 +23,6 @@ export default function Applications() {
   const statuses = ['ALL', 'PENDING', 'REVIEWING', 'APPROVED', 'REJECTED']
   const applications: Application[] = data?.data || []
 
-  const getAiScoreColor = (score?: number) => {
-    if (!score) return ''
-    if (score >= 71) return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-    if (score >= 41) return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-    return 'bg-red-500/20 text-red-400 border-red-500/30'
-  }
-
   return (
     <div className="flex flex-col">
       <TopBar title="Applications" />

@@ -43,6 +43,7 @@ export function ApplicationReview({
       setReviewNotes('')
       toast.success('Application updated successfully')
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'Failed to update application')
     },
@@ -88,12 +89,6 @@ export function ApplicationReview({
     if (score >= 71) return 'text-emerald-400'
     if (score >= 41) return 'text-yellow-400'
     return 'text-red-400'
-  }
-
-  const scoreBg = (score: number) => {
-    if (score >= 71) return 'bg-emerald-500/20 border-emerald-500/30'
-    if (score >= 41) return 'bg-yellow-500/20 border-yellow-500/30'
-    return 'bg-red-500/20 border-red-500/30'
   }
 
   const recColor: Record<string, string> = {

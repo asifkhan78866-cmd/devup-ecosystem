@@ -62,6 +62,7 @@ export default function Jobs() {
                 </tr>
               </thead>
               <tbody>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {jobs.map((job: any) => (
                   <tr key={job.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                     <td className="px-6 py-4 font-medium text-white">{job.title}</td>

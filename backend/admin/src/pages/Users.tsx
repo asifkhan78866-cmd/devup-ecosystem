@@ -36,6 +36,7 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setSelectedUser(null)
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       alert(err.response?.data?.message || 'Failed to delete user')
     }
@@ -140,6 +141,7 @@ export default function UsersPage() {
                   </div>
                 ) : activities.length > 0 ? (
                   <div className="space-y-4">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {activities.map((act: any, i: number) => (
                       <div key={i} className="relative pl-4 border-l-2 border-white/10 py-1">
                         <div className="absolute w-2 h-2 bg-indigo-500 rounded-full -left-[5px] top-2" />

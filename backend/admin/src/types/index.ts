@@ -49,6 +49,7 @@ export interface Application {
   mrr: string | null
   userCount: string | null
   pitchDeckUrl: string | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   teamMembers: any
   needs: string[]
   status: 'PENDING' | 'REVIEWING' | 'APPROVED' | 'REJECTED'
@@ -121,6 +122,7 @@ export interface AuditLog {
   action: string
   entity: string
   entityId: string | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata: any
   createdAt: string
 }

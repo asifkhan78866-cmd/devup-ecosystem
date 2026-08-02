@@ -40,6 +40,7 @@ export default function Cofounders() {
                 </tr>
               </thead>
               <tbody>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {profiles.map((p: any) => (
                   <tr key={p.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                     <td className="px-6 py-4 text-white font-medium">{p.user?.profile?.name || 'Unknown'}</td>

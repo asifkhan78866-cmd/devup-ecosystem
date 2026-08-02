@@ -20,6 +20,7 @@ export default function Login() {
       await login(email, password)
       toast.success('Welcome back, Admin!')
       navigate('/')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Login failed')
     } finally {

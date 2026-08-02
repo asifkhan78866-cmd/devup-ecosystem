@@ -10,7 +10,6 @@ import {
   Users,
   Briefcase,
   Trophy,
-  Shield,
   Building2,
   FileCheck,
   Plus,

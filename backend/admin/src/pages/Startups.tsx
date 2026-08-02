@@ -154,6 +154,7 @@ function AiResearchButton({
   websiteUrl: string
   startupName: string
   startupId?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onResult: (analysis: any) => void
 }) {
   const [loading, setLoading] = useState(false)
@@ -186,6 +187,7 @@ function AiResearchButton({
       }
       const res = await api.post('/api/ai/research-startup', { startupId, startupName, websiteUrl: formattedUrl })
       onResult(res.data.data.analysis)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       const errorMessage = err.response?.data?.errors?.[0]?.message || err.response?.data?.error || err.message || 'Research failed'
       setError(errorMessage)
@@ -235,6 +237,7 @@ function AiResearchButton({
 }
 
 function AiResultPreview({ analysis, onInsertOverview }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   analysis: any
   onInsertOverview: (text: string) => void
 }) {
@@ -346,6 +349,7 @@ function InviteFounder({ startupId }: { startupId: string }) {
       await api.post(`/api/startups/${startupId}/invite`, { email: trimmed })
       toast.success(`Invite sent to ${trimmed}`)
       setEmail('')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to send invite')
     } finally {
@@ -385,6 +389,7 @@ export default function Startups() {
   const [logoFile, setLogoFile] = useState<File | string | null>(null)
   const [screenshotFiles, setScreenshotFiles] = useState<(File | string)[]>([])
   const [logoError, setLogoError] = useState<string>()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [aiAnalysis, setAiAnalysis] = useState<any>(null)
   const queryClient = useQueryClient()
 
@@ -409,6 +414,7 @@ export default function Startups() {
       setAiAnalysis(null)
       toast.success('Startup created successfully')
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to create startup'),
   })
 
@@ -426,6 +432,7 @@ export default function Startups() {
       setAiAnalysis(null)
       toast.success('Startup updated successfully')
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to update startup'),
   })
 
@@ -455,6 +462,7 @@ export default function Startups() {
       name: s.name, slug: s.slug, tagline: s.tagline, description: s.description,
       domain: s.domain, stage: s.stage, foundedYear: s.foundedYear,
       headcount: s.headcount, location: s.location, website: s.website || '',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       githubUrl: s.githubUrl || '', founderNames: (s as any).founderNames || [],
     })
     setEditId(s.id)

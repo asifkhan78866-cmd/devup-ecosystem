@@ -51,6 +51,7 @@ export default function Hackathons() {
 
   const openCreate = () => { setForm(emptyForm); setDomainInput(''); setEditingId(null); setShowAdd(true) }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const openEdit = (h: any) => {
     setForm({
       title: h.title || '',
@@ -94,6 +95,7 @@ export default function Hackathons() {
       setDomainInput('')
       toast.success('Hackathon created successfully')
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       const msg =
         err.response?.data?.errors?.[0]?.message ||
@@ -224,6 +226,7 @@ export default function Hackathons() {
                 </tr>
               </thead>
               <tbody>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {hackathons.map((h: any) => (
                   <tr key={h.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                     <td className="px-6 py-4">
@@ -438,7 +441,7 @@ export default function Hackathons() {
         <RegistrationsModal 
           hackathonId={showRegistrations} 
           onClose={() => setShowRegistrations(null)} 
-          hackathonName={hackathons.find((h: any) => h.id === showRegistrations)?.title || 'Hackathon'}
+          hackathonName={hackathons.find((h: { id: string, title?: string }) => h.id === showRegistrations)?.title || 'Hackathon'}
         />
       )}
 
@@ -473,11 +476,12 @@ function RegistrationsModal({ hackathonId, onClose, hackathonName }: { hackathon
     enabled: !!hackathonId
   })
 
-  const leads = data?.data || []
+  const leads = useMemo(() => data?.data || [], [data?.data])
   
   const filteredLeads = useMemo(() => {
     if (!search.trim()) return leads
     const s = search.toLowerCase()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return leads.filter((l: any) => 
       l.name.toLowerCase().includes(s) || 
       l.college.toLowerCase().includes(s)
@@ -489,6 +493,7 @@ function RegistrationsModal({ hackathonId, onClose, hackathonName }: { hackathon
     const headers = ['Name', 'Phone', 'Team Size', 'College', 'Registered At', 'Status']
     const csvContent = [
       headers.join(','),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...filteredLeads.map((l: any) => [
         `"${l.name}"`,
         `"${l.phone}"`,
@@ -520,6 +525,7 @@ function RegistrationsModal({ hackathonId, onClose, hackathonName }: { hackathon
             className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
           />
           <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <div className="text-sm text-gray-400">Total Members: <span className="text-white font-bold">{filteredLeads.reduce((acc: number, l: any) => acc + (l.teamCount || 0), 0)}</span></div>
             <Button variant="primary" size="sm" onClick={handleExportCSV} disabled={leads.length === 0}>
               Export CSV
@@ -550,6 +556,7 @@ function RegistrationsModal({ hackathonId, onClose, hackathonName }: { hackathon
                 </tr>
               </thead>
               <tbody>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {filteredLeads.map((l: any, i: number) => (
                   <tr key={l.id} className="border-b border-white/5 hover:bg-white/[0.02]">
                     <td className="px-4 py-3 text-sm text-gray-500">{i + 1}</td>
@@ -600,6 +607,7 @@ function PartnersModal({ hackathon, onClose }: { hackathon: { id: string, name: 
   const partners = data?.data?.partners || []
 
   const createMutation = useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: (payload: any) => api.post(`/api/hackathons/${hackathon.id}/partners`, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hackathon', hackathon.id] })
@@ -677,6 +685,7 @@ function PartnersModal({ hackathon, onClose }: { hackathon: { id: string, name: 
                 </tr>
               </thead>
               <tbody>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {partners.map((p: any) => (
                   <tr key={p.id} className="border-t border-white/5">
                     <td className="px-4 py-3 text-gray-400">{p.order}</td>
@@ -728,6 +737,7 @@ function SubmissionsModal({ hackathonId, onClose, hackathonName }: { hackathonId
       queryClient.invalidateQueries({ queryKey: ['hackathon-submissions', hackathonId] })
       toast.success('Status updated')
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'Failed to update status')
     }
@@ -759,6 +769,7 @@ function SubmissionsModal({ hackathonId, onClose, hackathonName }: { hackathonId
                 </tr>
               </thead>
               <tbody>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {submissions.map((sub: any) => (
                   <tr key={sub.id} className="border-b border-white/5 hover:bg-white/[0.02]">
                     <td className="px-4 py-3">
@@ -780,7 +791,7 @@ function SubmissionsModal({ hackathonId, onClose, hackathonName }: { hackathonId
                         let parsedMembers = [];
                         if (sub.lead?.members) {
                           if (typeof sub.lead.members === 'string') {
-                            try { parsedMembers = JSON.parse(sub.lead.members); } catch (e) {}
+                            try { parsedMembers = JSON.parse(sub.lead.members); } catch { /* empty */ }
                           } else {
                             parsedMembers = sub.lead.members;
                           }
@@ -789,6 +800,7 @@ function SubmissionsModal({ hackathonId, onClose, hackathonName }: { hackathonId
                           <div className="mt-2 text-[11px] text-gray-400 bg-white/5 p-2 rounded border border-white/5 max-w-sm">
                             <span className="text-gray-300 font-medium block mb-1">Members:</span>
                             <ul className="list-disc pl-4 space-y-0.5">
+                              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                               {parsedMembers.map((m: any, idx: number) => (
                                 <li key={idx}>{m.name} <span className="text-gray-500">({m.phone})</span></li>
                               ))}

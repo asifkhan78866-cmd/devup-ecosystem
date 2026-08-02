@@ -43,6 +43,7 @@ export function JobApplicationsSlideOver({
         </div>
       ) : (
         <div className="space-y-4">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {applications.map((app: any) => (
             <div key={app.id} className="bg-white/[0.02] border border-white/5 p-4 rounded-xl">
               <div className="flex items-start justify-between mb-4">

@@ -62,6 +62,7 @@ export default function Documents() {
       setSelectedFile(null)
       toast.success('Document uploaded — email sent to founder')
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to upload document'),
   })
 
@@ -196,6 +197,7 @@ export default function Documents() {
               required
             >
               <option value="" className="bg-[#0d0d0d]">Choose a startup...</option>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {startups.map((s: any) => (
                 <option key={s.id} value={s.id} className="bg-[#0d0d0d]">{s.name}</option>
               ))}

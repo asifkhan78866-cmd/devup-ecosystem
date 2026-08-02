@@ -28,7 +28,6 @@ export function Badge({
   children,
   label,
   variant,
-  color,
   className,
 }: {
   children?: string
