@@ -258,7 +258,13 @@ function sheet(p: any, title: string, body: string, centre = false, confidential
 
   <div class="foot">
     <span>${esc(p._documentNo)}</span>
-    <span>${address ? `${esc(orgName)} · ${esc(address)}` : esc(orgName)}</span>
+    <span>${[
+      esc(orgName),
+      // A registered company identifier is what makes a letter checkable
+      // against the public register, so it belongs beside the address.
+      b.cin ? `CIN: ${esc(b.cin)}` : "",
+      address ? esc(address) : "",
+    ].filter(Boolean).join(" · ")}</span>
     <span>Verify at <b>${esc(p._siteUrl)}</b></span>
   </div>
 </div>

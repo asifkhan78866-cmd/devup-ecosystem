@@ -829,6 +829,9 @@ model StartupBranding {
   state             String
   pincode           String
   logoUrl           String?
+  /// Corporate Identity Number, printed on issued documents. Per startup:
+  /// an ecosystem partner is a separate legal entity with its own CIN.
+  cin               String?
   signatoryName     String
   signatoryTitle    String
   signatureImageUrl String?

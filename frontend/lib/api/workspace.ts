@@ -161,6 +161,8 @@ export const candidateApi = {
    * Their own attendance. Carries no stipend figures by design — what someone
    * is owed lives behind the founder-only finance routes.
    */
+  /** Documents issued TO them — offer letter, certificates, ID card. */
+  myDocuments: () => api.get<any[]>("/api/me/documents"),
   myAttendance: () => api.get<any[]>("/api/me/attendance"),
   checkIn: (internId: string) => api.post<any>(`/api/me/attendance/${internId}/check-in`, {}),
   checkOut: (internId: string) => api.post<any>(`/api/me/attendance/${internId}/check-out`, {}),

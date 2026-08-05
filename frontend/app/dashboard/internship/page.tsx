@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import {
-  Building2, Home, Upload, Check, Clock, CalendarDays, AlertCircle, ShieldCheck,
+  Building2, Home, Upload, Check, Clock, CalendarDays, AlertCircle, ShieldCheck, Download, FileText,
 } from "lucide-react";
 import ProtectedContent from "@/components/auth/ProtectedContent";
 import { candidateApi, ONBOARDING_DOC_LABELS } from "@/lib/api/workspace";
@@ -21,6 +21,7 @@ import StartupLogo from "@/components/StartupLogo";
 export default function MyInternshipPage() {
   const [cards, setCards] = useState<any[]>([]);
   const [checklists, setChecklists] = useState<any[]>([]);
+  const [issued, setIssued] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -28,12 +29,14 @@ export default function MyInternshipPage() {
 
   const load = useCallback(async () => {
     try {
-      const [a, o] = await Promise.all([
+      const [a, o, d] = await Promise.all([
         candidateApi.myAttendance().catch(() => []),
         candidateApi.myOnboarding().catch(() => []),
+        candidateApi.myDocuments().catch(() => []),
       ]);
       setCards(a ?? []);
       setChecklists(o ?? []);
+      setIssued(d ?? []);
       setError(null);
     } catch (e: any) {
       setError(e.message);
@@ -97,7 +100,7 @@ export default function MyInternshipPage() {
 
           {loading ? (
             <p className="text-[#6b6b6b] text-sm">Loading…</p>
-          ) : cards.length === 0 && checklists.length === 0 ? (
+          ) : cards.length === 0 && checklists.length === 0 && issued.length === 0 ? (
             <div className="p-10 rounded-xl border border-dashed border-white/10 text-center">
               <CalendarDays className="w-8 h-8 text-[#3d3d3d] mx-auto mb-3" />
               <p className="text-[#6b6b6b] text-sm">
@@ -109,6 +112,8 @@ export default function MyInternshipPage() {
               {cards.map((c) => (
                 <InternshipCard key={c.internId} card={c} busy={busy === c.internId} onAct={act} />
               ))}
+
+              {issued.length > 0 && <IssuedDocuments docs={issued} />}
 
               {checklists.map((list) => (
                 <DocumentsCard
@@ -431,6 +436,69 @@ function DocRow({ item, personId, busy, onUpload }: any) {
           />
         </label>
       )}
+    </div>
+  );
+}
+
+const DOC_LABEL: Record<string, string> = {
+  OFFER_LETTER: "Offer letter",
+  EXPERIENCE_LETTER: "Experience certificate",
+  LOR: "Letter of recommendation",
+  CERTIFICATE: "Completion certificate",
+  ID_CARD: "ID card",
+  RELIEVING: "Relieving letter",
+};
+
+/**
+ * Documents the company issued to them, theirs to download whenever.
+ *
+ * These are the letters people are asked for months later — by a college, a
+ * visa office, the next employer. Emailing them once and hoping the attachment
+ * survives the recipient's inbox is not good enough, so they live here too.
+ */
+function IssuedDocuments({ docs }: { docs: any[] }) {
+  return (
+    <div className="rounded-2xl bg-[#111111] border border-white/[0.07] p-6">
+      <h2 className="text-white text-[15px] font-semibold mb-1" style={{ fontFamily: "var(--font-syne)" }}>
+        Your documents
+      </h2>
+      <p className="text-[11.5px] text-[#6b6b6b] mb-4">
+        Issued to you. Download them any time — you will need these later.
+      </p>
+
+      <div className="space-y-2">
+        {docs.map((d) => (
+          <div key={d.id} className="flex items-center gap-3 rounded-xl border border-white/[0.06] p-3">
+            <FileText className="w-4 h-4 shrink-0" style={{ color: "#c8f135" }} />
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] text-[#e4e4e4]">
+                {DOC_LABEL[d.docType] ?? d.docType.replace(/_/g, " ")}
+                {d.designation ? <span className="text-[#6b6b6b]"> · {d.designation}</span> : null}
+              </div>
+              <div className="text-[10px] text-[#4d4d4d] tabular-nums mt-0.5">
+                {d.documentNo} · {d.startup?.name} · {new Date(d.issuedAt).toLocaleDateString("en-IN", { dateStyle: "medium" })}
+              </div>
+            </div>
+            {d.pdfUrl ? (
+              <a
+                href={d.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11.5px] font-medium transition"
+                style={{ background: "rgba(200,241,53,0.12)", color: "#c8f135" }}
+              >
+                <Download className="w-3 h-3" /> Download
+              </a>
+            ) : (
+              /* Issued but the file was never produced — say so plainly rather
+                 than showing a dead button. HR can rebuild it. */
+              <span className="shrink-0 text-[10.5px] text-[#facc15]">
+                File being prepared
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -270,6 +270,66 @@ router.post("/me/attendance/:internId/check-out", requireAuth, async (req, res) 
   );
 });
 
+/**
+ * Documents issued TO the signed-in person — offer letter, certificates, ID
+ * card, experience letter.
+ *
+ * Distinct from /me/onboarding, which is documents they upload. Scoped by their
+ * own employee, intern and application records, so the query itself is the
+ * permission check: nobody can name someone else's document.
+ */
+router.get("/me/documents", requireAuth, async (req, res) => {
+  const [employees, interns, applications] = await Promise.all([
+    prisma.employee.findMany({ where: { userId: req.user!.id }, select: { id: true } }),
+    prisma.intern.findMany({ where: { userId: req.user!.id }, select: { id: true } }),
+    prisma.jobApplication.findMany({ where: { userId: req.user!.id }, select: { id: true } }),
+  ]);
+
+  const employeeIds = employees.map((e) => e.id);
+  const internIds = interns.map((i) => i.id);
+  const applicationIds = applications.map((a) => a.id);
+  if (!employeeIds.length && !internIds.length && !applicationIds.length) return ok(res, []);
+
+  const docs = await prisma.hrDocument.findMany({
+    where: {
+      // Revoked letters are withheld — a withdrawn offer must not stay
+      // downloadable as though it still stood.
+      revokedAt: null,
+      OR: [
+        ...(employeeIds.length ? [{ employeeId: { in: employeeIds } }] : []),
+        ...(internIds.length ? [{ internId: { in: internIds } }] : []),
+        ...(applicationIds.length ? [{ applicationId: { in: applicationIds } }] : []),
+      ],
+    },
+    select: {
+      id: true,
+      docType: true,
+      documentNo: true,
+      pdfUrl: true,
+      issuedAt: true,
+      payload: true,
+      startup: { select: { name: true, code: true, logoUrl: true } },
+    },
+    orderBy: { issuedAt: "desc" },
+  });
+
+  ok(
+    res,
+    docs.map((d) => {
+      const p = (d.payload ?? {}) as Record<string, unknown>;
+      return {
+        id: d.id,
+        docType: d.docType,
+        documentNo: d.documentNo,
+        pdfUrl: d.pdfUrl,
+        issuedAt: d.issuedAt,
+        startup: d.startup,
+        designation: p.designation ?? null,
+      };
+    })
+  );
+});
+
 /** Their own month — days, statuses and attendance percentage. No money. */
 router.get("/me/attendance/:internId/month", requireAuth, async (req, res) => {
   const now = new Date();

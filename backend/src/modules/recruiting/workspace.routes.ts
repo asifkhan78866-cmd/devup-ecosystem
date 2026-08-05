@@ -748,6 +748,7 @@ const brandingBody = z.object({
     state: z.string().min(1),
     pincode: z.string().min(4).max(10),
     logoUrl: z.string().url().optional().or(z.literal("")),
+    cin: z.string().max(30).optional().or(z.literal("")),
     signatoryName: z.string().min(2),
     signatoryTitle: z.string().min(2),
     signatureImageUrl: z.string().url().optional().or(z.literal("")),

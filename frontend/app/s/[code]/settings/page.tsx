@@ -11,7 +11,7 @@ const label = "block text-[10px] text-[#6b6b6b] mb-1";
 export default function SettingsPage() {
   const { code } = useParams<{ code: string }>();
   const [f, setF] = useState<any>({
-    legalName: "", addressLine1: "", addressLine2: "", city: "", state: "", pincode: "",
+    legalName: "", cin: "", addressLine1: "", addressLine2: "", city: "", state: "", pincode: "",
     logoUrl: "", signatoryName: "Faizan Sk", signatoryTitle: "Founder & CEO", signatureImageUrl: "",
     signatoryOrg: "DevUp Ecosystem",
     cosignatoryName: "", cosignatoryTitle: "", cosignatoryOrg: "", cosignatureImageUrl: "",
@@ -41,7 +41,7 @@ export default function SettingsPage() {
     setError(null);
     try {
       await workspaceApi.saveBranding(code, {
-        legalName: f.legalName, addressLine1: f.addressLine1, addressLine2: f.addressLine2 || undefined,
+        legalName: f.legalName, cin: f.cin ?? "", addressLine1: f.addressLine1, addressLine2: f.addressLine2 || undefined,
         city: f.city, state: f.state, pincode: f.pincode,
         logoUrl: f.logoUrl || undefined, signatoryName: f.signatoryName, signatoryTitle: f.signatoryTitle,
         signatureImageUrl: f.signatureImageUrl || undefined,
@@ -87,6 +87,7 @@ export default function SettingsPage() {
         <Section title="Legal entity">
           <div><label className={label}>Registered legal name *</label><input className={input} value={f.legalName} onChange={(e) => set("legalName", e.target.value)} /></div>
           <div><label className={label}>Address line 1 *</label><input className={input} value={f.addressLine1} onChange={(e) => set("addressLine1", e.target.value)} /></div>
+          <div><label className={label}>CIN</label><input className={input} placeholder="U85500TS2026PTC216527" value={f.cin ?? ""} onChange={(e) => set("cin", e.target.value)} /></div>
           <div><label className={label}>Address line 2</label><input className={input} value={f.addressLine2 ?? ""} onChange={(e) => set("addressLine2", e.target.value)} /></div>
           <div className="grid grid-cols-3 gap-2">
             <div><label className={label}>City *</label><input className={input} value={f.city} onChange={(e) => set("city", e.target.value)} /></div>

@@ -64,6 +64,7 @@ export async function issue(args: IssueArgs, tx?: Prisma.TransactionClient) {
     ...args.payload,
     _branding: {
       legalName: branding.legalName,
+      cin: branding.cin,
       addressLine1: branding.addressLine1,
       addressLine2: branding.addressLine2,
       city: branding.city,
