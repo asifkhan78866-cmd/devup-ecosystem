@@ -131,6 +131,37 @@ export async function issue(args: IssueArgs, tx?: Prisma.TransactionClient) {
  * allocated and the record already exists, so a render or storage failure must
  * degrade to "no file yet" rather than losing a legally meaningful record.
  */
+/**
+ * Rebuilds the file for a document that was issued without one.
+ *
+ * A host missing Chromium, or a storage hiccup, leaves the record valid but
+ * fileless — the letter exists and is numbered, there is just nothing to
+ * download or attach. Re-rendering from the frozen payload produces exactly the
+ * document that was issued, so this never rewrites history; it only fills the
+ * gap. Reissuing instead would burn a second number for the same offer.
+ */
+export async function regenerateFile(startupId: string, documentId: string) {
+  const doc = await prisma.hrDocument.findFirst({ where: { id: documentId, startupId } });
+  if (!doc) throw new AppError(404, "Document not found", "NOT_FOUND");
+
+  const html = renderDocument(doc.templateKey as TemplateKey, doc.payload as Record<string, unknown>);
+  const file = await attachFile(
+    { id: doc.id, docType: doc.docType, startupId: doc.startupId, documentNo: doc.documentNo },
+    html
+  );
+
+  if (!file.pdfUrl) {
+    throw new AppError(
+      503,
+      "Could not produce the file. PDF rendering is unavailable on this server — " +
+        "install Chrome (build step: npx puppeteer browsers install chrome) and try again.",
+      "PDF_UNAVAILABLE"
+    );
+  }
+
+  return { documentNo: doc.documentNo, ...file, pdfBuffer: undefined };
+}
+
 export async function attachFile(doc: { id: string; docType: HrDocType; startupId: string; documentNo: string }, html: string) {
   const base = `${doc.startupId}/${doc.docType.toLowerCase()}/${doc.id}`;
   let pdfUrl: string | null = null;

@@ -546,6 +546,14 @@ router.post(
   }
 );
 
+/**
+ * Rebuild the file for a document issued without one, and optionally re-send it.
+ * Keeps the original number — the letter is unchanged, only its file was missing.
+ */
+router.post("/:code/documents/:id/regenerate", requireTenantRank("HR"), async (req, res) => {
+  ok(res, await documents.regenerateFile(req.startupId!, req.params.id as string));
+});
+
 router.post("/:code/documents/:id/revoke", requireTenantRank("ADMIN"), async (req, res) => {
   ok(res, await documents.revoke(req.startupId!, req.params.id as string, req.body?.reason ?? "", req.user!.id));
 });

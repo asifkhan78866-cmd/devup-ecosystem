@@ -4,7 +4,10 @@ services:
     env: node
     region: singapore
     plan: free
-    buildCommand: npm install && npx prisma generate && npm run build
+    # Chrome is installed explicitly: offer letters and certificates are rendered
+    # through headless Chrome, and without it documents are issued with no PDF
+    # and no email attachment — valid records that nobody can open.
+    buildCommand: npm install && npx puppeteer browsers install chrome && npx prisma generate && npm run build
     startCommand: npm start
     healthCheckPath: /health
     envVars:
@@ -12,5 +15,9 @@ services:
         value: production
       - key: PORT
         value: 4000
+      # Chrome downloads during build; without this it lands in a cache that is
+      # discarded before the service runs, and every render fails at runtime.
+      - key: PUPPETEER_CACHE_DIR
+        value: /opt/render/project/src/.cache/puppeteer
       # All other env vars set manually in Render dashboard
       # See backend/.env.example for full list

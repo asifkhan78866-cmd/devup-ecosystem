@@ -17,9 +17,24 @@ type Browser = { newPage: () => Promise<any>; close: () => Promise<void> };
 
 let browserPromise: Promise<Browser | null> | null = null;
 let unavailableReason: string | null = null;
+let unavailableAt = 0;
+
+/**
+ * How long a launch failure is trusted before trying again.
+ *
+ * Without this, one failure disables PDFs for the life of the process — a
+ * transient out-of-memory at boot would silently turn every offer letter into
+ * an HTML-only record until someone happened to restart the server.
+ */
+const RETRY_AFTER_MS = 5 * 60_000;
 
 async function getBrowser(): Promise<Browser | null> {
-  if (unavailableReason) return null;
+  if (unavailableReason && Date.now() - unavailableAt < RETRY_AFTER_MS) return null;
+  if (unavailableReason) {
+    // Cooldown elapsed — clear the latch and try once more.
+    unavailableReason = null;
+    browserPromise = null;
+  }
   if (browserPromise) return browserPromise;
 
   browserPromise = (async () => {
@@ -27,12 +42,22 @@ async function getBrowser(): Promise<Browser | null> {
       const puppeteer = (await import("puppeteer")).default as any;
       return (await puppeteer.launch({
         headless: true,
+        // Hosts that ship their own Chrome (Render, Docker images, Nix) set this
+        // rather than relying on puppeteer's bundled download.
+        ...(process.env.PUPPETEER_EXECUTABLE_PATH
+          ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH }
+          : {}),
         // Required in containers; dev-shm is tiny there and Chrome will crash.
         args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--font-render-hinting=none"],
       })) as Browser;
     } catch (err) {
       unavailableReason = (err as Error).message;
-      logger.warn(`PDF rendering unavailable, documents will be HTML only: ${unavailableReason}`);
+      unavailableAt = Date.now();
+      logger.error(
+        `PDF rendering unavailable — offer letters will be issued WITHOUT a PDF ` +
+          `and without an email attachment. Install Chrome on this host ` +
+          `(build step: npx puppeteer browsers install chrome). Cause: ${unavailableReason}`
+      );
       return null;
     }
   })();
@@ -42,6 +67,10 @@ async function getBrowser(): Promise<Browser | null> {
 
 export function isPdfAvailable() {
   return unavailableReason === null;
+}
+
+export function pdfUnavailableReason() {
+  return unavailableReason;
 }
 
 export interface PdfOptions {

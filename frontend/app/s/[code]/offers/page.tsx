@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { FileText, ExternalLink } from "lucide-react";
+import { FileText, ExternalLink, AlertTriangle } from "lucide-react";
 import { workspaceApi } from "@/lib/api/workspace";
 
 const TONE: Record<string, { bg: string; fg: string }> = {
@@ -19,8 +19,9 @@ export default function OffersPage() {
   const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!code) return;
     workspaceApi
       .documents(code, "OFFER_LETTER")
@@ -28,6 +29,22 @@ export default function OffersPage() {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [code]);
+
+  useEffect(() => { load(); }, [load]);
+
+  /** Rebuild a missing file without reissuing — the number stays the same. */
+  const regenerate = async (docId: string) => {
+    setBusy(docId);
+    setError(null);
+    try {
+      await workspaceApi.regenerateDocument(code, docId);
+      load();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
     <div className="px-5 py-7 md:px-9 md:py-9 max-w-[1200px] mx-auto">
@@ -80,7 +97,7 @@ export default function OffersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {d.pdfUrl && (
+                      {d.pdfUrl ? (
                         <a
                           href={d.pdfUrl}
                           target="_blank"
@@ -89,6 +106,19 @@ export default function OffersPage() {
                         >
                           View <ExternalLink className="w-3 h-3" />
                         </a>
+                      ) : (
+                        /* Issued but fileless — the candidate got an email with no
+                           attachment, so say so rather than showing an empty cell. */
+                        <button
+                          disabled={busy === d.id}
+                          onClick={() => regenerate(d.id)}
+                          title="This letter was issued without a PDF. Generate it now."
+                          className="inline-flex items-center gap-1 text-[11px] disabled:opacity-40"
+                          style={{ color: "#facc15" }}
+                        >
+                          <AlertTriangle className="w-3 h-3" />
+                          {busy === d.id ? "Generating…" : "No file — generate"}
+                        </button>
                       )}
                     </td>
                   </tr>

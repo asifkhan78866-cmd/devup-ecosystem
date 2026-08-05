@@ -82,6 +82,9 @@ export const workspaceApi = {
     api.post<any>(w(code, `/applications/${applicationId}/offer`), body),
   revokeOffer: (code: string, offerId: string, reason: string) =>
     api.post<any>(w(code, `/offers/${offerId}/revoke`), { reason }),
+  /** Rebuild a document's file when it was issued without one. Number unchanged. */
+  regenerateDocument: (code: string, documentId: string) =>
+    api.post<any>(w(code, `/documents/${documentId}/regenerate`), {}),
   onboard: (code: string, applicationId: string, body: unknown = {}) =>
     api.post<any>(w(code, `/applications/${applicationId}/onboard`), body),
 
