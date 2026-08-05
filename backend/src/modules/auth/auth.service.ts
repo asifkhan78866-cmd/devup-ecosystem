@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma";
 import { supabaseAdmin } from "../../config/supabase";
 import { AppError } from "../../middleware/errorHandler";
 import { Role, AuthProvider } from "@prisma/client";
-import { env } from "../../config/env";
+import { env, productionGaps } from "../../config/env";
 import jwt from "jsonwebtoken";
 import { claimByEmail } from "../shared/claim.service";
 
@@ -13,6 +13,14 @@ export class AuthService {
     // Validate admin secret
     let finalRole = role;
     if (adminSecret) {
+      // Closed entirely rather than falling back to the default in this repo.
+      if (productionGaps.adminRegistrationDisabled) {
+        throw new AppError(
+          503,
+          "Admin registration is disabled on this deployment",
+          "ADMIN_REGISTRATION_DISABLED"
+        );
+      }
       if (adminSecret !== env.ADMIN_REGISTRATION_SECRET) {
         throw new AppError(403, "Invalid admin secret key", "INVALID_ADMIN_SECRET");
       }

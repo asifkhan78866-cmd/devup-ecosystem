@@ -104,36 +104,57 @@ try {
 
 /**
  * Every variable above has a development default so a fresh clone runs without
- * setup. That convenience is a liability in production: a deploy that forgets
- * SUPABASE_SERVICE_ROLE_KEY or ADMIN_REGISTRATION_SECRET would otherwise boot
- * happily on a well-known dev value, and anyone who has read this repository
- * could register themselves as an admin.
+ * setup, which is a liability in production: a deploy that forgets
+ * SUPABASE_SERVICE_ROLE_KEY would otherwise run on a value published in this
+ * repository.
  *
- * So in production the defaults are treated as missing, and the process refuses
- * to start rather than run insecurely.
+ * Two tiers, because "insecure" and "broken" deserve different responses:
+ *
+ *   FATAL   — the app cannot function at all without these, so failing at boot
+ *             with a clear message beats serving errors on every request.
+ *   DEGRADE — a single feature is unsafe without them. Those features switch
+ *             themselves off and say so loudly. Taking an entire site down
+ *             because one optional secret is unset is its own kind of outage.
  */
-if (env.NODE_ENV === "production") {
-  const problems: string[] = [];
+export const productionGaps = {
+  adminRegistrationDisabled: false,
+  emailDisabled: false,
+};
 
-  const mustBeSet: Array<[string, string, string]> = [
+if (env.NODE_ENV === "production") {
+  const fatal: string[] = [];
+
+  const required: Array<[string, string, string]> = [
     ["SUPABASE_URL", env.SUPABASE_URL, "http://localhost:54321"],
     ["SUPABASE_ANON_KEY", env.SUPABASE_ANON_KEY, "dev-anon-key"],
     ["SUPABASE_SERVICE_ROLE_KEY", env.SUPABASE_SERVICE_ROLE_KEY, "dev-service-role-key"],
     ["SUPABASE_JWT_SECRET", env.SUPABASE_JWT_SECRET, "dev-jwt-secret-min-32-characters-long"],
-    ["ADMIN_REGISTRATION_SECRET", env.ADMIN_REGISTRATION_SECRET, "dev-admin-secret-key"],
-    ["RESEND_API_KEY", env.RESEND_API_KEY, "re_dev_placeholder"],
   ];
-  for (const [name, value, devDefault] of mustBeSet) {
-    if (!value || value === devDefault) problems.push(`${name} is not set (still the development default)`);
+  for (const [name, value, devDefault] of required) {
+    if (!value || value === devDefault) fatal.push(`${name} is not set (still the development default)`);
+  }
+  if (env.DATABASE_URL.includes("localhost")) fatal.push("DATABASE_URL still points at localhost");
+  if (env.ALLOW_DEV_LOGIN) fatal.push("ALLOW_DEV_LOGIN is enabled — that is a password bypass");
+
+  if (fatal.length > 0) {
+    console.error("Refusing to start in production:\n  - " + fatal.join("\n  - "));
+    process.exit(1);
   }
 
-  if (env.DATABASE_URL.includes("localhost")) problems.push("DATABASE_URL still points at localhost");
-  if (env.CORS_ORIGINS.includes("localhost")) problems.push("CORS_ORIGINS still allows localhost");
-  if (env.ALLOW_DEV_LOGIN) problems.push("ALLOW_DEV_LOGIN is enabled — this is a password bypass");
-
-  if (problems.length > 0) {
-    console.error("Refusing to start in production:\n  - " + problems.join("\n  - "));
-    process.exit(1);
+  // Degradations: the site stays up, the unsafe feature does not.
+  if (env.ADMIN_REGISTRATION_SECRET === "dev-admin-secret-key") {
+    productionGaps.adminRegistrationDisabled = true;
+    console.warn(
+      "ADMIN_REGISTRATION_SECRET is not set. Admin registration is DISABLED — " +
+        "running on the default would let anyone who has read this repository become an admin."
+    );
+  }
+  if (env.RESEND_API_KEY === "re_dev_placeholder") {
+    productionGaps.emailDisabled = true;
+    console.warn("RESEND_API_KEY is not set. Email is disabled.");
+  }
+  if (env.CORS_ORIGINS.includes("localhost")) {
+    console.warn("CORS_ORIGINS includes localhost in production. Remove it.");
   }
 }
 
