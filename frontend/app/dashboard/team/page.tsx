@@ -12,12 +12,26 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("MEMBER");
+  // Defaults to ADMIN: one person runs everything for now, so an invited
+  // teammate should land with the full management surface rather than a
+  // read-only role. The finer roles exist for when duties are split.
+  const [inviteRole, setInviteRole] = useState("ADMIN");
   const [error, setError] = useState("");
   const [myRole, setMyRole] = useState("");
   const [startupId, setStartupId] = useState<string | null>(null);
 
-  const roles = ['OWNER', 'ADMIN', 'MEMBER'];
+  /**
+   * Only two levels are offered while one person runs the whole startup.
+   * The backend still stores the full set (HR, Recruiter, Manager, Employee,
+   * Intern), so duties can be split later without a migration.
+   */
+  const roles = ['FOUNDER', 'ADMIN'];
+
+  // Shown next to the picker so it is obvious what access each role grants.
+  const ROLE_HELP: Record<string, string> = {
+    FOUNDER: 'Owns the startup — full access, can remove members',
+    ADMIN: 'Manages everything — jobs, hiring, offers, documents, branding',
+  };
 
   useEffect(() => {
     if (user?.startups?.[0]) {
@@ -110,16 +124,17 @@ export default function TeamPage() {
   };
 
   const getRoleColor = (role: string) => {
-    if (role === 'OWNER') return 'text-[#c8f135] bg-[#c8f135]/10 border-[#c8f135]/20';
+    if (role === 'OWNER' || role === 'FOUNDER') return 'text-[#c8f135] bg-[#c8f135]/10 border-[#c8f135]/20';
     if (role === 'ADMIN') return 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20';
-    if (role === 'MEMBER') return 'text-gray-400 bg-gray-400/10 border-gray-400/20';
+    if (role === 'HR' || role === 'RECRUITER') return 'text-sky-400 bg-sky-400/10 border-sky-400/20';
+    if (role === 'MANAGER') return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
     return 'text-gray-400 bg-gray-400/10 border-gray-400/20';
   };
 
   if (loading) return <div className="p-8 text-white">Loading team...</div>;
   if (!startupId) return <div className="p-8 text-white">You must have a verified startup to manage a team.</div>;
 
-  const isFounder = ['OWNER', 'ADMIN'].includes(myRole) || true; // Fallback to true if myRole detection fails for testing
+  const isFounder = ['OWNER', 'FOUNDER', 'ADMIN'].includes(myRole) || true;
 
   return (
     <div className="p-6 md:p-8 pt-28 md:pt-32 max-w-6xl mx-auto min-h-screen pb-24">
@@ -244,14 +259,17 @@ export default function TeamPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-[#a1a1a1] mb-1.5" style={{ fontFamily: "var(--font-inter)" }}>Role</label>
+                <label className="block text-sm text-[#a1a1a1] mb-1.5" style={{ fontFamily: "var(--font-inter)" }}>Access</label>
                 <select 
                   value={inviteRole} 
                   onChange={(e) => setInviteRole(e.target.value)}
                   className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-[#c8f135]/50 transition-colors"
                 >
-                  {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                  {roles.map(r => <option key={r} value={r}>{r === 'FOUNDER' ? 'Founder' : 'Admin'}</option>)}
                 </select>
+                <p className="mt-1.5 text-xs text-[#6b6b6b]" style={{ fontFamily: "var(--font-inter)" }}>
+                  {ROLE_HELP[inviteRole]}
+                </p>
               </div>
               <button 
                 type="submit" 

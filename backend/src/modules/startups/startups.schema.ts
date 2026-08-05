@@ -8,6 +8,7 @@ export const startupSchema = z.object({
     description: z.string(),
     domain: z.enum(["AI_ML", "FINTECH", "HEALTHTECH", "DEVTOOLS", "SAAS", "EDTECH", "WEB3", "E_COMMERCE", "CLEANTECH", "DEEPTECH", "OTHER"]),
     stage: z.enum(["IDEA", "MVP", "PRE_SEED", "SEED", "SERIES_A", "SERIES_B", "GROWTH"]),
+    type: z.enum(["DEVUP_VENTURE", "ECOSYSTEM_PARTNER"]).optional(),
     foundedYear: z.coerce.number().int(),
     headcount: z.string(),
     location: z.string(),
@@ -27,6 +28,8 @@ export const updateStartupSchema = z.object({
     description: z.string().optional(),
     domain: z.enum(["AI_ML", "FINTECH", "HEALTHTECH", "DEVTOOLS", "SAAS", "EDTECH", "WEB3", "E_COMMERCE", "CLEANTECH", "DEEPTECH", "OTHER"]).optional(),
     stage: z.enum(["IDEA", "MVP", "PRE_SEED", "SEED", "SERIES_A", "SERIES_B", "GROWTH"]).optional(),
+    // Admin-only in practice — the service drops this for non-admin requesters.
+    type: z.enum(["DEVUP_VENTURE", "ECOSYSTEM_PARTNER"]).optional(),
     headcount: z.string().optional(),
     location: z.string().optional(),
     city: z.string().optional(),

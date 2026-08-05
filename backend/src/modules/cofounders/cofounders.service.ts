@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
-import { resend, EmailTemplates } from "../../lib/resend";
+import { resend, EmailTemplates, MAIL_FROM } from "../../lib/resend";
 import { env } from "../../config/env";
 
 export class CofoundersService {
@@ -91,7 +91,7 @@ export class CofoundersService {
 
     if (toUser.email) {
       await resend.emails.send({
-        from: env.RESEND_FROM_EMAIL,
+        from: MAIL_FROM,
         to: toUser.email,
         subject: "New Co-founder Request - DevUp Ecosystem",
         html: EmailTemplates.cofounderRequest(fromUser?.profile?.name || "Someone", message)

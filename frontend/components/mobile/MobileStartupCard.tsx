@@ -1,5 +1,8 @@
 'use client'
 
+import StartupTypeBadge, { isPartner } from '@/components/StartupTypeBadge'
+import StartupLogo from '@/components/StartupLogo'
+
 export default function MobileStartupCard({ startup }: { startup: any }) {
   return (
     <div style={{
@@ -8,27 +11,12 @@ export default function MobileStartupCard({ startup }: { startup: any }) {
       alignItems: 'flex-start',
     }}>
       {/* Logo */}
-      <div style={{
-        width: 56, height: 56, flexShrink: 0,
-        background: '#1a1a1a',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 12, overflow: 'hidden',
-      }}>
-        {startup.logoUrl ? (
-          <img src={startup.logoUrl} style={{ 
-            width: '100%', height: '100%', objectFit: 'cover' 
-          }} alt={startup.name} />
-        ) : (
-          <div style={{ width: '100%', height: '100%',
-            display: 'flex', alignItems: 'center', 
-            justifyContent: 'center',
-            fontFamily: 'var(--font-syne), sans-serif', fontSize: 20, fontWeight: 800,
-            color: '#ffffff',
-          }}>
-            {startup.name[0]}
-          </div>
-        )}
-      </div>
+      <StartupLogo
+        src={startup.logoUrl}
+        name={startup.name}
+        rounded="rounded-xl"
+        className="w-14 h-14 shrink-0 border border-white/[0.08] text-xl"
+      />
       
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -40,6 +28,7 @@ export default function MobileStartupCard({ startup }: { startup: any }) {
           {startup.isVerified && (
             <span style={{ color: '#c8f135', fontSize: 12 }}>✓</span>
           )}
+          {isPartner(startup) && <StartupTypeBadge compact />}
         </div>
         <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 13,
           color: '#a1a1a1', lineHeight: 1.4, marginTop: 2,

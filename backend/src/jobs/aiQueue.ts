@@ -31,6 +31,4 @@ if (redis) {
   worker.on("failed", (job, err) => {
     console.error(`AI job ${job?.id} failed with error:`, err);
   });
-} else {
-  console.log("AI queue disabled because Redis is unavailable");
 }

@@ -13,6 +13,7 @@ import {
   ChevronRight, Shield, Star, Zap
 } from 'lucide-react'
 import ProtectedContent from '@/components/auth/ProtectedContent'
+import WorkspaceBanner from '@/components/workspace/WorkspaceBanner'
 
 export default function DashboardPage() {
   const { user, session, loading, signOut } = useAuth()
@@ -390,6 +391,9 @@ function StudentDashboard({ user, isMobile }: { user: any, isMobile: boolean }) 
 
   return (
     <div>
+      {/* Shows only for members of a startup — routes them into the workspace. */}
+      <WorkspaceBanner />
+
       <h2 style={{
         fontFamily: 'Syne, sans-serif',
         fontSize: 18, fontWeight: 700,

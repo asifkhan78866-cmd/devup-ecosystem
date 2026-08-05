@@ -11,6 +11,8 @@ import PageControls from "@/components/PageControls";
 import AuthGate from "@/components/auth/AuthGate";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import MobileStartupCard from "@/components/mobile/MobileStartupCard";
+import StartupTypeBadge, { isPartner } from "@/components/StartupTypeBadge";
+import StartupLogo from "@/components/StartupLogo";
 
 // Dynamically import 3D element with ssr: false
 const EcosystemConstellation = dynamic(
@@ -64,6 +66,7 @@ export default function EcosystemPage() {
             domain: DOMAIN_MAP[s.domain] || s.domain || "Tech",
             roles: s._count?.jobs || 0,
             verified: s.isVerified || false,
+            type: s.type || "DEVUP_VENTURE",
             location: s.location || s.city || "Global",
             logoUrl: s.logoUrl,
             bannerUrl: s.bannerUrl,
@@ -82,13 +85,134 @@ export default function EcosystemPage() {
     return matchesCategory && matchesSearch;
   });
 
+  // Partners are external organisations we work with, not companies DevUp built.
+  // They render in their own section so the portfolio framing never covers them.
+  const ventures = filteredStartups.filter((s) => !isPartner(s));
+  const partners = filteredStartups.filter((s) => isPartner(s));
+
+  const sectionHeading = (title: string, blurb: string) => (
+    <div className="mb-5">
+      <h2 style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "22px", fontWeight: 700, color: "#fff" }}>
+        {title}
+      </h2>
+      <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", marginTop: 4 }}>
+        {blurb}
+      </p>
+    </div>
+  );
+
+  const renderGrid = (list: any[]) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <AnimatePresence mode="popLayout">
+        {list.map((startup, idx) => (
+          <motion.div
+            key={startup.id}
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.5), ease: [0.16, 1, 0.3, 1] }}
+          >
+            <AuthGate>
+              <Link href={`/ecosystem/${startup.id}`} className="block h-full group">
+                {isMobile ? (
+                  <MobileStartupCard startup={startup} />
+                ) : (
+                  <div className="h-full bg-[#111111] border border-white/5 rounded-[16px] overflow-hidden transition-all duration-300 group-hover:border-white/15 group-hover:translate-y-[-4px]">
+                    {/* Background Banner */}
+                    {startup.bannerUrl ? (
+                      <div
+                        className="h-24 w-full bg-cover bg-center opacity-80"
+                        style={{ backgroundImage: `url(${startup.bannerUrl})` }}
+                      />
+                    ) : (
+                      <div
+                        className="h-24 w-full opacity-80"
+                        style={{
+                          background: `linear-gradient(135deg, hsl(${(startup.name.codePointAt(0) ?? 0) * 10}, 70%, 20%), hsl(${(startup.name.codePointAt(startup.name.length - 1) ?? 0) * 10}, 70%, 10%))`
+                        }}
+                      />
+                    )}
+
+                    <div className="p-6 relative">
+                      {/* Logo */}
+                      <StartupLogo
+                        src={startup.logoUrl}
+                        name={startup.name}
+                        rounded="rounded-[12px]"
+                        className="absolute -top-10 left-6 w-[56px] h-[56px] border border-white/10 shadow-2xl text-xl"
+                      />
+
+                      <div className="mt-4">
+                        <h3
+                          className="flex items-center gap-2 mb-1"
+                          style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "20px", fontWeight: 700, color: "#fff" }}
+                        >
+                          {startup.name}
+                          {startup.verified && (
+                            <ShieldCheck className="w-[14px] h-[14px]" style={{ color: "#c8f135" }} />
+                          )}
+                        </h3>
+
+                        {isPartner(startup) && (
+                          <div className="mb-2">
+                            <StartupTypeBadge />
+                          </div>
+                        )}
+
+                        <p
+                          className="mb-6 h-12"
+                          style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#a1a1a1", lineHeight: 1.5 }}
+                        >
+                          {startup.tagline}
+                        </p>
+
+                        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                          <div className="flex items-center gap-3">
+                            <span
+                              className="px-2 py-1 rounded-[4px]"
+                              style={{
+                                fontFamily: "var(--font-inter), sans-serif",
+                                fontSize: "11px",
+                                background: "rgba(255,255,255,0.04)",
+                                border: "1px solid rgba(255,255,255,0.06)",
+                                color: "#e4e4e4"
+                              }}
+                            >
+                              {startup.domain}
+                            </span>
+                            <div className="flex items-center gap-1" style={{ fontSize: "11px", color: "#6b6b6b", fontFamily: "var(--font-inter), sans-serif" }}>
+                              <MapPin className="w-3 h-3" />
+                              {startup.location}
+                            </div>
+                          </div>
+
+                          {startup.roles > 0 && (
+                            <div className="flex items-center gap-1" style={{ fontSize: "11px", color: "#c8f135", fontFamily: "var(--font-inter), sans-serif" }}>
+                              <Briefcase className="w-3 h-3" />
+                              {startup.roles} Roles
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Link>
+            </AuthGate>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <PageHeader
         label="OUR VENTURES"
         headline="Ventures &\nPortfolio."
         accentWord="Portfolio"
-        subtitle="Explore the startups and companies built within the DevUp Ecosystem."
+        subtitle="Explore the startups built within the DevUp Ecosystem, alongside our official ecosystem partners."
         variant="rings"
       />
 
@@ -164,110 +288,28 @@ export default function EcosystemPage() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
 
-        {/* Grid */}
+        {/* Grid — ventures and partners kept visually distinct */}
         {filteredStartups.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <AnimatePresence mode="popLayout">
-              {filteredStartups.map((startup, idx) => (
-                <motion.div
-                  key={startup.id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.5), ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <AuthGate>
-                    <Link href={`/ecosystem/${startup.id}`} className="block h-full group">
-                      {isMobile ? (
-                      <MobileStartupCard startup={startup} />
-                    ) : (
-                      <div 
-                        className="h-full bg-[#111111] border border-white/5 rounded-[16px] overflow-hidden transition-all duration-300 group-hover:border-white/15 group-hover:translate-y-[-4px]"
-                      >
-                      {/* Background Banner */}
-                      {startup.bannerUrl ? (
-                        <div 
-                          className="h-24 w-full bg-cover bg-center opacity-80"
-                          style={{ backgroundImage: `url(${startup.bannerUrl})` }}
-                        />
-                      ) : (
-                        <div 
-                          className="h-24 w-full opacity-80" 
-                          style={{
-                            background: `linear-gradient(135deg, hsl(${(startup.name.codePointAt(0) ?? 0) * 10}, 70%, 20%), hsl(${(startup.name.codePointAt(startup.name.length - 1) ?? 0) * 10}, 70%, 10%))`
-                          }} 
-                        />
-                      )}
+          <div className="flex flex-col gap-12">
+            {ventures.length > 0 && (
+              <section>
+                {sectionHeading(
+                  "Ventures & Portfolio",
+                  "Startups built and incubated within the DevUp Ecosystem."
+                )}
+                {renderGrid(ventures)}
+              </section>
+            )}
 
-                      <div className="p-6 relative">
-                        {/* Logo */}
-                        <div 
-                          className="absolute -top-10 left-6 w-[56px] h-[56px] bg-[#0a0a0a] flex items-center justify-center border border-white/10 rounded-[12px] shadow-2xl overflow-hidden"
-                        >
-                          {startup.logoUrl ? (
-                            <img src={startup.logoUrl} alt={startup.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "20px", fontWeight: 700, color: "#fff" }}>
-                              {startup.name[0]}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="mt-4">
-                          <h3 
-                            className="flex items-center gap-2 mb-1"
-                            style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "20px", fontWeight: 700, color: "#fff" }}
-                          >
-                            {startup.name}
-                            {startup.verified && (
-                              <ShieldCheck className="w-[14px] h-[14px]" style={{ color: "#c8f135" }} />
-                            )}
-                          </h3>
-                          
-                          <p 
-                            className="mb-6 h-12"
-                            style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#a1a1a1", lineHeight: 1.5 }}
-                          >
-                            {startup.tagline}
-                          </p>
-
-                          <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                            <div className="flex items-center gap-3">
-                              <span 
-                                className="px-2 py-1 rounded-[4px]"
-                                style={{ 
-                                  fontFamily: "var(--font-inter), sans-serif", 
-                                  fontSize: "11px", 
-                                  background: "rgba(255,255,255,0.04)", 
-                                  border: "1px solid rgba(255,255,255,0.06)",
-                                  color: "#e4e4e4" 
-                                }}
-                              >
-                                {startup.domain}
-                              </span>
-                              <div className="flex items-center gap-1" style={{ fontSize: "11px", color: "#6b6b6b", fontFamily: "var(--font-inter), sans-serif" }}>
-                                <MapPin className="w-3 h-3" />
-                                {startup.location}
-                              </div>
-                            </div>
-
-                            {startup.roles > 0 && (
-                              <div className="flex items-center gap-1" style={{ fontSize: "11px", color: "#c8f135", fontFamily: "var(--font-inter), sans-serif" }}>
-                                <Briefcase className="w-3 h-3" />
-                                {startup.roles} Roles
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    )}
-                    </Link>
-                  </AuthGate>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            {partners.length > 0 && (
+              <section>
+                {sectionHeading(
+                  "Startup Ecosystem Partners",
+                  "Organisations we partner with."
+                )}
+                {renderGrid(partners)}
+              </section>
+            )}
           </div>
         ) : (
           <div className="w-full h-[200px] flex flex-col items-center justify-center text-center mt-10">

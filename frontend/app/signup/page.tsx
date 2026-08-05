@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Rocket, GraduationCap, Briefcase } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import GoogleLogin from '@/components/auth/google-login'
 
 export default function SignupPage() {
   const [step, setStep] = useState(1)
@@ -200,8 +201,23 @@ export default function SignupPage() {
           </div>
         )}
 
+        {/* Social sign-up only on the first step — once the user is partway
+            through the form, redirecting to a provider would lose their input. */}
+        {step === 1 && (
+          <>
+            <GoogleLogin />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0' }}>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#3d3d3d' }}>
+                or sign up with email
+              </span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+            </div>
+          </>
+        )}
+
         <form onSubmit={step === 3 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
-          
+
           {step === 1 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
               <div style={{ marginBottom: 16 }}>

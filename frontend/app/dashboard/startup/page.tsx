@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useStartup } from "@/lib/hooks/useStartup";
+import WorkspaceBanner from "@/components/workspace/WorkspaceBanner";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -716,6 +717,10 @@ export default function StartupDashboardPage() {
           </label>
         </div>
       </div>
+
+      {/* Route into the full hiring workspace — applicants, pipeline, offers,
+          employees and documents all live there, not on this page. */}
+      <WorkspaceBanner />
 
       {/* ═══ Job Management Section ═══ */}
       <div className="mb-8">

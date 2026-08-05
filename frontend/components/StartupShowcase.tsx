@@ -24,7 +24,11 @@ export default function StartupShowcase() {
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) {
-          const formatted = data.data.map((s: any) => ({
+          // This section is headlined "Startups building with DevUp", so it shows
+          // ventures only. Partners appear in their own section on /ecosystem.
+          const formatted = data.data
+            .filter((s: any) => s.type !== "ECOSYSTEM_PARTNER")
+            .map((s: any) => ({
             id: s.id,
             slug: s.slug || s.id,
             name: s.name,
@@ -36,6 +40,7 @@ export default function StartupShowcase() {
             logoUrl: s.logoUrl,
             screenshotUrls: s.screenshotUrls,
           }));
+
           setStartups(formatted);
         }
       })
@@ -202,9 +207,14 @@ export default function StartupShowcase() {
                       height: "44px",
                       bottom: "-22px",
                       left: "20px",
-                      background: "#1a1a1a",
+                      // White tile: several partner logos are wordmarks drawn in
+                      // dark ink on a transparent background, which vanish on the
+                      // dark card. Padding them onto white is how partner marks
+                      // are normally presented and keeps every logo legible.
+                      background: startup.logoUrl ? "#ffffff" : "#1a1a1a",
                       border: "2px solid #111111",
                       borderRadius: "10px",
+                      overflow: "hidden",
                       fontFamily: "var(--font-syne), sans-serif",
                       fontSize: "16px",
                       fontWeight: 700,
@@ -212,7 +222,13 @@ export default function StartupShowcase() {
                     }}
                   >
                     {startup.logoUrl ? (
-                      <img src={startup.logoUrl} alt={startup.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                      // contain, not cover — a wide wordmark cropped to a square
+                      // tile shows nothing but its middle few letters.
+                      <img
+                        src={startup.logoUrl}
+                        alt={startup.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '5px' }}
+                      />
                     ) : (
                       startup.name.charAt(0)
                     )}

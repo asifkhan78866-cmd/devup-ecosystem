@@ -64,7 +64,7 @@ export default function InviteAcceptPage() {
       if (data.success) {
         localStorage.removeItem("pending_invite_token");
         setSuccess(true);
-        setTimeout(() => router.push("/dashboard/startup"), 1500);
+        setTimeout(() => router.push("/dashboard/startup"), 1500); // banner there routes on to /s/[code]
       } else {
         setActionError(data.error || "Failed to accept invite");
       }
@@ -104,7 +104,7 @@ export default function InviteAcceptPage() {
       await supabase.auth.signInWithPassword({ email: invite.email, password });
       localStorage.removeItem("pending_invite_token");
       setSuccess(true);
-      setTimeout(() => router.push("/dashboard/startup"), 1500);
+      setTimeout(() => router.push("/dashboard/startup"), 1500); // banner there routes on to /s/[code]
     } catch (err: any) {
       setActionError(err?.message || "Something went wrong");
       setSubmitting(false);

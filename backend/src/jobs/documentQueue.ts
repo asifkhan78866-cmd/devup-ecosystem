@@ -15,8 +15,6 @@ if (redis) {
   worker.on("completed", (job) => {
     console.log(`Document job ${job.id} completed.`);
   });
-} else {
-  console.log("Document queue disabled because Redis is unavailable");
 }
 
 worker?.on("failed", (job, err) => {

@@ -27,6 +27,7 @@ export interface Startup {
   screenshotUrls: string[] | null
   domain: string
   stage: string
+  type?: 'DEVUP_VENTURE' | 'ECOSYSTEM_PARTNER'
   foundedYear: number
   headcount: string
   location: string

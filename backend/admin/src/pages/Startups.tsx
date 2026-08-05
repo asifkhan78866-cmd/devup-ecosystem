@@ -6,8 +6,29 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import type { Startup } from '@/types'
-import { ShieldCheck, Shield, Upload, Plus } from 'lucide-react'
+import { ShieldCheck, Shield, Upload, Plus, Handshake } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+/**
+ * Partners are external organisations DevUp works with, not companies it built.
+ * Shown distinctly here so the admin list never implies ownership.
+ */
+function StartupTypeTag({ type }: { type?: string }) {
+  const isPartner = type === 'ECOSYSTEM_PARTNER'
+  return (
+    <span
+      className="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 text-[10px] uppercase tracking-wider"
+      style={
+        isPartner
+          ? { background: 'rgba(120,170,255,0.10)', border: '1px solid rgba(120,170,255,0.28)', color: '#8fb6ff' }
+          : { background: 'rgba(200,241,53,0.08)', border: '1px solid rgba(200,241,53,0.22)', color: '#c8f135' }
+      }
+    >
+      {isPartner && <Handshake className="w-3 h-3" />}
+      {isPartner ? 'Partner' : 'Venture'}
+    </span>
+  )
+}
 
 function LogoUpload({ value, onChange, error }: {
   value: File | string | null
@@ -333,6 +354,7 @@ const HEADCOUNTS = ['1-5', '6-15', '16-50', '51-100', '100+']
 
 const emptyForm = {
   name: '', slug: '', tagline: '', description: '', domain: 'AI_ML', stage: 'MVP',
+  type: 'DEVUP_VENTURE',
   foundedYear: new Date().getFullYear(), headcount: '1-5', location: '', website: '', githubUrl: '',
   founderNames: [] as string[],
 }
@@ -381,8 +403,11 @@ function InviteFounder({ startupId }: { startupId: string }) {
   )
 }
 
+type TypeFilter = 'ALL' | 'DEVUP_VENTURE' | 'ECOSYSTEM_PARTNER'
+
 export default function Startups() {
   const [showAdd, setShowAdd] = useState(false)
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL')
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [confirmDelete, setConfirmDelete] = useState<Startup | null>(null)
@@ -456,11 +481,23 @@ export default function Startups() {
   })
 
   const startups: Startup[] = data?.data || []
+  const partnerCount = startups.filter((s) => s.type === 'ECOSYSTEM_PARTNER').length
+  const ventureCount = startups.length - partnerCount
+  const visibleStartups =
+    typeFilter === 'ALL'
+      ? startups
+      : startups.filter((s) => (s.type ?? 'DEVUP_VENTURE') === typeFilter)
+
+  const isPartnerView = typeFilter === 'ECOSYSTEM_PARTNER'
+  const addType = isPartnerView ? 'ECOSYSTEM_PARTNER' : 'DEVUP_VENTURE'
+  const addLabel = isPartnerView ? 'Partner' : typeFilter === 'DEVUP_VENTURE' ? 'Venture' : 'Startup'
+  const isPartnerForm = form.type === 'ECOSYSTEM_PARTNER'
 
   const openEdit = (s: Startup) => {
     setForm({
       name: s.name, slug: s.slug, tagline: s.tagline, description: s.description,
       domain: s.domain, stage: s.stage, foundedYear: s.foundedYear,
+      type: s.type || 'DEVUP_VENTURE',
       headcount: s.headcount, location: s.location, website: s.website || '',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       githubUrl: s.githubUrl || '', founderNames: (s as any).founderNames || [],
@@ -515,9 +552,40 @@ export default function Startups() {
     <div className="flex flex-col">
       <TopBar title="Startups" />
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <Badge label={`${startups.length} startups`} />
-          <Button variant="primary" size="md" onClick={() => { setForm(emptyForm); setEditId(null); setShowAdd(true) }}>+ Add Startup</Button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            {([
+              { key: 'ALL', label: `All (${startups.length})` },
+              { key: 'DEVUP_VENTURE', label: `Ventures (${ventureCount})` },
+              { key: 'ECOSYSTEM_PARTNER', label: `Partners (${partnerCount})` },
+            ] as const).map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTypeFilter(t.key)}
+                className="rounded-full px-3 py-1.5 text-xs transition-colors"
+                style={{
+                  background: typeFilter === t.key ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${typeFilter === t.key ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                  color: typeFilter === t.key ? '#a5b4fc' : '#9ca3af',
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {/* The action follows the active filter, so adding while viewing
+              Partners creates a partner without needing the type dropdown. */}
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => {
+              setForm({ ...emptyForm, type: addType })
+              setEditId(null)
+              setShowAdd(true)
+            }}
+          >
+            + Add {addLabel}
+          </Button>
         </div>
 
         <div className="bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden">
@@ -525,14 +593,21 @@ export default function Startups() {
             <div className="p-8 space-y-3">
               {[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-white/5 rounded-lg animate-pulse" />)}
             </div>
-          ) : startups.length === 0 ? (
-            <div className="p-16 text-center text-gray-500">No startups yet</div>
+          ) : visibleStartups.length === 0 ? (
+            <div className="p-16 text-center text-gray-500">
+              {startups.length === 0
+                ? 'No startups yet'
+                : isPartnerView
+                  ? 'No ecosystem partners yet. Add one to list an organisation DevUp works with.'
+                  : 'No startups match this filter'}
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px]">
                 <thead>
                 <tr className="border-b border-white/5">
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Startup</th>
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Type</th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Domain</th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Stage</th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Verified</th>
@@ -542,7 +617,7 @@ export default function Startups() {
                 </tr>
               </thead>
               <tbody>
-                {startups.map((s) => (
+                {visibleStartups.map((s) => (
                   <tr key={s.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -557,6 +632,7 @@ export default function Startups() {
                         </div>
                       </div>
                     </td>
+                    <td className="px-6 py-4"><StartupTypeTag type={s.type} /></td>
                     <td className="px-6 py-4"><Badge label={s.domain} /></td>
                     <td className="px-6 py-4 text-sm text-gray-400">{s.stage}</td>
                     <td className="px-6 py-4">
@@ -584,7 +660,7 @@ export default function Startups() {
       </div>
 
       {/* Add / Edit Startup Modal */}
-      <Modal isOpen={showAdd} onClose={() => { setShowAdd(false); setEditId(null); setForm(emptyForm); setLogoFile(null); setScreenshotFiles([]); setAiAnalysis(null); setLogoError(undefined) }} title={editId ? 'Edit Startup' : 'Add Startup'}>
+      <Modal isOpen={showAdd} onClose={() => { setShowAdd(false); setEditId(null); setForm(emptyForm); setLogoFile(null); setScreenshotFiles([]); setAiAnalysis(null); setLogoError(undefined) }} title={`${editId ? 'Edit' : 'Add'} ${isPartnerForm ? 'Ecosystem Partner' : 'Startup'}`}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <LogoUpload 
             value={logoFile} 
@@ -668,6 +744,20 @@ export default function Startups() {
                 {HEADCOUNTS.map(h => <option key={h} value={h} className="bg-[#0d0d0d]">{h}</option>)}
               </select>
             </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-xs text-gray-500 mb-1">Listing type</label>
+            <select
+              value={form.type} onChange={(e) => handleChange('type', e.target.value)}
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-indigo-500"
+            >
+              <option value="DEVUP_VENTURE" className="bg-[#0d0d0d]">DevUp Venture (built / incubated by DevUp)</option>
+              <option value="ECOSYSTEM_PARTNER" className="bg-[#0d0d0d]">Official Ecosystem Partner (external organisation)</option>
+            </select>
+            <p className="text-[11px] text-gray-500 mt-1">
+              Partners are shown in a separate section and are never presented as built by DevUp.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

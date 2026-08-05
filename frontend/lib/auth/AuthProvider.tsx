@@ -7,7 +7,16 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import type { User, Session } from '@supabase/supabase-js'
 
-export type UserRole = 
+/** Supabase provider ids. LinkedIn uses the OIDC variant. */
+export type OAuthProvider = 'google' | 'github' | 'linkedin_oidc'
+
+export const OAUTH_PROVIDERS: { id: OAuthProvider; label: string }[] = [
+  { id: 'google', label: 'Google' },
+  { id: 'github', label: 'GitHub' },
+  { id: 'linkedin_oidc', label: 'LinkedIn' },
+]
+
+export type UserRole =
   | 'ADMIN' 
   | 'SUPER_ADMIN' 
   | 'FOUNDER' 
@@ -37,6 +46,7 @@ interface AuthContextType {
   signUp: (data: SignUpData) => Promise<{ error?: string }>
   signIn: (email: string, password: string) => Promise<{ error?: string }>
   signInWithGoogle: (redirectTo?: string) => Promise<void>
+  signInWithOAuth: (provider: OAuthProvider, redirectTo?: string) => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (data: Partial<UserProfile>) => Promise<void>
 }
@@ -172,20 +182,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signInWithGoogle = async (redirectTo?: string) => {
+  const signInWithOAuth = async (provider: OAuthProvider, redirectTo?: string) => {
     const callbackUrl = `${window.location.origin}/auth/callback${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`
-    
+
+    // GitHub and LinkedIn expose profile data we want for autofill, so request
+    // the scopes that carry it. Google needs offline access for refresh tokens.
+    const perProvider: Record<OAuthProvider, Record<string, unknown>> = {
+      google: { queryParams: { access_type: 'offline', prompt: 'consent' } },
+      github: { scopes: 'read:user user:email' },
+      linkedin_oidc: { scopes: 'openid profile email' },
+    }
+
     await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: callbackUrl,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
+      provider,
+      options: { redirectTo: callbackUrl, ...perProvider[provider] },
     })
   }
+
+  const signInWithGoogle = async (redirectTo?: string) => signInWithOAuth('google', redirectTo)
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -225,7 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, session, loading,
-      signUp, signIn, signInWithGoogle, signOut, updateProfile
+      signUp, signIn, signInWithGoogle, signInWithOAuth, signOut, updateProfile
     }}>
       {children}
     </AuthContext.Provider>

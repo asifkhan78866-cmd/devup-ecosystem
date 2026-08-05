@@ -25,6 +25,10 @@ import servicesRoutes from "./modules/services/services.routes";
 import membersRoutes from "./modules/startups/members.routes";
 import connectionsRoutes from "./modules/connections/connections.routes";
 import messagesRoutes from "./modules/messages/messages.routes";
+import workspaceRoutes from "./modules/recruiting/workspace.routes";
+import candidateRoutes from "./modules/recruiting/candidate.routes";
+import platformAnalyticsRoutes from "./modules/analytics/platform.routes";
+import profileRoutes from "./modules/profile/profile.routes";
 // ... (will import as implemented)
 
 export const app = express();
@@ -55,7 +59,7 @@ app.use(
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
@@ -123,6 +127,11 @@ app.get("/api/stats", async (req: Request, res: Response) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
+
+// membersRoutes already declares its own `/:startupId/...` and `/invites/...`
+// paths, so it mounts at /api/startups directly. It must come BEFORE
+// startupsRoutes, whose `GET /:slug` would otherwise swallow `/invites/:token`.
+app.use("/api/startups", membersRoutes);
 app.use("/api/startups", startupsRoutes);
 app.use("/api/applications", applicationsRoutes);
 app.use("/api/jobs", jobsRoutes);
@@ -132,9 +141,16 @@ app.use("/api/documents", documentsRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/services", servicesRoutes);
-app.use("/api/startups/:id/members", membersRoutes);
 app.use("/api/connections", connectionsRoutes);
 app.use("/api/messages", messagesRoutes);
+
+// Hiring & recruitment module.
+// `/api/w/:code/*` is the tenant workspace — membership is proven by
+// resolveTenant and every query is hard-scoped to that startup.
+app.use("/api/w", workspaceRoutes);
+app.use("/api", candidateRoutes);
+app.use("/api/admin/analytics", platformAnalyticsRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

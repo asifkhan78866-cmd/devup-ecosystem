@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Navbar } from "@/components/Navbar";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -41,6 +42,28 @@ export default function LayoutClient({
       console.warn = originalWarn;
     };
   }, []);
+
+  const pathname = usePathname();
+
+  /**
+   * The startup workspace at /s/[code] is a self-contained app with its own
+   * sidebar and navigation. The marketing chrome — navbar, footer, mobile tab
+   * bar, intro animation — is hidden there so the whole viewport belongs to it.
+   */
+  const isWorkspace = pathname?.startsWith("/s/") ?? false;
+
+  if (isWorkspace) {
+    return (
+      <Providers>
+        <AuthProvider>
+          <AuthGateProvider>
+            <main className="relative z-10">{children}</main>
+            <AuthModal />
+          </AuthGateProvider>
+        </AuthProvider>
+      </Providers>
+    );
+  }
 
   return (
     <Providers>

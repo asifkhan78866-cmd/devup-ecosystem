@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -25,32 +25,40 @@ enum AuthProvider {
 }
 
 model User {
-  id               String   @id @default(uuid())
-  email            String   @unique
-  passwordHash     String?
-  role             Role     @default(STUDENT)
-  isVerified       Boolean  @default(false)
-  avatarUrl        String?
-  authProvider     AuthProvider @default(EMAIL)
-  lastLoginAt      DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id           String       @id @default(uuid())
+  email        String       @unique
+  passwordHash String?
+  role         Role         @default(STUDENT)
+  isVerified   Boolean      @default(false)
+  avatarUrl    String?
+  authProvider AuthProvider @default(EMAIL)
+  lastLoginAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  profile          Profile?
-  startups         Startup[] @relation("StartupFounders")
-  foundedStartups  Startup[] @relation("StartupPrimaryFounder")
-  applications     Application[] @relation("ApplicationReviewer")
-  jobApplications  JobApplication[]
-  hackathonRegs    HackathonRegistration[]
-  cofounderProfile CofounderProfile?
-  sentRequests     CofounderRequest[] @relation("SentRequests")
-  receivedRequests CofounderRequest[] @relation("ReceivedRequests")
-  notifications    Notification[]
-  sentConnections     ConnectionRequest[] @relation("SentConnections")
-  receivedConnections ConnectionRequest[] @relation("ReceivedConnections")
-  sentMessages     Message[] @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
+  profile             Profile?
+  startups            Startup[]               @relation("StartupFounders")
+  foundedStartups     Startup[]               @relation("StartupPrimaryFounder")
+  applications        Application[]           @relation("ApplicationReviewer")
+  jobApplications     JobApplication[]
+  hackathonRegs       HackathonRegistration[]
+  cofounderProfile    CofounderProfile?
+  sentRequests        CofounderRequest[]      @relation("SentRequests")
+  receivedRequests    CofounderRequest[]      @relation("ReceivedRequests")
+  notifications       Notification[]
+  sentConnections     ConnectionRequest[]     @relation("SentConnections")
+  receivedConnections ConnectionRequest[]     @relation("ReceivedConnections")
+  sentMessages        Message[]               @relation("SentMessages")
+  receivedMessages    Message[]               @relation("ReceivedMessages")
   startupMemberships  StartupMember[]
+
+  hiringManagerJobs  Job[]                   @relation("JobHiringManager")
+  stageEvents        ApplicationStageEvent[] @relation("StageEventActor")
+  employeeRecords    Employee[]              @relation("EmployeeUser")
+  internRecords      Intern[]                @relation("InternUser")
+  interviewPanels    InterviewPanelist[]
+  interviewFeedbacks InterviewFeedback[]     @relation("FeedbackReviewer")
+  pushSubscriptions  PushSubscription[]
 }
 
 model Profile {
@@ -69,7 +77,33 @@ model Profile {
   isLookingForCofounder Boolean  @default(false)
   resumeUrl             String?
 
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Captured once here so job applications can autofill instead of asking
+  // the student to retype the same details for every startup.
+  phone           String?
+  degree          String?
+  branch          String?
+  graduationYear  Int?
+  cgpa            Decimal?  @db.Decimal(4, 2)
+  experienceYears Decimal?  @db.Decimal(4, 1)
+  resumeFileName  String?
+  resumeUpdatedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Web Push (VAPID) subscription. One row per browser/device per user.
+model PushSubscription {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint   String    @unique
+  p256dh     String
+  auth       String
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  @@index([userId])
 }
 
 enum Domain {
@@ -96,18 +130,27 @@ enum Stage {
   GROWTH
 }
 
+// DEVUP_VENTURE: built/incubated by DevUp — may be presented as portfolio.
+// ECOSYSTEM_PARTNER: an external organisation we partner with. Must never be
+// presented as something DevUp built or owns.
+enum StartupType {
+  DEVUP_VENTURE
+  ECOSYSTEM_PARTNER
+}
+
 model Startup {
-  id             String   @id @default(uuid())
+  id             String      @id @default(uuid())
   name           String
-  slug           String   @unique
+  slug           String      @unique
   tagline        String
   description    String
   logoUrl        String?
-  screenshotUrls String[] @default([])
+  screenshotUrls String[]    @default([])
   bannerUrl      String?
   website        String?
   domain         Domain
   stage          Stage
+  type           StartupType @default(DEVUP_VENTURE)
   foundedYear    Int
   headcount      String
   location       String
@@ -115,42 +158,64 @@ model Startup {
   fundingAmount  String?
   mrr            String?
   userCount      String?
-  isVerified     Boolean  @default(false)
-  isActive       Boolean  @default(true)
-  isFeatured     Boolean  @default(false)
-  
+  isVerified     Boolean     @default(false)
+  isActive       Boolean     @default(true)
+  isFeatured     Boolean     @default(false)
+
   aiAnalysis     Json?
   aiAnalyzedAt   DateTime?
   aiSourceUrl    String?
   aiModelVersion String?
-  
+
   founderId      String
   primaryFounder User     @relation("StartupPrimaryFounder", fields: [founderId], references: [id])
   founders       User[]   @relation("StartupFounders")
   founderNames   String[] @default([])
-  
-  jobs           Job[]
-  documents      Document[]
-  
-  githubUrl      String?
-  linkedinUrl    String?
-  twitterUrl     String?
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  approvedAt     DateTime?
-  approvedBy     String?
-  
-  verifiedAt       DateTime?
-  verifiedBy       String?
+
+  jobs      Job[]
+  documents Document[]
+
+  githubUrl   String?
+  linkedinUrl String?
+  twitterUrl  String?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  approvedAt DateTime?
+  approvedBy String?
+
+  verifiedAt DateTime?
+  verifiedBy String?
 
   aiResearchLogs AiResearchLog[]
-  members          StartupMember[]
+  members        StartupMember[]
+
+  // Short immutable tenant code used in every generated number (e.g. "ZAP").
+  // Nullable only for backfill of pre-existing rows; treated as required in app logic.
+  code           String?                 @unique
+  branding       StartupBranding?
+  employees      Employee[]
+  interns        Intern[]
+  sequences      NumberSequence[]
+  hrDocuments    HrDocument[]
+  offerLetters   OfferLetter[]
+  stageEvents    ApplicationStageEvent[]
+  interviews     Interview[]
+  onboardingDocs OnboardingDocument[]
+  onboardingReqs OnboardingRequirement[]
+  attendancePolicy AttendancePolicy?
+  stipendPayouts   StipendPayout[]
 }
 
 enum StartupMemberRole {
   OWNER
+  FOUNDER
   ADMIN
+  HR
+  RECRUITER
+  MANAGER
+  EMPLOYEE
+  INTERN
   MEMBER
 }
 
@@ -160,19 +225,19 @@ enum StartupMemberStatus {
 }
 
 model StartupMember {
-  id          String   @id @default(cuid())
+  id          String              @id @default(cuid())
   startupId   String
-  startup     Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  startup     Startup             @relation(fields: [startupId], references: [id], onDelete: Cascade)
   userId      String?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
   email       String
   role        StartupMemberRole   @default(MEMBER)
   status      StartupMemberStatus @default(INVITED)
   invitedBy   String
-  inviteToken String   @unique
-  invitedAt   DateTime @default(now())
+  inviteToken String              @unique
+  invitedAt   DateTime            @default(now())
   joinedAt    DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime            @default(now())
 
   @@unique([startupId, email])
   @@index([userId, startupId])
@@ -186,27 +251,27 @@ enum ApplicationStatus {
 }
 
 model Application {
-  id             String   @id @default(uuid())
-  startupName    String
-  domain         Domain
-  oneLiner       String
-  website        String?
-  stage          Stage
-  mrr            String?
-  userCount      String?
-  pitchDeckUrl   String?
-  teamMembers    Json
-  needs          String[]
-  status         ApplicationStatus @default(PENDING)
-  
-  submittedBy    String
-  
-  reviewedBy     String?
-  reviewer       User?    @relation("ApplicationReviewer", fields: [reviewedBy], references: [id])
-  reviewNotes    String?
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id           String            @id @default(uuid())
+  startupName  String
+  domain       Domain
+  oneLiner     String
+  website      String?
+  stage        Stage
+  mrr          String?
+  userCount    String?
+  pitchDeckUrl String?
+  teamMembers  Json
+  needs        String[]
+  status       ApplicationStatus @default(PENDING)
+
+  submittedBy String
+
+  reviewedBy  String?
+  reviewer    User?   @relation("ApplicationReviewer", fields: [reviewedBy], references: [id])
+  reviewNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum JobType {
@@ -217,26 +282,57 @@ enum JobType {
 }
 
 model Job {
-  id             String   @id @default(uuid())
-  startupId      String
-  title          String
-  description    String
-  type           JobType
-  domain         String
-  skills         String[]
-  location       String
-  isRemote       Boolean  @default(false)
-  stipend        String?
-  salaryRange    String?
-  openings       Int      @default(1)
-  deadline       DateTime?
-  isActive       Boolean  @default(true)
-  
-  startup        Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
-  applications   JobApplication[]
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id          String    @id @default(uuid())
+  startupId   String
+  title       String
+  description String
+  type        JobType
+  domain      String
+  skills      String[]
+  location    String
+  isRemote    Boolean   @default(false)
+  stipend     String?
+  salaryRange String?
+  openings    Int       @default(1)
+  deadline    DateTime?
+  isActive    Boolean   @default(true)
+
+  department       String?
+  workMode         WorkMode        @default(OFFICE)
+  responsibilities String[]        @default([])
+  requiredSkills   String[]        @default([])
+  preferredSkills  String[]        @default([])
+  durationMonths   Int?
+  status           JobStatus       @default(DRAFT)
+  // Stages this job actually uses. Empty = the full default pipeline.
+  pipelineTemplate PipelineStage[] @default([])
+  hiringManagerId  String?
+  hiringManager    User?           @relation("JobHiringManager", fields: [hiringManagerId], references: [id])
+  publishedAt      DateTime?
+  closedAt         DateTime?
+
+  startup      Startup          @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  applications JobApplication[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startupId, status])
+  @@index([startupId, createdAt])
+}
+
+enum WorkMode {
+  REMOTE
+  HYBRID
+  OFFICE
+}
+
+enum JobStatus {
+  DRAFT
+  OPEN
+  PAUSED
+  CLOSED
+  FILLED
 }
 
 enum JobAppStatus {
@@ -247,24 +343,164 @@ enum JobAppStatus {
 }
 
 model JobApplication {
-  id             String   @id @default(uuid())
-  jobId          String
-  userId         String
-  resumeUrl      String?
-  coverLetter    String?
-  status         JobAppStatus @default(APPLIED)
-  
+  id          String       @id @default(uuid())
+  jobId       String
+  userId      String
+  resumeUrl   String?
+  coverLetter String?
+  status      JobAppStatus @default(APPLIED)
+
   applicantName  String?
   applicantEmail String?
   applicantPhone String?
-  
-  job            Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  appliedAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+
+  // Denormalised from Job for tenant scoping and index efficiency.
+  startupId       String?
+  applicationNo   String?       @unique
+  stage           PipelineStage @default(APPLIED)
+  outcome         Outcome?
+  portfolioUrl    String?
+  githubUrl       String?
+  linkedinUrl     String?
+  skills          String[]      @default([])
+  college         String?
+  cgpa            Decimal?      @db.Decimal(4, 2)
+  experienceYears Decimal?      @db.Decimal(4, 1)
+  rejectionReason String?
+  withdrawnAt     DateTime?
+  // Optimistic lock — guards against two recruiters transitioning at once.
+  version         Int           @default(0)
+
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  events     ApplicationStageEvent[]
+  interviews Interview[]
+  offer      OfferLetter?
+  employee   Employee?
+  intern     Intern?
+
+  appliedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([jobId, userId])
+  @@index([startupId, stage])
+  @@index([startupId, appliedAt])
+  @@index([userId])
+}
+
+enum PipelineStage {
+  APPLIED
+  RESUME_SCREENING
+  SHORTLISTED
+  HR_ROUND
+  TECHNICAL_ROUND
+  ASSIGNMENT
+  FINAL_INTERVIEW
+  SELECTED
+  OFFER_GENERATED
+  OFFER_ACCEPTED
+  ONBOARDING
+  ONBOARDED
+}
+
+enum Outcome {
+  REJECTED
+  WITHDRAWN
+  OFFER_DECLINED
+  OFFER_REVOKED
+  NO_SHOW
+  HIRED
+}
+
+/// Append-only pipeline history. Never updated, never deleted.
+/// JobApplication.stage is a cache of the latest event; this log is the truth.
+model ApplicationStageEvent {
+  id            String         @id @default(uuid())
+  startupId     String
+  startup       Startup        @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStage     PipelineStage?
+  toStage       PipelineStage
+  outcome       Outcome?
+  note          String?
+  actorId       String?
+  actor         User?          @relation("StageEventActor", fields: [actorId], references: [id])
+  createdAt     DateTime       @default(now())
+
+  @@index([applicationId, createdAt])
+  @@index([startupId, toStage, createdAt])
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  RESCHEDULED
+}
+
+model Interview {
+  id                String          @id @default(uuid())
+  startupId         String
+  startup           Startup         @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  applicationId     String
+  application       JobApplication  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  stage             PipelineStage
+  scheduledAt       DateTime
+  durationMins      Int             @default(45)
+  timezone          String          @default("Asia/Kolkata")
+  mode              String          @default("ONLINE")
+  meetingUrl        String?
+  location          String?
+  status            InterviewStatus @default(SCHEDULED)
+  rescheduledFromId String?
+  createdBy         String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  panel    InterviewPanelist[]
+  feedback InterviewFeedback[]
+
+  @@index([startupId, scheduledAt])
+  @@index([applicationId])
+}
+
+model InterviewPanelist {
+  id          String    @id @default(uuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([interviewId, userId])
+}
+
+enum Recommendation {
+  STRONG_YES
+  YES
+  NEUTRAL
+  NO
+  STRONG_NO
+}
+
+model InterviewFeedback {
+  id          String         @id @default(uuid())
+  startupId   String
+  interviewId String
+  interview   Interview      @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  reviewerId  String
+  reviewer    User           @relation("FeedbackReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  rating      Int
+  recommend   Recommendation
+  strengths   String?
+  concerns    String?
+  notes       String?
+  createdAt   DateTime       @default(now())
+
+  @@unique([interviewId, reviewerId])
+  @@index([startupId])
 }
 
 enum HackathonMode {
@@ -274,14 +510,14 @@ enum HackathonMode {
 }
 
 model Hackathon {
-  id                   String   @id @default(uuid())
+  id                   String                  @id @default(uuid())
   title                String
   description          String
   organizer            String
-  subtitle             String?  // One-line tagline shown under the title on the detail page
+  subtitle             String? // One-line tagline shown under the title on the detail page
   logoUrl              String?
   bannerUrl            String?
-  startupId            String?  // Nullable, if ecosystem hosted
+  startupId            String? // Nullable, if ecosystem hosted
   prizePool            String
   mode                 HackathonMode
   location             String?
@@ -292,23 +528,23 @@ model Hackathon {
   registrationLink     String?
   registrationFee      String?
   maxParticipants      Int?
-  currentParticipants  Int      @default(0)
+  currentParticipants  Int                     @default(0)
   // Optional rich detail-page content. When null, the frontend falls back to its
   // built-in defaults so existing hackathons render unchanged.
-  domainsDetailed      Json?    // [{ label, sub, color }]
-  timeline             Json?    // [{ date, label, subtitle, slots: [{ time, title, description, icon }] }]
-  perks                Json?    // [{ icon, title, desc }]
-  logistics            Json?    // [{ icon, label, desc }]
-  isEcosystemHosted    Boolean  @default(false)
-  isFeatured           Boolean  @default(false)
-  isActive             Boolean  @default(true)
+  domainsDetailed      Json? // [{ label, sub, color }]
+  timeline             Json? // [{ date, label, subtitle, slots: [{ time, title, description, icon }] }]
+  perks                Json? // [{ icon, title, desc }]
+  logistics            Json? // [{ icon, label, desc }]
+  isEcosystemHosted    Boolean                 @default(false)
+  isFeatured           Boolean                 @default(false)
+  isActive             Boolean                 @default(true)
   registrations        HackathonRegistration[]
   leads                HackathonLead[]
   partners             HackathonPartner[]
   submissions          HackathonSubmission[]
-  
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model HackathonPartner {
@@ -332,30 +568,30 @@ model HackathonLead {
   phone        String
   teamName     String?
   teamCount    Int
-  members      Json?     // Array of { name, email, phone }
+  members      Json? // Array of { name, email, phone }
   college      String
   source       String    @default("website")
   preferences  Json?
   redirectedAt DateTime?
   createdAt    DateTime  @default(now())
 
-  submission   HackathonSubmission?
+  submission HackathonSubmission?
 
-  @@index([hackathonId])
   @@unique([hackathonId, phone])
+  @@index([hackathonId])
 }
 
 model HackathonRegistration {
-  id             String   @id @default(uuid())
-  hackathonId    String
-  userId         String
-  teamName       String?
-  teamSize       Int      @default(1)
-  
-  hackathon      Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  registeredAt   DateTime @default(now())
+  id          String  @id @default(uuid())
+  hackathonId String
+  userId      String
+  teamName    String?
+  teamSize    Int     @default(1)
+
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  registeredAt DateTime @default(now())
 
   @@unique([hackathonId, userId])
 }
@@ -382,19 +618,19 @@ enum Availability {
 }
 
 model CofounderProfile {
-  id             String   @id @default(uuid())
-  userId         String   @unique
-  role           CofounderRole
-  stage          CofounderStage
-  seeking        String[]
-  availability   Availability
-  idea           String?
-  isActive       Boolean  @default(true)
-  
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id           String         @id @default(uuid())
+  userId       String         @unique
+  role         CofounderRole
+  stage        CofounderStage
+  seeking      String[]
+  availability Availability
+  idea         String?
+  isActive     Boolean        @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum RequestStatus {
@@ -404,29 +640,29 @@ enum RequestStatus {
 }
 
 model CofounderRequest {
-  id             String   @id @default(uuid())
-  fromUserId     String
-  toUserId       String
-  message        String
-  status         RequestStatus @default(PENDING)
-  
-  fromUser       User     @relation("SentRequests", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUser         User     @relation("ReceivedRequests", fields: [toUserId], references: [id], onDelete: Cascade)
-  
-  createdAt      DateTime @default(now())
+  id         String        @id @default(uuid())
+  fromUserId String
+  toUserId   String
+  message    String
+  status     RequestStatus @default(PENDING)
+
+  fromUser User @relation("SentRequests", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("ReceivedRequests", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 
   @@unique([fromUserId, toUserId])
 }
 
 model ConnectionRequest {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   fromUserId  String
-  fromUser    User     @relation("SentConnections", fields: [fromUserId], references: [id], onDelete: Cascade)
+  fromUser    User      @relation("SentConnections", fields: [fromUserId], references: [id], onDelete: Cascade)
   toUserId    String
-  toUser      User     @relation("ReceivedConnections", fields: [toUserId], references: [id], onDelete: Cascade)
+  toUser      User      @relation("ReceivedConnections", fields: [toUserId], references: [id], onDelete: Cascade)
   message     String
-  status      String   @default("PENDING")
-  createdAt   DateTime @default(now())
+  status      String    @default("PENDING")
+  createdAt   DateTime  @default(now())
   respondedAt DateTime?
 
   @@unique([fromUserId, toUserId])
@@ -446,65 +682,65 @@ enum DocStatus {
 }
 
 model Document {
-  id                String   @id @default(uuid())
-  startupId         String
-  type              DocType
-  name              String
-  fileUrl           String
-  signedByFounder   Boolean  @default(false)
-  signedByAdmin     Boolean  @default(false)
-  founderSignedAt   DateTime?
-  adminSignedAt     DateTime?
-  status            DocStatus @default(PENDING)
-  
-  startup           Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
-  
-  sentToStartupAt   DateTime?
-  signedByUserId    String?
-  signedByName      String?
-  signatureDataUrl  String?
-  ipAddress         String?
-  signedUserAgent   String?
+  id              String    @id @default(uuid())
+  startupId       String
+  type            DocType
+  name            String
+  fileUrl         String
+  signedByFounder Boolean   @default(false)
+  signedByAdmin   Boolean   @default(false)
+  founderSignedAt DateTime?
+  adminSignedAt   DateTime?
+  status          DocStatus @default(PENDING)
 
-  createdAt         DateTime @default(now())
+  startup Startup @relation(fields: [startupId], references: [id], onDelete: Cascade)
+
+  sentToStartupAt  DateTime?
+  signedByUserId   String?
+  signedByName     String?
+  signatureDataUrl String?
+  ipAddress        String?
+  signedUserAgent  String?
+
+  createdAt DateTime @default(now())
 }
 
 model Testimonial {
-  id             String   @id @default(uuid())
-  authorName     String
-  role           String
-  company        String
-  avatarUrl      String?
-  quote          String
-  isActive       Boolean  @default(true)
-  order          Int      @default(0)
-  
-  createdAt      DateTime @default(now())
+  id         String  @id @default(uuid())
+  authorName String
+  role       String
+  company    String
+  avatarUrl  String?
+  quote      String
+  isActive   Boolean @default(true)
+  order      Int     @default(0)
+
+  createdAt DateTime @default(now())
 }
 
 model Notification {
-  id             String   @id @default(uuid())
-  userId         String
-  title          String
-  message        String
-  type           String
-  isRead         Boolean  @default(false)
-  link           String?
-  
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt      DateTime @default(now())
+  id      String  @id @default(uuid())
+  userId  String
+  title   String
+  message String
+  type    String
+  isRead  Boolean @default(false)
+  link    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }
 
 model AuditLog {
-  id             String   @id @default(uuid())
-  adminId        String?
-  action         String
-  entity         String
-  entityId       String?
-  metadata       Json?
-  
-  createdAt      DateTime @default(now())
+  id       String  @id @default(uuid())
+  adminId  String?
+  action   String
+  entity   String
+  entityId String?
+  metadata Json?
+
+  createdAt DateTime @default(now())
 }
 
 enum ServiceRequestStatus {
@@ -516,34 +752,34 @@ enum ServiceRequestStatus {
 }
 
 model ServiceRequest {
-  id             String   @id @default(uuid())
-  serviceId      String
-  serviceName    String
-  name           String
-  company        String
-  email          String
-  details        String
-  status         ServiceRequestStatus @default(PENDING)
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id          String               @id @default(uuid())
+  serviceId   String
+  serviceName String
+  name        String
+  company     String
+  email       String
+  details     String
+  status      ServiceRequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AiResearchLog {
-  id              String   @id @default(cuid())
-  startupId       String?
-  applicationId   String?
-  triggeredBy     String
-  sourceUrl       String
-  firecrawlCredits Int     @default(1)
-  openrouterModel String
-  tokensUsed      Int?
-  latencyMs       Int?
-  status          String
-  errorMessage    String?
-  createdAt       DateTime @default(now())
+  id               String   @id @default(cuid())
+  startupId        String?
+  applicationId    String?
+  triggeredBy      String
+  sourceUrl        String
+  firecrawlCredits Int      @default(1)
+  openrouterModel  String
+  tokensUsed       Int?
+  latencyMs        Int?
+  status           String
+  errorMessage     String?
+  createdAt        DateTime @default(now())
 
-  startup         Startup? @relation(fields: [startupId], references: [id])
+  startup Startup? @relation(fields: [startupId], references: [id])
 }
 
 enum SubmissionStatus {
@@ -553,17 +789,17 @@ enum SubmissionStatus {
 }
 
 model HackathonSubmission {
-  id            String   @id @default(uuid())
-  leadId        String   @unique
-  hackathonId   String
-  fileUrl       String
-  status        SubmissionStatus @default(PENDING)
-  
-  lead          HackathonLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  hackathon     Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String           @id @default(uuid())
+  leadId      String           @unique
+  hackathonId String
+  fileUrl     String
+  status      SubmissionStatus @default(PENDING)
+
+  lead      HackathonLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  hackathon Hackathon     @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Message {
@@ -573,7 +809,402 @@ model Message {
   content    String
   read       Boolean  @default(false)
   createdAt  DateTime @default(now())
-  
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────────────────
+// HRMS CORE
+// ─────────────────────────────────────────────────────────
+
+model StartupBranding {
+  id                String   @id @default(uuid())
+  startupId         String   @unique
+  startup           Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  legalName         String
+  addressLine1      String
+  addressLine2      String?
+  city              String
+  state             String
+  pincode           String
+  logoUrl           String?
+  signatoryName     String
+  signatoryTitle    String
+  signatureImageUrl String?
+  /// Which organisation the primary signatory signs for. Defaults to the
+  /// ecosystem, because DevUp ventures are signed at ecosystem level.
+  signatoryOrg      String?
+  /// Optional second signatory. Ecosystem partners are independent companies,
+  /// so their own executive countersigns alongside DevUp.
+  cosignatoryName   String?
+  cosignatoryTitle  String?
+  cosignatoryOrg    String?
+  cosignatureImageUrl String?
+  letterheadUrl     String?
+  primaryColor      String?  @default("#c8f135")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  NOTICE
+  EXITED
+  TERMINATED
+}
+
+model Employee {
+  id                    String           @id @default(uuid())
+  startupId             String
+  startup               Startup          @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  // Permanent. Never changes, and is reused if the person is rehired.
+  employeeCode          String           @unique
+  userId                String?
+  user                  User?            @relation("EmployeeUser", fields: [userId], references: [id])
+  applicationId         String?          @unique
+  application           JobApplication?  @relation(fields: [applicationId], references: [id])
+  fullName              String
+  email                 String
+  phone                 String?
+  department            String?
+  designation           String
+  employmentType        JobType
+  status                EmploymentStatus @default(ACTIVE)
+  joinedAt              DateTime
+  exitedAt              DateTime?
+  managerId             String?
+  ctc                   String?
+  /// True when added directly rather than through the hiring pipeline.
+  isDirectHire          Boolean          @default(false)
+  onboardingCompletedAt DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  documents      HrDocument[]
+  attendance     Attendance[]
+  reviews        PerformanceReview[]
+  onboardingDocs OnboardingDocument[]
+
+  @@unique([startupId, email])
+  @@index([startupId, status])
+}
+
+model Intern {
+  id                    String           @id @default(uuid())
+  startupId             String
+  startup               Startup          @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  internCode            String           @unique
+  userId                String?
+  user                  User?            @relation("InternUser", fields: [userId], references: [id])
+  applicationId         String?          @unique
+  application           JobApplication?  @relation(fields: [applicationId], references: [id])
+  fullName              String
+  email                 String
+  phone                 String?
+  college               String?
+  department            String?
+  designation           String
+  mentorId              String?
+  stipend               String?
+  startDate             DateTime
+  endDate               DateTime
+  status                EmploymentStatus @default(ACTIVE)
+  isDirectHire          Boolean          @default(false)
+  onboardingCompletedAt DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  /// Monthly stipend as a number, for arithmetic. `stipend` above stays as the
+  /// free text a letter prints ("Rs 15,000/month"); it cannot be computed with —
+  /// live data already contains values like "Remote".
+  stipendAmount Int?
+  /// Weekdays this intern is expected on site, 1=Mon..6=Sat. Days in the
+  /// startup's working week that are not listed here are remote days.
+  officeDays    Int[]  @default([1, 3, 5])
+
+  documents      HrDocument[]
+  onboardingDocs OnboardingDocument[]
+  attendance     Attendance[]
+  payouts        StipendPayout[]
+
+  @@unique([startupId, email])
+  @@index([startupId, status])
+}
+
+enum HrDocType {
+  OFFER_LETTER
+  EXPERIENCE_LETTER
+  LOR
+  CERTIFICATE
+  ID_CARD
+  RELIEVING
+}
+
+/// Every generated HR document. One generator, many types.
+/// `payload` freezes the merge fields at issue time so a reissued document
+/// can always be compared against the original.
+model HrDocument {
+  id            String    @id @default(uuid())
+  startupId     String
+  startup       Startup   @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  docType       HrDocType
+  documentNo    String    @unique
+  employeeId    String?
+  employee      Employee? @relation(fields: [employeeId], references: [id])
+  internId      String?
+  intern        Intern?   @relation(fields: [internId], references: [id])
+  applicationId String?
+  templateKey   String
+  payload       Json
+  pdfUrl        String?
+  issuedAt      DateTime  @default(now())
+  issuedBy      String
+  revokedAt     DateTime?
+  revokeReason  String?
+  supersedesId  String?
+
+  offer OfferLetter?
+
+  @@index([startupId, docType, issuedAt])
+}
+
+enum OfferStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  REVOKED
+}
+
+model OfferLetter {
+  id                    String         @id @default(uuid())
+  startupId             String
+  startup               Startup        @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  applicationId         String         @unique
+  application           JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  hrDocumentId          String?        @unique
+  hrDocument            HrDocument?    @relation(fields: [hrDocumentId], references: [id])
+  offerNo               String         @unique
+  designation           String
+  department            String?
+  employmentType        JobType
+  ctc                   String?
+  stipend               String?
+  joiningDate           DateTime
+  expiresAt             DateTime
+  status                OfferStatus    @default(DRAFT)
+  acceptToken           String?        @unique
+  sentAt                DateTime?
+  acceptedAt            DateTime?
+  declinedAt            DateTime?
+  declineReason         String?
+  revokedAt             DateTime?
+  revokeReason          String?
+  createdBy             String
+  isDirectHire          Boolean        @default(false)
+  onboardingCompletedAt DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([startupId, status])
+}
+
+/// One row per person per day. Either employeeId or internId is set, never
+/// both — the same nullable-pair shape HrDocument and OnboardingDocument use.
+/// Postgres permits many NULLs in a unique index, so both uniques coexist.
+model Attendance {
+  id         String    @id @default(uuid())
+  startupId  String
+  employeeId String?
+  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  internId   String?
+  intern     Intern?   @relation(fields: [internId], references: [id], onDelete: Cascade)
+  date       DateTime  @db.Date
+  /// What was expected of them that day: OFFICE | REMOTE.
+  mode       String    @default("OFFICE")
+  status     String
+  checkIn    DateTime?
+  checkOut   DateTime?
+  /// Derived on check-out. Stored rather than recomputed so a later policy
+  /// change cannot silently re-grade a day that has already been paid.
+  workedMinutes Int    @default(0)
+  /// SELF (they marked it) | HR (marked for them) | AUTO (derived absent).
+  source     String    @default("HR")
+  note       String?
+  createdAt  DateTime  @default(now())
+
+  @@unique([employeeId, date])
+  @@unique([internId, date])
+  @@index([startupId, date])
+}
+
+/// Attendance rules, per startup so each can differ.
+model AttendancePolicy {
+  id                String   @id @default(uuid())
+  startupId         String   @unique
+  startup           Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  /// ISO weekdays that count as working days. 1=Mon .. 7=Sun.
+  workingDays       Int[]    @default([1, 2, 3, 4, 5, 6])
+  officeDaysPerWeek Int      @default(3)
+  officeStart       String   @default("10:00")
+  officeEnd         String   @default("16:00")
+  /// Minutes after officeStart before a check-in counts as late.
+  graceMinutes      Int      @default(15)
+  /// Arriving after this is a half day regardless of hours worked.
+  lateHalfDayAfter  String   @default("11:00")
+  minOfficeMinutes  Int      @default(300)
+  minRemoteMinutes  Int      @default(240)
+  /// Leave days per calendar month that still earn a full day's stipend.
+  paidLeavesPerMonth Int     @default(1)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+/// A month's stipend for one intern. Values are frozen when approved: if
+/// attendance is corrected after payment, the fix belongs in the next month's
+/// adjustment, never as a silent rewrite of a paid period.
+model StipendPayout {
+  id            String   @id @default(uuid())
+  startupId     String
+  startup       Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  internId      String
+  intern        Intern   @relation(fields: [internId], references: [id], onDelete: Cascade)
+  periodYear    Int
+  periodMonth   Int
+  stipendAmount Int
+  workingDays   Int
+  presentDays   Int
+  lateDays      Int
+  halfDays      Int
+  absentDays    Int
+  leaveDays     Int
+  paidLeaveDays Int
+  /// Stored as ×100 so half days need no floating point.
+  payableCentidays Int
+  grossAmount   Int
+  adjustment    Int      @default(0)
+  adjustmentNote String?
+  netAmount     Int
+  status        String   @default("DRAFT")
+  approvedBy    String?
+  approvedAt    DateTime?
+  paidAt        DateTime?
+  paymentRef    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([internId, periodYear, periodMonth])
+  @@index([startupId, periodYear, periodMonth])
+}
+
+model PerformanceReview {
+  id           String   @id @default(uuid())
+  startupId    String
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  periodStart  DateTime
+  periodEnd    DateTime
+  reviewerId   String
+  rating       Int
+  strengths    String?
+  improvements String?
+  goals        String?
+  status       String   @default("DRAFT")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([startupId, employeeId])
+}
+
+/// Per-tenant atomic counters. Never use count()+1 for these — concurrent
+/// requests would allocate duplicate numbers.
+model NumberSequence {
+  id        String  @id @default(uuid())
+  startupId String
+  startup   Startup @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  kind      String
+  period    String
+  current   Int     @default(0)
+
+  @@unique([startupId, kind, period])
+}
+
+// ─────────────────────────────────────────────────────────
+// ONBOARDING DOCUMENT COLLECTION
+// Papers the candidate uploads (Aadhaar, college ID, marksheets), as opposed
+// to HrDocument which is what the company issues to them.
+// ─────────────────────────────────────────────────────────
+
+enum OnboardingDocType {
+  AADHAAR
+  PAN
+  PHOTO
+  COLLEGE_ID
+  MARKSHEET
+  DEGREE_CERTIFICATE
+  RESUME
+  BANK_DETAILS
+  ADDRESS_PROOF
+  EXPERIENCE_LETTER_PREV
+  RELIEVING_LETTER_PREV
+  OTHER
+}
+
+enum OnboardingDocStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+model OnboardingDocument {
+  id        String  @id @default(uuid())
+  startupId String
+  startup   Startup @relation(fields: [startupId], references: [id], onDelete: Cascade)
+
+  employeeId String?
+  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  internId   String?
+  intern     Intern?   @relation(fields: [internId], references: [id], onDelete: Cascade)
+
+  docType  OnboardingDocType
+  label    String?
+  fileUrl  String?
+  fileName String?
+  fileSize Int?
+  mimeType String?
+
+  status       OnboardingDocStatus @default(PENDING)
+  /// Required documents block onboarding completion; optional ones do not.
+  isRequired   Boolean             @default(true)
+  rejectReason String?
+
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  reviewedBy  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startupId, status])
+  @@index([employeeId])
+  @@index([internId])
+}
+
+/// Which documents a startup asks new joiners for. Seeded with sensible
+/// defaults on first use so a startup never starts from an empty checklist.
+model OnboardingRequirement {
+  id         String            @id @default(uuid())
+  startupId  String
+  startup    Startup           @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  docType    OnboardingDocType
+  label      String
+  isRequired Boolean           @default(true)
+  /// EMPLOYEE, INTERN or BOTH — interns need a college ID, employees do not.
+  appliesTo  String            @default("BOTH")
+  sortOrder  Int               @default(0)
+
+  @@unique([startupId, docType])
 }

@@ -1,7 +1,8 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
-import { resend, EmailTemplates } from "../../lib/resend";
+import { resend, EmailTemplates, MAIL_FROM } from "../../lib/resend";
 import { env } from "../../config/env";
+import { canManageStartup, canViewApplicants } from "../../lib/tenantRoles";
 
 export class JobsService {
   async getJobs(query: any) {
@@ -62,7 +63,7 @@ export class JobsService {
     });
     if (!startup) throw new AppError(404, "Startup not found");
 
-    const isMember = startup.members && startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isMember = canManageStartup(startup.members);
     const isLegacyFounder = startup.founders.some(f => f.id === userId);
 
     if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
@@ -86,7 +87,7 @@ export class JobsService {
     });
     if (!job) throw new AppError(404, "Job not found");
 
-    const isMember = job.startup.members && job.startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isMember = canViewApplicants(job.startup.members);
     const isLegacyFounder = job.startup.founders.some(f => f.id === userId);
 
     if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
@@ -110,7 +111,7 @@ export class JobsService {
     });
     if (!job) throw new AppError(404, "Job not found");
 
-    const isMember = job.startup.members && job.startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isMember = canViewApplicants(job.startup.members);
     const isLegacyFounder = job.startup.founders.some(f => f.id === userId);
 
     if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
@@ -164,7 +165,7 @@ export class JobsService {
     // Notify startup founder
     if (job.startup.primaryFounder?.email) {
       await resend.emails.send({
-        from: env.RESEND_FROM_EMAIL,
+        from: MAIL_FROM,
         to: job.startup.primaryFounder.email,
         subject: "New Job Application - DevUp Ecosystem",
         html: EmailTemplates.jobApplicationReceived(data.applicantName || profile?.name || "A candidate", job.title)
@@ -189,7 +190,7 @@ export class JobsService {
     
     if (!job) throw new AppError(404, "Job not found");
 
-    const isMember = job.startup.members && job.startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isMember = canViewApplicants(job.startup.members);
     const isLegacyFounder = job.startup.founders.some(f => f.id === userId);
 
     if (role !== "ADMIN" && !isMember && !isLegacyFounder) {

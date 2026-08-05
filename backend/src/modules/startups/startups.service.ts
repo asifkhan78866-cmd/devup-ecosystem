@@ -4,6 +4,7 @@ import { uploadFile } from "../../lib/storage";
 import { env } from "../../config/env";
 import { Prisma } from "@prisma/client";
 import { createStartupOwnership } from "./ownership.service";
+import { canManageStartup, isAnyMember } from "../../lib/tenantRoles";
 
 export class StartupsService {
   async getStartups(query: any) {
@@ -100,16 +101,21 @@ export class StartupsService {
 
     if (!startup) throw new AppError(404, "Startup not found");
 
-    const isMember = startup.members && startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isMember = canManageStartup(startup.members);
     const isLegacyFounder = startup.founders.some(f => f.id === requesterId);
 
     if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
       throw new AppError(403, "Not authorized to update this startup");
     }
 
+    // Only admins may change how a startup is presented (venture vs partner).
+    // A founder must not be able to label their own company an official partner.
+    const { type, ...rest } = data ?? {};
+    const updateData = role === "ADMIN" && type !== undefined ? { ...rest, type } : rest;
+
     return await prisma.startup.update({
       where: { id },
-      data
+      data: updateData
     });
   }
 
@@ -127,7 +133,7 @@ export class StartupsService {
     });
     if (!startup) throw new AppError(404, "Startup not found");
     
-    const isMember = startup.members && startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isMember = canManageStartup(startup.members);
     const isLegacyFounder = startup.founders.some(f => f.id === requesterId);
 
     if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
@@ -158,7 +164,7 @@ export class StartupsService {
     });
     if (!startup) throw new AppError(404, "Startup not found");
     
-    const isMember = startup.members && startup.members.some(m => ['OWNER', 'ADMIN', 'MEMBER'].includes(m.role));
+    const isMember = isAnyMember(startup.members);
     const isLegacyFounder = startup.founders.some(f => f.id === requesterId);
 
     if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
@@ -179,7 +185,7 @@ export class StartupsService {
     
     if (!startup) throw new AppError(404, "Startup not found");
 
-    const isMember = startup.members && startup.members.some(m => ['OWNER', 'ADMIN'].includes(m.role));
+    const isMember = canManageStartup(startup.members);
     const isLegacyFounder = startup.founders.some(f => f.id === userId);
 
     if (role !== "ADMIN" && !isMember && !isLegacyFounder) {

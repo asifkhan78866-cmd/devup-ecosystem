@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { profileApi, StudentProfile } from "@/lib/api/profile";
+import { candidateApi } from "@/lib/api/workspace";
+import ApplicationStatus from "@/components/apply/ApplicationStatus";
+import { parseSkills, mergeSkills } from "@/lib/skills";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -20,6 +24,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import StartupLogo from "@/components/StartupLogo";
 
 /* ─── helpers ─── */
 function timeAgo(dateStr: string): string {
@@ -139,13 +144,44 @@ export default function JobDetailPage() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  /* pre-fill form with user data */
-  useEffect(() => {
-    if (user) {
-      setApplicantName(user.name || (user as any).profile?.name || "");
-      setApplicantEmail(user.email || "");
+  /* The profile is the source of truth for an application — the form only
+     collects what might differ for this specific role. */
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  /* If they already applied, the form is replaced by their progress. */
+  const [myApplication, setMyApplication] = useState<any>(null);
+  const [appLoading, setAppLoading] = useState(true);
+
+  const loadMyApplication = useCallback(async () => {
+    if (!session?.access_token || !id) { setAppLoading(false); return; }
+    try {
+      setMyApplication(await candidateApi.myApplicationForJob(id));
+    } catch {
+      setMyApplication(null);
+    } finally {
+      setAppLoading(false);
     }
-  }, [user]);
+  }, [session?.access_token, id]);
+
+  useEffect(() => { loadMyApplication(); }, [loadMyApplication]);
+
+  useEffect(() => {
+    if (!session?.access_token) { setProfileLoading(false); return; }
+    profileApi
+      .get()
+      .then((p) => {
+        setProfile(p);
+        setApplicantName(p.name || user?.name || "");
+        setApplicantEmail(p.email || user?.email || "");
+        setApplicantPhone(p.phone || "");
+      })
+      .catch(() => {
+        setApplicantName(user?.name || "");
+        setApplicantEmail(user?.email || "");
+      })
+      .finally(() => setProfileLoading(false));
+  }, [session?.access_token, user]);
 
   /* fetch job */
   useEffect(() => {
@@ -162,6 +198,79 @@ export default function JobDetailPage() {
       .catch(() => setError("Failed to load job"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  /* Apply eligibility — mirrors the server rule so the UI never offers a
+     submission the API will reject. A file picked here counts as a resume. */
+  const minToApply = profile?.minToApply ?? 50;
+  const eligibility = profile?.canApply;
+  const resumeSatisfied = Boolean(profile?.resumeUrl || resumeFile);
+  const canSubmit = Boolean(
+    eligibility?.eligible ||
+      (resumeSatisfied &&
+        (profile?.completeness ?? 0) >= minToApply &&
+        (eligibility?.missing ?? []).filter((m) => m !== "Resume").length === 0)
+  );
+  // Hard requirements still outstanding. A resume attached to this form counts,
+  // so it is dropped from the list once a file is picked.
+  const missingRequired = (eligibility?.missing ?? []).filter(
+    (m) => !(m === "Resume" && resumeSatisfied)
+  );
+  const blockingReason =
+    eligibility?.reason ??
+    (resumeSatisfied ? "" : "Upload a resume to your profile or attach one above.");
+
+  /* Inline completion of the missing required fields, so a student who is one
+     field short does not have to abandon this form to go and fix it. */
+  const [quickSkill, setQuickSkill] = useState("");
+  const [quickSkills, setQuickSkills] = useState<string[]>([]);
+  const [quickCollege, setQuickCollege] = useState("");
+  const [quickSaving, setQuickSaving] = useState(false);
+
+  // Same parsing as the profile page: a pasted list is split intelligently so
+  // multi-word skills such as "REST API" are not torn apart.
+  const addQuickSkill = () => {
+    const incoming = parseSkills(quickSkill);
+    if (incoming.length === 0) return setQuickSkill("");
+    setQuickSkills(mergeSkills(quickSkills, incoming));
+    setQuickSkill("");
+  };
+
+  // Text still in the skills box counts as filled — otherwise the Save button
+  // never appears for someone who typed their skills but did not press Add.
+  const pendingQuickSkills = mergeSkills(quickSkills, parseSkills(quickSkill));
+  const canQuickSave =
+    (missingRequired.includes("Skills") && pendingQuickSkills.length > 0) ||
+    (missingRequired.includes("College") && quickCollege.trim().length > 0) ||
+    (missingRequired.includes("Phone number") && applicantPhone.trim().length > 0);
+
+  const saveQuickFields = async () => {
+    setQuickSaving(true);
+    setSubmitError("");
+    try {
+      const patch: Record<string, unknown> = {
+        name: profile?.name || applicantName,
+        bio: profile?.bio, city: profile?.city, degree: profile?.degree,
+        branch: profile?.branch, graduationYear: profile?.graduationYear,
+        cgpa: profile?.cgpa, experienceYears: profile?.experienceYears,
+        githubUrl: profile?.githubUrl, linkedinUrl: profile?.linkedinUrl,
+        twitterUrl: profile?.twitterUrl, portfolioUrl: profile?.portfolioUrl,
+        skills: pendingQuickSkills.length
+          ? mergeSkills(profile?.skills ?? [], pendingQuickSkills)
+          : profile?.skills,
+        college: quickCollege.trim() || profile?.college,
+        phone: applicantPhone.trim() || profile?.phone,
+      };
+      const updated = await profileApi.save(patch);
+      setProfile(updated);
+      setQuickSkills([]);
+      setQuickSkill("");
+      setQuickCollege("");
+    } catch (e: any) {
+      setSubmitError(e.message ?? "Could not save. Try again.");
+    } finally {
+      setQuickSaving(false);
+    }
+  };
 
   /* share helpers */
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -188,6 +297,22 @@ export default function JobDetailPage() {
       formData.append("applicantName", applicantName);
       formData.append("applicantEmail", applicantEmail);
       formData.append("applicantPhone", applicantPhone);
+
+      // Carry the rest of the profile through so the startup receives GitHub,
+      // LinkedIn, portfolio, skills and academics — not just name and resume.
+      if (profile) {
+        if (profile.githubUrl) formData.append("githubUrl", profile.githubUrl);
+        if (profile.linkedinUrl) formData.append("linkedinUrl", profile.linkedinUrl);
+        if (profile.portfolioUrl) formData.append("portfolioUrl", profile.portfolioUrl);
+        if (profile.college) formData.append("college", profile.college);
+        if (profile.cgpa != null) formData.append("cgpa", String(profile.cgpa));
+        if (profile.experienceYears != null)
+          formData.append("experienceYears", String(profile.experienceYears));
+        if (profile.skills?.length) formData.append("skills", JSON.stringify(profile.skills));
+      }
+
+      // Only send a file when one was picked; otherwise the server uses the
+      // resume already saved on the profile.
       if (resumeFile) formData.append("resume", resumeFile);
 
       const res = await fetch(
@@ -202,6 +327,7 @@ export default function JobDetailPage() {
       const data = await res.json();
       if (data.success) {
         setSubmitSuccess(true);
+        loadMyApplication();
         setCoverLetter("");
         setApplicantPhone("");
         setResumeFile(null);
@@ -316,7 +442,7 @@ export default function JobDetailPage() {
               }}
             >
               {job.startup?.logoUrl ? (
-                <img src={job.startup.logoUrl} alt={companyName} className="w-10 h-10 rounded-lg object-cover" />
+                <StartupLogo src={job.startup.logoUrl} name={companyName} className="w-10 h-10" />
               ) : (
                 <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "26px", fontWeight: 700, color }}>
                   {companyInitial}
@@ -580,7 +706,7 @@ export default function JobDetailPage() {
                     style={{ background: `${color}08`, border: `1px solid ${color}20` }}
                   >
                     {job.startup.logoUrl ? (
-                      <img src={job.startup.logoUrl} alt={companyName} className="w-8 h-8 rounded-lg object-cover" />
+                      <StartupLogo src={job.startup.logoUrl} name={companyName} className="w-8 h-8" />
                     ) : (
                       <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "20px", fontWeight: 700, color }}>{companyInitial}</span>
                     )}
@@ -633,13 +759,18 @@ export default function JobDetailPage() {
                   marginBottom: "6px",
                 }}
               >
-                Apply for this role
+                {myApplication ? "Your application" : "Apply for this role"}
               </h2>
               <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", marginBottom: "24px" }}>
                 at {companyName}
               </p>
 
-              {submitSuccess ? (
+              {appLoading ? (
+                <p className="py-6 text-[13px] text-[#6b6b6b]">Checking your application…</p>
+              ) : myApplication ? (
+                /* Already applied — show progress instead of inviting a duplicate. */
+                <ApplicationStatus application={myApplication} onChanged={loadMyApplication} />
+              ) : submitSuccess ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -705,14 +836,45 @@ export default function JobDetailPage() {
 
                   <div>
                     <label htmlFor="jd-resume" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", display: "block", marginBottom: "6px" }}>Resume</label>
+                    {profile?.resumeUrl && !resumeFile ? (
+                      <div className="flex items-center justify-between gap-3 rounded-xl border p-3"
+                           style={{ background: "rgba(200,241,53,0.05)", borderColor: "rgba(200,241,53,0.2)" }}>
+                        <span className="truncate text-[12px] text-[#c8f135]">
+                          Using {profile.resumeFileName ?? "your saved resume"}
+                        </span>
+                        <label htmlFor="jd-resume" className="shrink-0 cursor-pointer text-[11px] text-[#8b8b8b] hover:text-white">
+                          Use another
+                        </label>
+                      </div>
+                    ) : null}
                     <input
                       id="jd-resume"
                       type="file"
                       accept=".pdf,.doc,.docx"
                       onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                      className="w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#c8f135]/10 file:text-[#c8f135] hover:file:bg-[#c8f135]/20"
+                      className={`w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#c8f135]/10 file:text-[#c8f135] hover:file:bg-[#c8f135]/20 ${profile?.resumeUrl && !resumeFile ? "hidden" : ""}`}
                     />
                   </div>
+
+                  {/* What the startup will receive from the profile, so the
+                      student can see it is attached without retyping it. */}
+                  {profile && (profile.githubUrl || profile.linkedinUrl || profile.portfolioUrl || profile.skills?.length) ? (
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                      <p className="mb-2 text-[11px] text-[#6b6b6b]">Also sent from your profile</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {profile.githubUrl && <Tag>GitHub</Tag>}
+                        {profile.linkedinUrl && <Tag>LinkedIn</Tag>}
+                        {profile.portfolioUrl && <Tag>Portfolio</Tag>}
+                        {profile.college && <Tag>{profile.college}</Tag>}
+                        {profile.cgpa != null && <Tag>CGPA {String(profile.cgpa)}</Tag>}
+                        {profile.skills?.slice(0, 4).map((sk) => <Tag key={sk}>{sk}</Tag>)}
+                        {(profile.skills?.length ?? 0) > 4 && <Tag>+{(profile.skills!.length - 4)} more</Tag>}
+                      </div>
+                      <Link href="/profile" className="mt-2 inline-block text-[11px] text-[#c8f135] hover:underline">
+                        Edit profile
+                      </Link>
+                    </div>
+                  ) : null}
 
                   <div>
                     <label htmlFor="jd-cover" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "13px", color: "#6b6b6b", display: "block", marginBottom: "6px" }}>Cover Note (Optional)</label>
@@ -726,10 +888,138 @@ export default function JobDetailPage() {
                     />
                   </div>
 
+                  {/* Two different reasons to block, and they need different
+                      messages. A missing required field is not a percentage
+                      problem — showing a 79%-against-50% bar there reads as
+                      "you have passed" while the button stays disabled. */}
+                  {session?.access_token && !profileLoading && !canSubmit && (
+                    <div className="rounded-xl border p-3"
+                         style={{ background: "rgba(250,204,21,0.07)", borderColor: "rgba(250,204,21,0.25)" }}>
+                      {missingRequired.length > 0 ? (
+                        <>
+                          <p className="mb-1.5 text-[12px] font-medium text-[#facc15]">
+                            {missingRequired.length === 1
+                              ? `${missingRequired[0]} is required to apply`
+                              : `${missingRequired.length} things are required to apply`}
+                          </p>
+                          <p className="mb-2.5 text-[11px] leading-relaxed text-[#8b8b8b]">
+                            Add them here — they save to your profile, so you will
+                            not be asked again.
+                          </p>
+
+                          {/* Filled inline rather than sending the student off to
+                              /profile and losing the form they already started. */}
+                          <div className="space-y-2">
+                            {missingRequired.includes("Skills") && (
+                              <div>
+                                <label className="mb-1 block text-[10px] text-[#8b8b8b]">Skills</label>
+                                <div className="flex gap-1.5">
+                                  <input
+                                    value={quickSkill}
+                                    onChange={(e) => setQuickSkill(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") { e.preventDefault(); addQuickSkill(); }
+                                    }}
+                                    onBlur={addQuickSkill}
+                                    onPaste={(e) => {
+                                      const incoming = parseSkills(e.clipboardData.getData("text"));
+                                      if (incoming.length > 1) {
+                                        e.preventDefault();
+                                        setQuickSkills(mergeSkills(quickSkills, incoming));
+                                        setQuickSkill("");
+                                      }
+                                    }}
+                                    placeholder="Paste all your skills at once"
+                                    className="flex-1 rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-2.5 py-1.5 text-[12px] text-[#e4e4e4] outline-none focus:border-[#c8f135]/50"
+                                  />
+                                  <button type="button" onClick={addQuickSkill}
+                                          className="rounded-lg border border-white/[0.08] px-2.5 text-[12px] text-[#c8f135]">
+                                    Add
+                                  </button>
+                                </div>
+                                {quickSkills.length > 0 && (
+                                  <div className="mt-1.5 flex flex-wrap gap-1">
+                                    {quickSkills.map((sk) => (
+                                      <span key={sk}
+                                            className="rounded bg-white/[0.06] px-2 py-0.5 text-[10px] text-[#a1a1a1]">
+                                        {sk}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {missingRequired.includes("College") && (
+                              <div>
+                                <label className="mb-1 block text-[10px] text-[#8b8b8b]">College</label>
+                                <input
+                                  value={quickCollege}
+                                  onChange={(e) => setQuickCollege(e.target.value)}
+                                  placeholder="Your college"
+                                  className="w-full rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-2.5 py-1.5 text-[12px] text-[#e4e4e4] outline-none focus:border-[#c8f135]/50"
+                                />
+                              </div>
+                            )}
+
+                            {missingRequired.includes("Phone number") && (
+                              <div>
+                                <label className="mb-1 block text-[10px] text-[#8b8b8b]">Phone</label>
+                                <input
+                                  value={applicantPhone}
+                                  onChange={(e) => setApplicantPhone(e.target.value)}
+                                  placeholder="Your phone number"
+                                  className="w-full rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-2.5 py-1.5 text-[12px] text-[#e4e4e4] outline-none focus:border-[#c8f135]/50"
+                                />
+                              </div>
+                            )}
+
+                            {missingRequired.includes("Resume") && (
+                              <p className="text-[11px] text-[#8b8b8b]">
+                                Attach a resume above, or upload one to your profile.
+                              </p>
+                            )}
+
+                            {canQuickSave && (
+                              <button
+                                type="button"
+                                onClick={saveQuickFields}
+                                disabled={quickSaving}
+                                className="w-full rounded-lg py-2 text-[12px] font-medium disabled:opacity-50"
+                                style={{ background: "rgba(200,241,53,0.15)", color: "#c8f135" }}
+                              >
+                                {quickSaving ? "Saving..." : "Save and continue"}
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <span className="text-[12px] text-[#facc15]">
+                              Profile {profile?.completeness ?? 0}% complete
+                            </span>
+                            <span className="text-[11px] text-[#8b8b8b]">{minToApply}% needed</span>
+                          </div>
+                          <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-white/5">
+                            <div className="h-full rounded-full transition-all"
+                                 style={{ width: `${profile?.completeness ?? 0}%`, background: "#facc15" }} />
+                          </div>
+                          <p className="text-[11px] leading-relaxed text-[#8b8b8b]">
+                            {blockingReason}
+                          </p>
+                        </>
+                      )}
+                      <Link href="/profile" className="mt-2 inline-block text-[12px] font-medium text-[#c8f135] hover:underline">
+                        {missingRequired.length > 0 ? "Add to your profile →" : "Complete your profile →"}
+                      </Link>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
-                    disabled={submitting || !session?.access_token}
-                    className="w-full py-3.5 bg-[#c8f135] text-black font-semibold rounded-xl transition-all hover:scale-[1.01] hover:shadow-[0_0_30px_rgba(200,241,53,0.15)] disabled:opacity-50 flex items-center justify-center gap-2"
+                    disabled={submitting || !session?.access_token || profileLoading || !canSubmit}
+                    className="w-full py-3.5 bg-[#c8f135] text-black font-semibold rounded-xl transition-all hover:scale-[1.01] hover:shadow-[0_0_30px_rgba(200,241,53,0.15)] disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
                     style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
                   >
                     {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Submit Application"}
@@ -746,5 +1036,13 @@ export default function JobDetailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function Tag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] text-[#a1a1a1]">
+      {children}
+    </span>
   );
 }

@@ -30,7 +30,7 @@ export async function createStartupOwnership(
     where: { startupId_email: { startupId: args.startupId, email } },
     update: {
       userId: args.userId,
-      role: "OWNER",
+      role: "FOUNDER",
       status: "ACTIVE",
       joinedAt: new Date(),
     },
@@ -38,7 +38,7 @@ export async function createStartupOwnership(
       startupId: args.startupId,
       userId: args.userId,
       email,
-      role: "OWNER",
+      role: "FOUNDER",
       status: "ACTIVE",
       invitedBy: args.invitedBy ?? args.userId,
       inviteToken: randomBytes(24).toString("hex"),

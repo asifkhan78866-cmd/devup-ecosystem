@@ -3,6 +3,7 @@ import { AppError } from "../../middleware/errorHandler";
 import { uploadFile } from "../../lib/storage";
 import { env } from "../../config/env";
 import { sendDocumentReadyEmail, sendDocumentSignedEmail } from "../../lib/resend";
+import { MANAGE_ROLES } from '../../lib/tenantRoles';
 
 export async function sendDocumentToStartup(params: {
   startupId: string;
@@ -25,7 +26,7 @@ export async function sendDocumentToStartup(params: {
   const founders = await prisma.startupMember.findMany({
     where: {
       startupId: params.startupId, status: 'ACTIVE',
-      role: 'OWNER',
+      role: { in: [...MANAGE_ROLES] } as never,
     },
     include: { user: true },
   });
@@ -78,7 +79,7 @@ export async function signDocument(params: {
       startupId: doc.startupId!,
       userId: params.userId,
       status: 'ACTIVE',
-      role: 'OWNER',
+      role: { in: [...MANAGE_ROLES] } as never,
     },
     include: { user: { include: { profile: true } } },
   });

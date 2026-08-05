@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { uploadFile } from "../../lib/storage";
 import { env } from "../../config/env";
-import { resend, EmailTemplates } from "../../lib/resend";
+import { resend, EmailTemplates, MAIL_FROM } from "../../lib/resend";
 import { ApplicationStatus, Role } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { createStartupOwnership } from "../startups/ownership.service";
@@ -21,7 +21,7 @@ export class ApplicationsService {
     // Attempt to send email
     if (user?.email) {
       await resend.emails.send({
-        from: env.RESEND_FROM_EMAIL,
+        from: MAIL_FROM,
         to: user.email,
         subject: "Application Received - DevUp Ecosystem",
         html: EmailTemplates.applicationReceived(user.profile?.name || "Founder", application.startupName)
@@ -139,7 +139,7 @@ export class ApplicationsService {
         });
 
         await resend.emails.send({
-          from: env.RESEND_FROM_EMAIL,
+          from: MAIL_FROM,
           to: user.email,
           subject: "Application Approved! - DevUp Ecosystem",
           html: EmailTemplates.applicationApproved(user.profile?.name || "Founder", application.startupName, `${env.FRONTEND_URL}/dashboard`)
@@ -147,7 +147,7 @@ export class ApplicationsService {
         
       } else if (data.status === "REJECTED") {
         await resend.emails.send({
-          from: env.RESEND_FROM_EMAIL,
+          from: MAIL_FROM,
           to: user.email,
           subject: "Application Update - DevUp Ecosystem",
           html: EmailTemplates.applicationRejected(user.profile?.name || "Founder", application.startupName, data.reviewNotes || "After careful consideration, we decided not to proceed.")

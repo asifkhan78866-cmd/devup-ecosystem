@@ -22,6 +22,4 @@ if (redis) {
   worker.on("failed", (job, err) => {
     console.error(`Email job ${job?.id} failed with error:`, err);
   });
-} else {
-  console.log("Email queue disabled because Redis is unavailable");
 }

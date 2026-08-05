@@ -5,12 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExternalLink, ShieldCheck } from "lucide-react";
+import { isPartner } from "@/components/StartupTypeBadge";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import ProtectedContent from "@/components/auth/ProtectedContent";
 import AuthGate from "@/components/auth/AuthGate";
 import AiAnalysisSection from "@/components/startup/AiAnalysisSection";
 import StartupGallery from "@/components/startup/StartupGallery";
+import StartupLogo from "@/components/StartupLogo";
 
 // Dynamic import for 3D element
 const StartupDNA = dynamic(
@@ -59,6 +61,7 @@ export default function StartupProfilePage() {
             tagline: s.tagline,
             color: `hsl(${(s.name.codePointAt(0) ?? 0) * 10}, 70%, 50%)`,
             verified: s.isVerified,
+            type: s.type || "DEVUP_VENTURE",
             domain: DOMAIN_MAP[s.domain] || s.domain,
             location: s.location || s.city || "Global",
             founded: s.foundedYear?.toString() || "Unknown",
@@ -196,18 +199,12 @@ export default function StartupProfilePage() {
           </div>
 
           {/* Logo Card */}
-          <div 
-            className="absolute -bottom-8 left-10 w-[72px] h-[72px] bg-[#111111] rounded-[16px] flex items-center justify-center overflow-hidden"
-            style={{ border: "3px solid #0a0a0a", boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}
-          >
-            {startup.logoUrl ? (
-              <img src={startup.logoUrl} alt={startup.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <span style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "28px", fontWeight: 700, color: "#fff" }}>
-                {startup.name[0]}
-              </span>
-            )}
-          </div>
+          <StartupLogo
+            src={startup.logoUrl}
+            name={startup.name}
+            rounded="rounded-[16px]"
+            className="absolute -bottom-8 left-10 w-[72px] h-[72px] text-[28px]"
+          />
 
           {/* Verified Badge */}
           {startup.verified && (
@@ -243,9 +240,22 @@ export default function StartupProfilePage() {
                 {startup.name}
               </h1>
               <div className="flex items-center gap-2 mb-4">
-                <span className="px-2 py-1 text-[11px] uppercase tracking-wider font-semibold rounded bg-white/5 border border-white/10 text-[#c8f135] font-inter">
-                  Part of DevUp Ecosystem
-                </span>
+                {isPartner(startup) ? (
+                  <span
+                    className="px-2 py-1 text-[11px] uppercase tracking-wider font-semibold rounded font-inter"
+                    style={{
+                      background: "rgba(120,170,255,0.10)",
+                      border: "1px solid rgba(120,170,255,0.28)",
+                      color: "#8fb6ff",
+                    }}
+                  >
+                    Official Ecosystem Partner
+                  </span>
+                ) : (
+                  <span className="px-2 py-1 text-[11px] uppercase tracking-wider font-semibold rounded bg-white/5 border border-white/10 text-[#c8f135] font-inter">
+                    Part of DevUp Ecosystem
+                  </span>
+                )}
               </div>
               <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "16px", color: "#a1a1a1", lineHeight: 1.5 }}>
                 {startup.tagline}

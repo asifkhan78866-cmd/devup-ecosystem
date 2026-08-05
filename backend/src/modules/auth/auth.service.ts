@@ -4,6 +4,7 @@ import { AppError } from "../../middleware/errorHandler";
 import { Role, AuthProvider } from "@prisma/client";
 import { env } from "../../config/env";
 import jwt from "jsonwebtoken";
+import { claimByEmail } from "../shared/claim.service";
 
 export class AuthService {
   async register(data: any) {
@@ -55,14 +56,23 @@ export class AuthService {
       }
     });
 
+    // Attach anything HR created for this email before they signed up.
+    await claimByEmail(user.id, email);
+
     return user;
   }
 
   async login(data: any) {
     const { email, password } = data;
 
-    // DEV BYPASS: Allow dummy admin login locally without real Supabase instance
-    if (process.env.NODE_ENV === "development" && email === "admin@devup.in" && password === "admin123") {
+    /**
+     * Local-only bypass so the admin panel opens without a Supabase round trip.
+     *
+     * Gated on an explicit opt-in rather than NODE_ENV alone: NODE_ENV defaults
+     * to "development", so a deploy that simply forgets to set it would have
+     * shipped a published username and password straight to production.
+     */
+    if (env.ALLOW_DEV_LOGIN && env.NODE_ENV !== "production" && email === "admin@devup.in" && password === "admin123") {
       const user = await prisma.user.findUnique({ where: { email } });
       if (user) {
         const token = jwt.sign(
@@ -181,6 +191,9 @@ export class AuthService {
       },
       include: { profile: true },
     });
+
+    // They may have been onboarded by email before this account existed.
+    await claimByEmail(newUser.id, email);
 
     return newUser;
   }

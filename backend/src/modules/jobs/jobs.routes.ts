@@ -22,7 +22,11 @@ const upload = multer({
   limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
 });
 
-router.post("/:id/apply", requireAuth, requireRole(["STUDENT", "FOUNDER"]), upload.single("resume"), validate(applyJobSchema), controller.applyForJob);
+// POST /:id/apply now lives in modules/recruiting/candidate.routes.ts, which
+// issues an application number, writes pipeline history, enforces the profile
+// completeness gate and sends the co-branded emails. This router is mounted
+// first, so leaving a duplicate here would silently shadow all of that.
+
 router.get("/:id/applications", requireAuth, requireRole(["ADMIN", "FOUNDER"]), controller.getJobApplications);
 
 export default router;

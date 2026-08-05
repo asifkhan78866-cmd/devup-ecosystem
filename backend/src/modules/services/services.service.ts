@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma";
-import { resend } from "../../lib/resend";
+import { resend, MAIL_FROM } from "../../lib/resend";
 import { env } from "../../config/env";
 import { ServiceRequestStatus } from "@prisma/client";
 
@@ -18,7 +18,7 @@ export class ServicesService {
 
     // Send confirmation to user
     await resend.emails.send({
-      from: env.RESEND_FROM_EMAIL,
+      from: MAIL_FROM,
       to: data.email,
       subject: `DevUp: We received your request for ${data.serviceName}`,
       html: `
@@ -32,7 +32,7 @@ export class ServicesService {
 
     // Send notification to team
     await resend.emails.send({
-      from: env.RESEND_FROM_EMAIL,
+      from: MAIL_FROM,
       to: env.RESEND_TEAM_EMAIL,
       subject: `[NEW SERVICE REQUEST] ${data.serviceName} from ${data.company}`,
       html: `

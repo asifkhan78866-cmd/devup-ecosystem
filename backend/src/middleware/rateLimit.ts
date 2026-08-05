@@ -3,6 +3,10 @@ import RedisStore from "rate-limit-redis";
 import { redis } from "../config/redis";
 import { env } from "../config/env";
 
+// Without Redis these fall back to express-rate-limit's in-memory store, which
+// counts per process — limits are effectively multiplied across instances.
+// Fine for single-instance dev; production should run with REDIS_ENABLED=true.
+
 export const globalLimiter = rateLimit({
   windowMs: env.RATE_LIMIT_WINDOW_MS,
   max: env.RATE_LIMIT_MAX_REQUESTS,

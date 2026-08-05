@@ -6,7 +6,21 @@ import { sendTeamInviteEmail } from '../../lib/resend';
 import { supabaseAdmin } from '../../config/supabase';
 import { createStartupOwnership } from './ownership.service';
 
-const VALID_ROLES = ['OWNER', 'ADMIN', 'MEMBER'] as const;
+/**
+ * Every tenant role is storable, so team structure can be recorded now and the
+ * permissions split out later without a migration. The workspace currently
+ * gives anyone at ADMIN or above the full management surface.
+ */
+const VALID_ROLES = [
+  'FOUNDER', 'OWNER', 'ADMIN', 'HR', 'RECRUITER', 'MANAGER', 'EMPLOYEE', 'INTERN', 'MEMBER',
+] as const;
+
+/**
+ * FOUNDER and OWNER are the same authority. Both exist because existing rows
+ * were migrated from OWNER to FOUNDER — checking only one would lock the other
+ * out of managing their own team.
+ */
+const OWNER_ROLES = ['OWNER', 'FOUNDER'] as const;
 
 export async function inviteMember(params: {
   startupId: string;
@@ -24,7 +38,7 @@ export async function inviteMember(params: {
       startupId: params.startupId,
       userId: params.invitedBy,
       status: 'ACTIVE',
-      role: 'OWNER',
+      role: { in: OWNER_ROLES as unknown as string[] } as never,
     },
   });
 
@@ -121,9 +135,13 @@ export async function removeMember(params: {
   if (!member) throw new AppError(404, 'Member not found');
 
   // Never leave a startup ownerless.
-  if (member.role === 'OWNER') {
+  if ((OWNER_ROLES as readonly string[]).includes(member.role)) {
     const activeOwners = await prisma.startupMember.count({
-      where: { startupId: params.startupId, role: 'OWNER', status: 'ACTIVE' },
+      where: {
+        startupId: params.startupId,
+        role: { in: OWNER_ROLES as unknown as string[] } as never,
+        status: 'ACTIVE',
+      },
     });
     if (activeOwners <= 1) {
       throw new AppError(400, 'Cannot remove the last owner');
@@ -139,7 +157,7 @@ async function assertIsOwner(startupId: string, userId: string) {
       startupId,
       userId,
       status: 'ACTIVE',
-      role: 'OWNER',
+      role: { in: OWNER_ROLES as unknown as string[] } as never,
     },
   });
 
@@ -176,7 +194,7 @@ export async function adminInviteFounder(params: {
   const member = await prisma.startupMember.upsert({
     where: { startupId_email: { startupId: params.startupId, email: params.email } },
     update: {
-      role: 'OWNER',
+      role: 'FOUNDER',
       status: 'INVITED',
       invitedBy: params.invitedBy,
       inviteToken,
@@ -185,7 +203,7 @@ export async function adminInviteFounder(params: {
     create: {
       startupId: params.startupId,
       email: params.email,
-      role: 'OWNER',
+      role: 'FOUNDER',
       status: 'INVITED',
       invitedBy: params.invitedBy,
       inviteToken,
