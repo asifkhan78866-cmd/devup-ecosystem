@@ -135,5 +135,13 @@ export interface AdminStats {
   pendingServiceRequests?: number
   totalJobs: number
   activeHackathons: number
-  totalFunding: string
+  trends: {
+    startupsTrend: { value: string; up: boolean }
+    applicationsTrend: { value: string; up: boolean }
+    usersTrend: { value: string; up: boolean }
+  }
+  applicationsByDay: Array<{ date: string; submitted: number; approved: number }>
+  signupsByWeek: Array<{ week: string; students: number; founders: number }>
+  recentActivity: Array<{ text: string; time: string; color: string }>
 }
+

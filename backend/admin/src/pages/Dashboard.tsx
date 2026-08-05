@@ -23,21 +23,39 @@ export default function Dashboard() {
   const navigate = useNavigate()
 
   const statCards = [
-    { label: 'Active Startups', value: stats?.totalStartups ?? '—', icon: Rocket, trend: '12% this week', trendUp: true },
-    { label: 'Pending Applications', value: stats?.totalApplications ?? '—', icon: FileText, trend: '3 new today', trendUp: true },
-    { label: 'Service Requests', value: stats?.pendingServiceRequests ?? '—', icon: Building2, trend: 'Pending requests', trendUp: true },
-    { label: 'Total Users', value: stats?.totalUsers ?? '—', icon: Users, trend: '8% this month', trendUp: true },
+    {
+      label: 'Active Startups',
+      value: stats?.totalStartups ?? '—',
+      icon: Rocket,
+      trend: stats?.trends?.startupsTrend?.value ?? '',
+      trendUp: stats?.trends?.startupsTrend?.up ?? true,
+    },
+    {
+      label: 'Pending Applications',
+      value: stats?.totalApplications ?? '—',
+      icon: FileText,
+      trend: stats?.trends?.applicationsTrend?.value ?? '',
+      trendUp: stats?.trends?.applicationsTrend?.up ?? true,
+    },
+    {
+      label: 'Service Requests',
+      value: stats?.pendingServiceRequests ?? '—',
+      icon: Building2,
+      trend: 'Pending requests',
+      trendUp: true,
+    },
+    {
+      label: 'Total Users',
+      value: stats?.totalUsers ?? '—',
+      icon: Users,
+      trend: stats?.trends?.usersTrend?.value ?? '',
+      trendUp: stats?.trends?.usersTrend?.up ?? true,
+    },
     { label: 'Active Jobs', value: stats?.totalJobs ?? '—', icon: Briefcase },
     { label: 'Hackathons', value: stats?.activeHackathons ?? '—', icon: Trophy },
   ]
 
-  const activityItems = [
-    { text: 'New application from NexusAI', time: '2 min ago', color: 'bg-indigo-500' },
-    { text: 'Asif signed NDA document', time: '15 min ago', color: 'bg-emerald-500' },
-    { text: '3 new users registered', time: '1 hr ago', color: 'bg-blue-500' },
-    { text: 'CloudForge job posting went live', time: '2 hrs ago', color: 'bg-purple-500' },
-    { text: 'Hackathon registration opened', time: '3 hrs ago', color: 'bg-orange-500' },
-  ]
+  const activityItems = stats?.recentActivity ?? []
 
   return (
     <div className="flex flex-col">
@@ -54,8 +72,8 @@ export default function Dashboard() {
           {/* Charts */}
           <div className="lg:col-span-2 space-y-6">
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <ApplicationsChart />
-              <UsersChart />
+              <ApplicationsChart data={stats?.applicationsByDay} />
+              <UsersChart data={stats?.signupsByWeek} />
             </div>
 
             {/* Quick Actions */}
@@ -79,15 +97,19 @@ export default function Dashboard() {
           <div className="bg-white/[0.03] backdrop-blur-sm border border-white/5 rounded-2xl p-6">
             <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Recent Activity</h3>
             <div className="space-y-4">
-              {activityItems.map((item, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${item.color}`} />
-                  <div>
-                    <p className="text-sm text-white">{item.text}</p>
-                    <p className="text-xs text-gray-600">{item.time}</p>
+              {activityItems.length === 0 ? (
+                <p className="text-gray-600 text-sm">No recent activity</p>
+              ) : (
+                activityItems.map((item, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${item.color}`} />
+                    <div>
+                      <p className="text-sm text-white">{item.text}</p>
+                      <p className="text-xs text-gray-600">{item.time}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
