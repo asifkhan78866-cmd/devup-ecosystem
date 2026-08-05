@@ -2,6 +2,7 @@ import "express-async-errors";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import { globalLimiter, authLimiter, aiLimiter } from "./middleware/rateLimit";
 import { env } from "./config/env";
 import { morganMiddleware } from "./middleware/logger";
 import { errorHandler } from "./middleware/errorHandler";
@@ -125,6 +126,15 @@ app.get("/api/stats", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Rate limiting. These were written but never mounted, so every endpoint was
+ * unthrottled: password guessing had unlimited attempts and the AI routes —
+ * which cost real money per call — could be drained by anyone with a token.
+ */
+app.use("/api", globalLimiter);
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 
@@ -138,7 +148,7 @@ app.use("/api/jobs", jobsRoutes);
 app.use("/api/hackathons", hackathonsRoutes);
 app.use("/api/cofounders", cofoundersRoutes);
 app.use("/api/documents", documentsRoutes);
-app.use("/api/ai", aiRoutes);
+app.use("/api/ai", aiLimiter, aiRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/services", servicesRoutes);
 app.use("/api/connections", connectionsRoutes);

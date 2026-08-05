@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
 import { redis } from "../config/redis";
 import { env } from "../config/env";
@@ -19,6 +19,33 @@ export const globalLimiter = rateLimit({
     success: false,
     error: "Too many requests, please try again later.",
     code: "RATE_LIMITED",
+  },
+});
+
+/**
+ * Sign-in and registration. Far tighter than the global limit and keyed on the
+ * email being tried, not just the IP — credential stuffing rotates through
+ * addresses from one host, and password spraying does the reverse. Counting
+ * both means neither pattern gets a free run.
+ */
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Successful sign-ins should not eat into someone's allowance.
+  skipSuccessfulRequests: true,
+  keyGenerator: (req) => {
+    const email = String((req.body as { email?: string } | undefined)?.email ?? "").toLowerCase();
+    return `${ipKeyGenerator(req.ip ?? "")}:${email}`;
+  },
+  store: redis ? new RedisStore({
+    sendCommand: (...args: string[]) => redis!.call(args[0], ...args.slice(1)) as any,
+  }) : undefined,
+  message: {
+    success: false,
+    error: "Too many attempts. Please wait 15 minutes and try again.",
+    code: "TOO_MANY_ATTEMPTS",
   },
 });
 
