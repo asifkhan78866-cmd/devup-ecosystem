@@ -147,8 +147,9 @@ function styles() {
 
   /* ── Footer ── */
   .foot { margin-top: auto; padding: 2mm 0 3mm; border-top: 0.6px solid ${RULE};
-          font-family: Arial, Helvetica, sans-serif; font-size: 7pt; color: ${FAINT};
-          display: flex; justify-content: space-between; gap: 6mm; }
+          font-family: Arial, Helvetica, sans-serif; font-size: 7pt; color: ${FAINT}; }
+  .foot-row { display: flex; justify-content: space-between; gap: 6mm; }
+  .foot-issuer { margin-top: 1mm; text-align: center; color: ${MUTED}; }
   .foot b { color: ${MUTED}; font-weight: normal; }
 
   /* Certificates read better centred — horizontally and on the page. */
@@ -257,15 +258,21 @@ function sheet(p: any, title: string, body: string, centre = false, confidential
   <div class="body${centre ? " centre" : ""}">${body}</div>
 
   <div class="foot">
-    <span>${esc(p._documentNo)}</span>
-    <span>${[
-      esc(orgName),
-      // A registered company identifier is what makes a letter checkable
-      // against the public register, so it belongs beside the address.
-      b.cin ? `CIN: ${esc(b.cin)}` : "",
-      address ? esc(address) : "",
-    ].filter(Boolean).join(" · ")}</span>
-    <span>Verify at <b>${esc(p._siteUrl)}</b></span>
+    <div class="foot-row">
+      <span>${esc(p._documentNo)}</span>
+      <span>${[esc(orgName), b.cin ? `CIN: ${esc(b.cin)}` : "", address ? esc(address) : ""]
+        .filter(Boolean)
+        .join(" · ")}</span>
+      <span>Verify at <b>${esc(p._siteUrl)}</b></span>
+    </div>
+    ${
+      /* The issuing entity and its registered number. Attributed explicitly to
+         the ecosystem: this CIN belongs to DevUp, and printing it beside a
+         partner's name would assert it was theirs. */
+      p._devupCin
+        ? `<div class="foot-issuer">Issued by ${esc(p._devupLegalName)} · CIN: ${esc(p._devupCin)}</div>`
+        : ""
+    }
   </div>
 </div>
 </body></html>`;

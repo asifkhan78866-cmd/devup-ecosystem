@@ -83,6 +83,15 @@ const envSchema = z.object({
   // points at localhost in development, which would break images in an inbox.
   PUBLIC_SITE_URL: z.string().default("https://www.devupecosystem.com"),
 
+  /**
+   * The ecosystem's own registered identifiers. These belong to DevUp
+   * Ecosystem, the entity that signs every document — not to the individual
+   * startup a letter is issued for. An ecosystem partner is a separate company
+   * with its own CIN, which lives on that startup's branding record.
+   */
+  DEVUP_LEGAL_NAME: z.string().default("DevUp Ecosystem"),
+  DEVUP_CIN: z.string().default("U85500TS2026PTC216527"),
+
   // Web Push (VAPID). Generate with: npx web-push generate-vapid-keys
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),

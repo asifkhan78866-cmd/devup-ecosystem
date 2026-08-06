@@ -90,6 +90,9 @@ export async function issue(args: IssueArgs, tx?: Prisma.TransactionClient) {
     _issuedAt: new Date().toISOString(),
     // DevUp mark on every issued document, alongside the startup's own branding.
     _devupLogo: LOGO_URL,
+    // The issuing entity's own registered details, frozen like everything else.
+    _devupLegalName: env.DEVUP_LEGAL_NAME,
+    _devupCin: env.DEVUP_CIN,
     _siteUrl: SITE_URL.replace(/^https?:\/\//, ""),
   };
 
