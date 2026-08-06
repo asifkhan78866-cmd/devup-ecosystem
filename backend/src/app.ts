@@ -2,6 +2,7 @@ import "express-async-errors";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import compression from "compression";
 import { authLimiter, aiLimiter } from "./middleware/rateLimit";
 import { env } from "./config/env";
 import { morganMiddleware } from "./middleware/logger";
@@ -47,6 +48,7 @@ const allowedOrigins = [
 
 // Security and utility middlewares
 app.use(helmet());
+app.use(compression());
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -64,9 +66,49 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Body size limits — prevent memory abuse from oversized payloads.
+// File uploads go through Supabase/S3, not through Express body.
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(morganMiddleware);
+
+// Request timeout — prevent slow requests from hogging connections.
+// If a handler doesn't respond within 30s, the client gets a 408.
+app.use((req, res, next) => {
+  res.setTimeout(30_000, () => {
+    if (!res.headersSent) {
+      res.status(408).json({
+        success: false,
+        error: "Request timeout — the server took too long to respond.",
+        code: "REQUEST_TIMEOUT",
+      });
+    }
+  });
+  next();
+});
+
+// Server overload protection — if the event loop is lagging badly,
+// reject new requests with 503 so the server can recover instead of crashing.
+let lastLoopCheck = Date.now();
+let eventLoopLag = 0;
+setInterval(() => {
+  const now = Date.now();
+  eventLoopLag = now - lastLoopCheck - 500; // interval is 500ms
+  lastLoopCheck = now;
+}, 500).unref();
+
+app.use((req, res, next) => {
+  if (eventLoopLag > 500) {
+    // Event loop is lagging >500ms — server is overloaded
+    return res.status(503).json({
+      success: false,
+      error: "Server is under heavy load. Please retry in a moment.",
+      code: "SERVICE_OVERLOADED",
+    });
+  }
+  next();
+});
 
 
 // Setup Swagger UI

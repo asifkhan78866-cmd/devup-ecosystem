@@ -33,7 +33,22 @@ export const errorHandler = (
       statusCode = 404;
       message = "Record not found";
       code = "NOT_FOUND";
+    } else if (err.code === "P2024") {
+      // Connection pool exhausted — DB is overloaded
+      statusCode = 503;
+      message = "Database is busy. Please retry in a moment.";
+      code = "DB_OVERLOADED";
     }
+  }
+
+  // DB connection lost or pool timeout
+  if (
+    err instanceof Prisma.PrismaClientInitializationError ||
+    err.constructor?.name === "PrismaClientUnknownRequestError"
+  ) {
+    statusCode = 503;
+    message = "Database temporarily unavailable. Please retry.";
+    code = "DB_UNAVAILABLE";
   }
 
   if (!(err instanceof AppError) && !statusCode) {
