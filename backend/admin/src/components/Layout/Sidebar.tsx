@@ -10,6 +10,7 @@ import {
   Handshake,
   Settings,
   LogOut,
+  Award,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -21,6 +22,7 @@ const navItems = [
   { to: '/jobs', icon: Briefcase, label: 'Jobs' },
   { to: '/hackathons', icon: Trophy, label: 'Hackathons' },
   { to: '/documents', icon: Shield, label: 'Documents' },
+  { to: '/founders', icon: Award, label: 'Founder Letters' },
   { to: '/cofounders', icon: Handshake, label: 'Co-Founders' },
   { to: '/services', icon: Building2, label: 'Services' },
   { to: '/settings', icon: Settings, label: 'Settings' },

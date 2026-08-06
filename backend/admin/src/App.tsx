@@ -11,6 +11,7 @@ import UsersPage from '@/pages/Users'
 import Jobs from '@/pages/Jobs'
 import Hackathons from '@/pages/Hackathons'
 import Documents from '@/pages/Documents'
+import Founders from '@/pages/Founders'
 import Cofounders from '@/pages/Cofounders'
 import ServiceRequests from '@/pages/ServiceRequests'
 import SettingsPage from '@/pages/Settings'
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="jobs" element={<Jobs />} />
             <Route path="hackathons" element={<Hackathons />} />
             <Route path="documents" element={<Documents />} />
+            <Route path="founders" element={<Founders />} />
             <Route path="cofounders" element={<Cofounders />} />
             <Route path="services" element={<ServiceRequests />} />
             <Route path="settings" element={<SettingsPage />} />
