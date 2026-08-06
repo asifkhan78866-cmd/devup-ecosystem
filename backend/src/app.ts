@@ -30,6 +30,7 @@ import messagesRoutes from "./modules/messages/messages.routes";
 import workspaceRoutes from "./modules/recruiting/workspace.routes";
 import candidateRoutes from "./modules/recruiting/candidate.routes";
 import platformAnalyticsRoutes from "./modules/analytics/platform.routes";
+import founderLetterRoutes from "./modules/hrms/documents/founderLetter.routes";
 import profileRoutes from "./modules/profile/profile.routes";
 // ... (will import as implemented)
 
@@ -203,6 +204,7 @@ app.use("/api/messages", messagesRoutes);
 app.use("/api/w", workspaceRoutes);
 app.use("/api", candidateRoutes);
 app.use("/api/admin/analytics", platformAnalyticsRoutes);
+app.use("/api/admin/founders", founderLetterRoutes);
 app.use("/api/profile", profileRoutes);
 
 // Global Error Handler

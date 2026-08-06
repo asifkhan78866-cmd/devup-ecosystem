@@ -24,6 +24,7 @@ export interface IssueArgs {
   payload: Record<string, unknown>;
   employeeId?: string;
   internId?: string;
+  memberId?: string;
   applicationId?: string;
   issuedBy: string;
   supersedesId?: string;
@@ -105,6 +106,7 @@ export async function issue(args: IssueArgs, tx?: Prisma.TransactionClient) {
       documentNo: args.documentNo,
       employeeId: args.employeeId,
       internId: args.internId,
+      memberId: args.memberId,
       applicationId: args.applicationId,
       templateKey: args.templateKey,
       payload: frozen as Prisma.InputJsonValue,
@@ -173,7 +175,16 @@ export async function attachFile(doc: { id: string; docType: HrDocType; startupI
   let pdfBuffer: Buffer | null = null;
 
   try {
-    htmlUrl = await uploadFile(env.STORAGE_BUCKET_DOCUMENTS, `${base}.html`, Buffer.from(html, "utf-8"), "text/html");
+    /**
+     * Stored as text/plain, not text/html.
+     *
+     * The bucket's allowed-MIME list rejects text/html, so every one of these
+     * uploads was failing — which also silently removed the fallback that was
+     * supposed to give a document *something* to link to when Chromium is
+     * unavailable. Plain text is accepted and the bytes are identical; it also
+     * means the file downloads rather than executing if anyone opens the URL.
+     */
+    htmlUrl = await uploadFile(env.STORAGE_BUCKET_DOCUMENTS, `${base}.html`, Buffer.from(html, "utf-8"), "text/plain");
   } catch (err) {
     logger.warn(`document HTML upload failed for ${doc.documentNo}: ${(err as Error).message}`);
   }

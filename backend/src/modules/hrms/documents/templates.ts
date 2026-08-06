@@ -1,4 +1,5 @@
 export type TemplateKey =
+  | "FOUNDER_LETTER"
   | "OFFER_LETTER"
   | "EXPERIENCE_LETTER"
   | "LOR"
@@ -350,6 +351,55 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
     `,
       false,
       true
+    );
+  },
+
+  /**
+   * Confirms someone as a founding member.
+   *
+   * Not an offer: there is nothing to accept, no stipend, no joining date and
+   * no signature box for the recipient. A founder was there before the company
+   * had anything to offer, so the letter records that fact rather than
+   * proposing terms.
+   */
+  FOUNDER_LETTER: (p) => {
+    const org = sentence(p._branding?.legalName || p._startup?.name);
+    const rows: Array<[string, unknown]> = [
+      ["Name", p.fullName],
+      ["Role", p.designation ?? "Founder"],
+      ["Organisation", org],
+      ["Associated Since", p.since ? fmtDate(p.since) : null],
+    ].filter((row): row is [string, unknown] => Boolean(row[1]));
+
+    return sheet(
+      p,
+      "Founder Appointment Letter",
+      `
+      <p>To Whom It May Concern,</p>
+
+      <p>This is to certify that <span class="strong">${esc(p.fullName)}</span> is a
+        <span class="strong">${esc(p.designation ?? "Founder")}</span> of ${esc(org)}${
+          p._startup?.type === "ECOSYSTEM_PARTNER"
+            ? ", an official startup ecosystem partner of DevUp Ecosystem"
+            : ", a venture within the DevUp Ecosystem"
+        }.</p>
+
+      <div class="section">Details</div>
+      <table class="kv">
+        ${rows.map(([k, v]) => `<tr><td class="k">${esc(k)}</td><td class="v">${esc(v as string)}</td></tr>`).join("")}
+      </table>
+
+      <p>${esc(
+        p.body ??
+          `In this capacity they hold responsibility for the direction and operation of ${sentence(org)}, ` +
+            `and are authorised to represent it in the ordinary course of its business.`
+      )}</p>
+
+      <p>This letter is issued on request for the purpose of verification, and remains valid
+        so long as the association continues.</p>
+
+      ${signatures(p, false)}
+    `
     );
   },
 

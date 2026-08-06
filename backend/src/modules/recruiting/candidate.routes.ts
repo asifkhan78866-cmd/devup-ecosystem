@@ -279,16 +279,21 @@ router.post("/me/attendance/:internId/check-out", requireAuth, async (req, res) 
  * permission check: nobody can name someone else's document.
  */
 router.get("/me/documents", requireAuth, async (req, res) => {
-  const [employees, interns, applications] = await Promise.all([
+  const [employees, interns, memberships, applications] = await Promise.all([
     prisma.employee.findMany({ where: { userId: req.user!.id }, select: { id: true } }),
     prisma.intern.findMany({ where: { userId: req.user!.id }, select: { id: true } }),
+    // Founders hold only a membership, and their letter hangs off that.
+    prisma.startupMember.findMany({ where: { userId: req.user!.id }, select: { id: true } }),
     prisma.jobApplication.findMany({ where: { userId: req.user!.id }, select: { id: true } }),
   ]);
 
   const employeeIds = employees.map((e) => e.id);
   const internIds = interns.map((i) => i.id);
+  const memberIds = memberships.map((m) => m.id);
   const applicationIds = applications.map((a) => a.id);
-  if (!employeeIds.length && !internIds.length && !applicationIds.length) return ok(res, []);
+  if (!employeeIds.length && !internIds.length && !memberIds.length && !applicationIds.length) {
+    return ok(res, []);
+  }
 
   const docs = await prisma.hrDocument.findMany({
     where: {
@@ -298,6 +303,7 @@ router.get("/me/documents", requireAuth, async (req, res) => {
       OR: [
         ...(employeeIds.length ? [{ employeeId: { in: employeeIds } }] : []),
         ...(internIds.length ? [{ internId: { in: internIds } }] : []),
+        ...(memberIds.length ? [{ memberId: { in: memberIds } }] : []),
         ...(applicationIds.length ? [{ applicationId: { in: applicationIds } }] : []),
       ],
     },

@@ -10,6 +10,7 @@ import * as interviews from "./interviews/interviews.service";
 import * as offers from "./offers/offers.service";
 import * as documents from "../hrms/documents/document.service";
 import * as issuance from "../hrms/documents/issuance.service";
+import * as founderLetters from "../hrms/documents/founderLetter.service";
 import * as attendance from "../hrms/attendance/attendance.service";
 import * as internAttendance from "../hrms/attendance/intern.service";
 import * as stipend from "../hrms/finance/stipend.service";
@@ -22,6 +23,7 @@ import { audit, AuditAction } from "../shared/audit.service";
 import multer from "multer";
 import { env } from "../../config/env";
 import { AppError } from "../../middleware/errorHandler";
+import { prisma } from "../../lib/prisma";
 
 /** Identity and education documents joiners upload — images or PDFs. */
 const upload = multer({
@@ -545,6 +547,66 @@ router.post(
     );
   }
 );
+
+/**
+ * ── Founder appointment letters ──────────────────────
+ * Founder-level: confirming who founded the company is not HR's call.
+ */
+router.get("/:code/founders", requireTenantRank("FOUNDER"), async (req, res) => {
+  const members = await prisma.startupMember.findMany({
+    where: { startupId: req.startupId!, role: { in: ["FOUNDER", "OWNER"] } },
+    select: {
+      id: true, email: true, role: true, status: true, joinedAt: true,
+      user: { select: { profile: { select: { name: true } } } },
+      documents: {
+        where: { docType: "FOUNDER_LETTER", revokedAt: null },
+        select: { id: true, documentNo: true, pdfUrl: true, issuedAt: true },
+        take: 1,
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  ok(
+    res,
+    members.map((m) => ({
+      id: m.id,
+      email: m.email,
+      name: m.user?.profile?.name ?? null,
+      role: m.role,
+      status: m.status,
+      joinedAt: m.joinedAt,
+      letter: m.documents[0] ?? null,
+    }))
+  );
+});
+
+router.post("/:code/founders/:memberId/letter", requireTenantRank("FOUNDER"), async (req, res) => {
+  ok(
+    res,
+    await founderLetters.issueFounderLetter({
+      startupId: req.startupId!,
+      startupCode: req.startup?.code ?? "GEN",
+      memberId: req.params.memberId as string,
+      designation: req.body?.designation,
+      body: req.body?.body,
+      force: req.body?.force === true,
+      actorId: req.user!.id,
+    }),
+    201
+  );
+});
+
+router.post("/:code/founders/letters", requireTenantRank("FOUNDER"), async (req, res) => {
+  ok(
+    res,
+    await founderLetters.issueForAllFounders({
+      startupId: req.startupId!,
+      startupCode: req.startup?.code ?? "GEN",
+      actorId: req.user!.id,
+    })
+  );
+});
 
 /**
  * Rebuild the file for a document issued without one, and optionally re-send it.

@@ -239,6 +239,8 @@ model StartupMember {
   joinedAt    DateTime?
   createdAt   DateTime            @default(now())
 
+  documents   HrDocument[]
+
   @@unique([startupId, email])
   @@index([userId, startupId])
 }
@@ -942,6 +944,9 @@ enum HrDocType {
   CERTIFICATE
   ID_CARD
   RELIEVING
+  /// Confirms someone as a founding member. Attaches to a StartupMember
+  /// rather than an Employee — a founder is not on the payroll.
+  FOUNDER_LETTER
 }
 
 /// Every generated HR document. One generator, many types.
@@ -957,6 +962,10 @@ model HrDocument {
   employee      Employee? @relation(fields: [employeeId], references: [id])
   internId      String?
   intern        Intern?   @relation(fields: [internId], references: [id])
+  /// Founders hold a membership but no employee record, so their letters
+  /// attach here. Same nullable-pair shape as the two above.
+  memberId      String?
+  member        StartupMember? @relation(fields: [memberId], references: [id], onDelete: Cascade)
   applicationId String?
   templateKey   String
   payload       Json

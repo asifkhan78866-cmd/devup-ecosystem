@@ -224,3 +224,12 @@ export const platformApi = {
   colleges: () => api.get<any[]>("/api/admin/analytics/colleges"),
   trends: (months = 6) => api.get<any[]>(`/api/admin/analytics/trends?months=${months}`),
 };
+
+/** Founder letters across every startup. Platform admins only. */
+export const founderApi = {
+  list: () => api.get<any[]>("/api/admin/founders"),
+  issue: (memberId: string, force = false) =>
+    api.post<any>(`/api/admin/founders/${memberId}/letter`, { force }),
+  issueMany: (memberIds: string[]) =>
+    api.post<any>("/api/admin/founders/letters", { memberIds }),
+};

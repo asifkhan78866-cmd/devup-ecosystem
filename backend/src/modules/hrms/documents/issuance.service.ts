@@ -12,7 +12,7 @@ import { TemplateKey } from "./templates";
  * is exactly one place that renders and numbers a document.
  */
 
-const DOC_ABBR: Record<Exclude<HrDocType, "OFFER_LETTER">, string> = {
+const DOC_ABBR: Record<Exclude<HrDocType, "OFFER_LETTER" | "FOUNDER_LETTER">, string> = {
   EXPERIENCE_LETTER: "EXP",
   LOR: "LOR",
   CERTIFICATE: "CERT",
@@ -23,7 +23,9 @@ const DOC_ABBR: Record<Exclude<HrDocType, "OFFER_LETTER">, string> = {
 export interface IssueRequest {
   startupId: string;
   startupCode: string;
-  docType: Exclude<HrDocType, "OFFER_LETTER">;
+  // Offer letters and founder letters have their own issuers, because each
+  // attaches to a different record and carries its own numbering series.
+  docType: Exclude<HrDocType, "OFFER_LETTER" | "FOUNDER_LETTER">;
   employeeId?: string;
   internId?: string;
   actorId: string;

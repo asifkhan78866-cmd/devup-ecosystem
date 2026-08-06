@@ -2,7 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
-import { Activity, Users, Briefcase, FileText, Rocket } from "lucide-react";
+import Link from "next/link";
+import { Activity, Users, Briefcase, FileText, Rocket, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AdminDashboard() {
@@ -50,7 +51,35 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <div className="mt-12 bg-white/5 border border-white/10 p-6 rounded-2xl">
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link
+            href="/admin/hiring"
+            className="group bg-white/5 border border-white/10 p-5 rounded-2xl transition hover:border-[#c8f135]/40"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-syne font-bold text-white">Hiring across the ecosystem</h3>
+                <p className="text-sm text-gray-400 mt-1">Funnel, colleges and per-startup comparison.</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-gray-500 transition group-hover:translate-x-0.5 group-hover:text-[#c8f135]" />
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/founders"
+            className="group bg-white/5 border border-white/10 p-5 rounded-2xl transition hover:border-[#c8f135]/40"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-syne font-bold text-white">Founder letters</h3>
+                <p className="text-sm text-gray-400 mt-1">Issue appointment letters to founders at any startup.</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-gray-500 transition group-hover:translate-x-0.5 group-hover:text-[#c8f135]" />
+            </div>
+          </Link>
+        </div>
+
+        <div className="mt-8 bg-white/5 border border-white/10 p-6 rounded-2xl">
           <h2 className="text-xl font-bold mb-4 font-syne">Recent Audit Logs</h2>
           <div className="text-gray-400 font-jetbrains-mono text-sm">
             {/* Real implementation would fetch and map over audit logs */}
