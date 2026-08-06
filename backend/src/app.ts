@@ -2,7 +2,7 @@ import "express-async-errors";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { globalLimiter, authLimiter, aiLimiter } from "./middleware/rateLimit";
+import { authLimiter, aiLimiter } from "./middleware/rateLimit";
 import { env } from "./config/env";
 import { morganMiddleware } from "./middleware/logger";
 import { errorHandler } from "./middleware/errorHandler";
@@ -127,11 +127,12 @@ app.get("/api/stats", async (req: Request, res: Response) => {
 });
 
 /**
- * Rate limiting. These were written but never mounted, so every endpoint was
- * unthrottled: password guessing had unlimited attempts and the AI routes —
- * which cost real money per call — could be drained by anyone with a token.
+ * Rate limiting — only on security-sensitive routes.
+ * Auth endpoints: prevent brute-force / credential stuffing.
+ * AI endpoints: prevent cost abuse (see line 151).
+ * General API calls are NOT rate-limited — the DB is protected via
+ * connection pooling and query timeouts in prisma.ts instead.
  */
-app.use("/api", globalLimiter);
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 
