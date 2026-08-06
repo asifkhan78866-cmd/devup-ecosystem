@@ -136,6 +136,11 @@ function styles() {
            letter-spacing: 0.6px; text-transform: uppercase; flex-shrink: 0;
            margin-left: auto; }
 
+  /* Founder letters: several signatures across one row. */
+  .sign-row { display: flex; align-items: flex-end; gap: 8mm; margin-top: 8mm; }
+  .sign-cell { flex: 1; min-width: 0; }
+  .sign-line { border-top: 1px solid ${INK}; padding-top: 1.5mm; }
+
   /* Acceptance sits on its own rule beneath the signatures, like a contract. */
   .accept-row { display: flex; align-items: baseline; gap: 6mm; margin-top: 4.5mm;
                 padding-top: 2.5mm; border-top: 0.6px solid ${RULE}; font-size: 8.5pt;
@@ -224,6 +229,35 @@ function signatures(p: any, withAcceptance: boolean) {
          </div>`
       : ""
   }`;
+}
+
+/**
+ * Signature strip for founder letters.
+ *
+ * Appointing a founder is the ecosystem's own act, so DevUp's founders sign it
+ * together. Laid out as an even row of ruled lines rather than the two tall
+ * columns used elsewhere: three signatures side by side stay readable, and the
+ * letter keeps to a single page.
+ */
+function ecosystemSignatures(p: any) {
+  const signers: Array<{ name: string; title: string }> = Array.isArray(p._devupSignatories)
+    ? p._devupSignatories
+    : [];
+  if (signers.length === 0) return signatures(p, false);
+
+  return `<div class="behalf">For and on behalf of ${esc(p._devupLegalName ?? SIGNING_ORG)}</div>
+  <div class="sign-row">
+    ${signers
+      .map(
+        (s) => `<div class="sign-cell">
+        <div class="sign-line"></div>
+        <div class="sig-name">${esc(s.name)}</div>
+        <div class="sig-role">${esc(s.title)}</div>
+      </div>`
+      )
+      .join("")}
+    <div class="stamp">Company<br>Seal</div>
+  </div>`;
 }
 
 /** The single-page A4 frame every letter prints inside. */
@@ -398,7 +432,7 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
       <p>This letter is issued on request for the purpose of verification, and remains valid
         so long as the association continues.</p>
 
-      ${signatures(p, false)}
+      ${ecosystemSignatures(p)}
     `
     );
   },

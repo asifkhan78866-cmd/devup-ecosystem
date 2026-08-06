@@ -92,6 +92,24 @@ const envSchema = z.object({
   DEVUP_LEGAL_NAME: z.string().default("DevUp Ecosystem"),
   DEVUP_CIN: z.string().default("U85500TS2026PTC216527"),
 
+  /**
+   * Who signs a founder appointment letter, as "Name:Title" separated by "|".
+   * Appointing a founder is the ecosystem's own act, so its founders sign it
+   * together rather than one person signing alone.
+   */
+  DEVUP_SIGNATORIES: z
+    .string()
+    .default("Faizan Sk:Founder & CEO|Syed Asif:Founder|Narsing Yadav:Founder")
+    .transform((v) =>
+      v
+        .split("|")
+        .map((entry) => {
+          const [name, title] = entry.split(":");
+          return { name: (name ?? "").trim(), title: (title ?? "Founder").trim() };
+        })
+        .filter((s) => s.name)
+    ),
+
   // Web Push (VAPID). Generate with: npx web-push generate-vapid-keys
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),

@@ -94,6 +94,7 @@ export async function issue(args: IssueArgs, tx?: Prisma.TransactionClient) {
     // The issuing entity's own registered details, frozen like everything else.
     _devupLegalName: env.DEVUP_LEGAL_NAME,
     _devupCin: env.DEVUP_CIN,
+    _devupSignatories: env.DEVUP_SIGNATORIES,
     _siteUrl: SITE_URL.replace(/^https?:\/\//, ""),
   };
 
