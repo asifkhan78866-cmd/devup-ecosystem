@@ -232,6 +232,10 @@ model StartupMember {
   user        User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
   email       String
   role        StartupMemberRole   @default(MEMBER)
+  /// The title this person actually holds, printed on their appointment
+  /// letter. `role` governs permissions and is a fixed set; this is what they
+  /// are called — a COO and a CSO both need FOUNDER-level access.
+  title       String?
   status      StartupMemberStatus @default(INVITED)
   invitedBy   String
   inviteToken String              @unique

@@ -71,7 +71,9 @@ export async function issueFounderLetter(input: IssueFounderLetterInput) {
         issuedBy: input.actorId,
         payload: {
           fullName,
-          designation: input.designation ?? titleFor(member.role),
+          // Their recorded title wins over the permission role: a COO holds
+          // FOUNDER-level access but is not a founder.
+          designation: input.designation ?? member.title ?? titleFor(member.role),
           // joinedAt is when they accepted; invitedAt is the earliest date we
           // can stand behind if that was never recorded.
           since: member.joinedAt ?? member.invitedAt,
@@ -123,7 +125,7 @@ export async function listAllFounders() {
   const members = await prisma.startupMember.findMany({
     where: { role: { in: ["FOUNDER", "OWNER"] } },
     select: {
-      id: true, email: true, role: true, status: true, joinedAt: true,
+      id: true, email: true, role: true, title: true, status: true, joinedAt: true,
       user: { select: { profile: { select: { name: true } } } },
       startup: {
         select: { id: true, code: true, name: true, type: true, logoUrl: true, branding: { select: { id: true } } },
@@ -154,6 +156,7 @@ export async function listAllFounders() {
       name: m.user?.profile?.name ?? null,
       email: m.email,
       role: m.role,
+      title: m.title,
       status: m.status,
       joinedAt: m.joinedAt,
       startup: {

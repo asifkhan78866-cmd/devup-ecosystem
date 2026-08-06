@@ -398,21 +398,32 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
    */
   FOUNDER_LETTER: (p) => {
     const org = sentence(p._branding?.legalName || p._startup?.name);
+    const title = String(p.designation ?? "Founder").trim();
+
+    /**
+     * The heading follows the actual title. Calling a COO's letter a "Founder
+     * Appointment Letter" would state something untrue on the one document they
+     * will show to a bank or a visa office.
+     */
+    const isFounder = /founder/i.test(title);
+    // "a Founder" but "the Chief Operating Officer" — one of several, one of one.
+    const article = isFounder ? "a" : /^[aeiou]/i.test(title) ? "an" : "the";
+
     const rows: Array<[string, unknown]> = [
       ["Name", p.fullName],
-      ["Role", p.designation ?? "Founder"],
+      ["Designation", title],
       ["Organisation", org],
       ["Associated Since", p.since ? fmtDate(p.since) : null],
     ].filter((row): row is [string, unknown] => Boolean(row[1]));
 
     return sheet(
       p,
-      "Founder Appointment Letter",
+      isFounder ? "Founder Appointment Letter" : "Appointment Letter",
       `
       <p>To Whom It May Concern,</p>
 
-      <p>This is to certify that <span class="strong">${esc(p.fullName)}</span> is a
-        <span class="strong">${esc(p.designation ?? "Founder")}</span> of ${esc(org)}${
+      <p>This is to certify that <span class="strong">${esc(p.fullName)}</span> is ${article}
+        <span class="strong">${esc(title)}</span> of ${esc(org)}${
           p._startup?.type === "ECOSYSTEM_PARTNER"
             ? ", an official startup ecosystem partner of DevUp Ecosystem"
             : ", a venture within the DevUp Ecosystem"

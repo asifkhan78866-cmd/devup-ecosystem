@@ -22,6 +22,7 @@ interface Founder {
   name: string | null
   email: string
   role: string
+  title: string | null
   status: string
   joinedAt: string | null
   startup: { id: string; code: string | null; name: string; type: string; logoUrl: string | null }
@@ -158,7 +159,9 @@ export default function Founders() {
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm text-white/90">
                           {f.name ?? f.email.split('@')[0]}
-                          <span className="text-xs text-white/35"> · {f.role.toLowerCase()}</span>
+                          {/* The recorded title is what prints on the letter;
+                              the permission role is only shown when none is set. */}
+                          <span className="text-xs text-white/35"> · {f.title ?? f.role.toLowerCase()}</span>
                         </div>
                         <div className="truncate text-xs text-white/40">{f.email}</div>
                       </div>
