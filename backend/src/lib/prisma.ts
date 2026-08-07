@@ -23,27 +23,31 @@ function buildDatasourceUrl(): string | undefined {
   return `${url}${sep}connection_limit=15&pool_timeout=10&connect_timeout=5&statement_cache_size=100`;
 }
 
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    log: process.env.NODE_ENV !== "production" ? ["query"] : ["error"],
+function createClient() {
+  const client = new PrismaClient({
+    log: process.env.NODE_ENV !== "production" ? ["warn", "error"] : ["error"],
     datasourceUrl: buildDatasourceUrl(),
   });
 
-// Middleware: abort any single query that takes longer than 15 seconds.
-// This prevents runaway queries from hogging connections.
-prisma.$use(async (params, next) => {
-  const timeout = 15_000;
-  const timer = setTimeout(() => {
-    console.error(
-      `⚠️  Query timeout (${timeout}ms): ${params.model}.${params.action}`
-    );
-  }, timeout);
-  try {
-    return await next(params);
-  } finally {
-    clearTimeout(timer);
-  }
-});
+  // Log (not throw) any query that takes longer than 15 seconds.
+  // This detects runaway queries without breaking anything.
+  client.$use(async (params, next) => {
+    const start = Date.now();
+    const result = await next(params);
+    const duration = Date.now() - start;
+    if (duration > 15_000) {
+      console.warn(
+        `⚠️  Slow query (${duration}ms): ${params.model}.${params.action}`
+      );
+    }
+    return result;
+  });
+
+  return client;
+}
+
+// Reuse the same client across hot reloads in development.
+// The middleware is registered inside createClient(), so it is only added once.
+export const prisma = globalForPrisma.prisma || createClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
