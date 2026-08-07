@@ -3,7 +3,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
-import { authLimiter, aiLimiter } from "./middleware/rateLimit";
+import { authLimiter } from "./middleware/rateLimit";
 import { env } from "./config/env";
 import { morganMiddleware } from "./middleware/logger";
 import { errorHandler } from "./middleware/errorHandler";
@@ -170,11 +170,9 @@ app.get("/api/stats", async (req: Request, res: Response) => {
 });
 
 /**
- * Rate limiting — only on security-sensitive routes.
- * Auth endpoints: prevent brute-force / credential stuffing.
- * AI endpoints: prevent cost abuse (see line 151).
- * General API calls are NOT rate-limited — the DB is protected via
- * connection pooling and query timeouts in prisma.ts instead.
+ * Rate limiting — only on login/register to prevent brute-force attacks.
+ * All other routes are unrestricted. DB is protected via connection
+ * pooling and query timeouts in prisma.ts.
  */
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
@@ -192,7 +190,7 @@ app.use("/api/jobs", jobsRoutes);
 app.use("/api/hackathons", hackathonsRoutes);
 app.use("/api/cofounders", cofoundersRoutes);
 app.use("/api/documents", documentsRoutes);
-app.use("/api/ai", aiLimiter, aiRoutes);
+app.use("/api/ai", aiRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/services", servicesRoutes);
 app.use("/api/connections", connectionsRoutes);
