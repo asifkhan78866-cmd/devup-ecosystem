@@ -95,7 +95,7 @@ export default function HackathonsPage() {
           // If DevThon id exists in the list and announcement wasn't shown this session, show modal
           const devthonId = "9298523b-88d7-4512-81a3-9624faf8baa8";
           const found =
-            formatted.some((f) => f.id === devthonId) ||
+            formatted.some((f: any) => f.id === devthonId) ||
             (featuredData.success && featuredData.data?.id === devthonId);
           if (found && !sessionStorage.getItem("devthonAnnouncementShown"))
             setShowAnnouncement(true);
@@ -600,11 +600,7 @@ export default function HackathonsPage() {
         <PageControls
           filters={
             <>
-<<<<<<< HEAD
-              {FILTERS.map((f) => {
-=======
               {FILTERS.map((f: string) => {
->>>>>>> ac09578 (fix(ui): resolve TS7006 implicit any type error in hackathons page)
                 const isActive = activeFilter === f;
                 return (
                   <button
