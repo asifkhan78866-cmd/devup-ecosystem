@@ -7,12 +7,30 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, Calendar, MapPin, Clock, Trophy, Users, Gift,
-  Shield, Wifi, ChevronRight, Sparkles, Zap, Ticket, Download, Check, Target, Rocket
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Clock,
+  Trophy,
+  Users,
+  Gift,
+  Shield,
+  Wifi,
+  ChevronRight,
+  Sparkles,
+  Zap,
+  Ticket,
+  Download,
+  Check,
+  Target,
+  Rocket,
+  Lock,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import confetti from "canvas-confetti";
-import HackathonSchema, { BreadcrumbSchema } from "@/components/seo/HackathonSchema";
+import HackathonSchema, {
+  BreadcrumbSchema,
+} from "@/components/seo/HackathonSchema";
 import HackathonFAQ from "@/components/seo/HackathonFAQ";
 import StatusModal from "./StatusModal";
 import { ALL_DOMAINS } from "../../../data/domains";
@@ -29,8 +47,18 @@ const GOOGLE_FORM_BASE =
   "https://docs.google.com/forms/d/e/1FAIpQLSfIeZHduzGgeOBS-M2awHxkp4kk-MHIFK50sZ5pqYiOJ2vIYQ/viewform";
 
 // ─── TIMELINE DATA ───
-type TimelineSlot = { time: string; title: string; description: string; icon: string };
-type TimelineDay = { date: string; label: string; subtitle: string; slots: TimelineSlot[] };
+type TimelineSlot = {
+  time: string;
+  title: string;
+  description: string;
+  icon: string;
+};
+type TimelineDay = {
+  date: string;
+  label: string;
+  subtitle: string;
+  slots: TimelineSlot[];
+};
 
 const TIMELINE: TimelineDay[] = [
   {
@@ -38,9 +66,24 @@ const TIMELINE: TimelineDay[] = [
     label: "PHASE 1",
     subtitle: "Idea Submission (Live)",
     slots: [
-      { time: "Live Now", title: "Registrations Open", description: "Register your team and select your track.", icon: "📝" },
-      { time: "Till Jul 20", title: "Pitch Submission", description: "Submit your 1-page abstract or pitch deck.", icon: "🚀" },
-      { time: "Jul 25", title: "Results Announced", description: "Selected teams invited for the offline hackathon.", icon: "🎉" },
+      {
+        time: "Live Now",
+        title: "Registrations Open",
+        description: "Register your team and select your track.",
+        icon: "📝",
+      },
+      {
+        time: "Till Jul 20",
+        title: "Pitch Submission",
+        description: "Submit your 1-page abstract or pitch deck.",
+        icon: "🚀",
+      },
+      {
+        time: "Jul 25",
+        title: "Results Announced",
+        description: "Selected teams invited for the offline hackathon.",
+        icon: "🎉",
+      },
     ],
   },
   {
@@ -48,13 +91,50 @@ const TIMELINE: TimelineDay[] = [
     label: "PHASE 2 - DAY 1",
     subtitle: "The Ignition Phase",
     slots: [
-      { time: "08:00–09:30", title: "Registration & Check-in", description: "ID verification, participant kits distribution, venue orientation", icon: "📋" },
-      { time: "09:30–10:30", title: "Opening Ceremony", description: "Keynote address, rules overview, sponsor introductions", icon: "🎤" },
-      { time: "10:30–11:30", title: "Problem Release", description: "Tracks & problem statements unveiled by industry veterans", icon: "🚀" },
-      { time: "11:30–13:30", title: "Sprint Begins", description: "Architectural planning, team formation, networking lunch", icon: "🍽️" },
-      { time: "13:30–18:00", title: "Development Sprint", description: "36-hour clock goes live, mentoring sessions begin", icon: "💻" },
-      { time: "18:00–22:00", title: "Evening Session", description: "High tea, networking rounds, intensive coding continues", icon: "☕" },
-      { time: "22:00–00:00", title: "Surprise Activity #1", description: "Mini-challenges, secret swag drops, midnight energy", icon: "🎁" },
+      {
+        time: "08:00–09:30",
+        title: "Registration & Check-in",
+        description:
+          "ID verification, participant kits distribution, venue orientation",
+        icon: "📋",
+      },
+      {
+        time: "09:30–10:30",
+        title: "Opening Ceremony",
+        description: "Keynote address, rules overview, sponsor introductions",
+        icon: "🎤",
+      },
+      {
+        time: "10:30–11:30",
+        title: "Problem Release",
+        description:
+          "Tracks & problem statements unveiled by industry veterans",
+        icon: "🚀",
+      },
+      {
+        time: "11:30–13:30",
+        title: "Sprint Begins",
+        description: "Architectural planning, team formation, networking lunch",
+        icon: "🍽️",
+      },
+      {
+        time: "13:30–18:00",
+        title: "Development Sprint",
+        description: "36-hour clock goes live, mentoring sessions begin",
+        icon: "💻",
+      },
+      {
+        time: "18:00–22:00",
+        title: "Evening Session",
+        description: "High tea, networking rounds, intensive coding continues",
+        icon: "☕",
+      },
+      {
+        time: "22:00–00:00",
+        title: "Surprise Activity #1",
+        description: "Mini-challenges, secret swag drops, midnight energy",
+        icon: "🎁",
+      },
     ],
   },
   {
@@ -62,11 +142,37 @@ const TIMELINE: TimelineDay[] = [
     label: "PHASE 2 - DAY 2",
     subtitle: "The Final Sprint",
     slots: [
-      { time: "00:00–04:00", title: "Midnight Zone", description: "Founder fireside chats, product reviews, late-night coding", icon: "🌙" },
-      { time: "07:00–11:00", title: "Final Sprint", description: "UI/UX refinement, code integration, bug fixing", icon: "⚡" },
-      { time: "11:00–13:00", title: "Project Submission", description: "Final commits, video demos, documentation wraps", icon: "📦" },
-      { time: "13:00–16:00", title: "Jury Evaluation", description: "Live pitching sessions, expert panel Q&A", icon: "👨‍⚖️" },
-      { time: "16:00–18:00", title: "Grand Finale", description: "Awards ceremony, internship announcements, closing", icon: "🏆" },
+      {
+        time: "00:00–04:00",
+        title: "Midnight Zone",
+        description:
+          "Founder fireside chats, product reviews, late-night coding",
+        icon: "🌙",
+      },
+      {
+        time: "07:00–11:00",
+        title: "Final Sprint",
+        description: "UI/UX refinement, code integration, bug fixing",
+        icon: "⚡",
+      },
+      {
+        time: "11:00–13:00",
+        title: "Project Submission",
+        description: "Final commits, video demos, documentation wraps",
+        icon: "📦",
+      },
+      {
+        time: "13:00–16:00",
+        title: "Jury Evaluation",
+        description: "Live pitching sessions, expert panel Q&A",
+        icon: "👨‍⚖️",
+      },
+      {
+        time: "16:00–18:00",
+        title: "Grand Finale",
+        description: "Awards ceremony, internship announcements, closing",
+        icon: "🏆",
+      },
     ],
   },
 ];
@@ -74,30 +180,81 @@ const TIMELINE: TimelineDay[] = [
 const DOMAIN_COLORS = ["#c8f135", "#a78bfa", "#38bdf8", "#fb923c", "#f472b6"];
 
 const PERKS = [
-  { icon: "🏆", title: "₹1,50,000+ Prize Pool", desc: "Cash prizes & trophies for top teams" },
-  { icon: "💼", title: "Paid Internships", desc: "3-month internships, ₹25k–₹75k/mo stipend for top performers" },
-  { icon: "📜", title: "Certificates", desc: "Verified national participation & merit certificates" },
-  { icon: "🎧", title: "Premium Swag", desc: "Mechanical keyboards, smartwatches, earbuds, hoodies" },
-  { icon: "🤝", title: "Industry Networking", desc: "Expert mentoring & real-world problem-solving" },
-  { icon: "📦", title: "Mystery Boxes", desc: "'I Survived DEVTHON 2026' merch & surprise gifts" },
+  {
+    icon: "🏆",
+    title: "₹1,50,000+ Prize Pool",
+    desc: "Cash prizes & trophies for top teams",
+  },
+  {
+    icon: "💼",
+    title: "Paid Internships",
+    desc: "3-month internships, ₹25k–₹75k/mo stipend for top performers",
+  },
+  {
+    icon: "📜",
+    title: "Certificates",
+    desc: "Verified national participation & merit certificates",
+  },
+  {
+    icon: "🎧",
+    title: "Premium Swag",
+    desc: "Mechanical keyboards, smartwatches, earbuds, hoodies",
+  },
+  {
+    icon: "🤝",
+    title: "Industry Networking",
+    desc: "Expert mentoring & real-world problem-solving",
+  },
+  {
+    icon: "📦",
+    title: "Mystery Boxes",
+    desc: "'I Survived DEVTHON 2026' merch & surprise gifts",
+  },
 ];
 
 // Logistics icons are keyed by string so they can come from the DB (Json) too.
 const LOGISTICS_ICONS: Record<string, LucideIcon> = {
-  shield: Shield, accommodation: Shield,
-  meals: Gift, gift: Gift,
-  wifi: Wifi, internet: Wifi,
-  support: Users, users: Users,
-  clock: Clock, calendar: Calendar, trophy: Trophy,
-  mappin: MapPin, location: MapPin
+  shield: Shield,
+  accommodation: Shield,
+  meals: Gift,
+  gift: Gift,
+  wifi: Wifi,
+  internet: Wifi,
+  support: Users,
+  users: Users,
+  clock: Clock,
+  calendar: Calendar,
+  trophy: Trophy,
+  mappin: MapPin,
+  location: MapPin,
 };
 
 const LOGISTICS = [
-  { icon: "location", label: "Venue", desc: "Vidya Jyothi Institute Of Technology" },
-  { icon: "shield", label: "Accommodation", desc: "Separate male/female dorms on campus" },
-  { icon: "meals", label: "5 Meals + Refreshments", desc: "24/7 snacks, tea, coffee, energy drinks" },
-  { icon: "wifi", label: "1 Gbps Internet", desc: "Dedicated fiber + power backup" },
-  { icon: "support", label: "On-site Support", desc: "Paramedic, security, volunteer crew" },
+  {
+    icon: "location",
+    label: "Venue",
+    desc: "Vidya Jyothi Institute Of Technology",
+  },
+  {
+    icon: "shield",
+    label: "Accommodation",
+    desc: "Separate male/female dorms on campus",
+  },
+  {
+    icon: "meals",
+    label: "5 Meals + Refreshments",
+    desc: "24/7 snacks, tea, coffee, energy drinks",
+  },
+  {
+    icon: "wifi",
+    label: "1 Gbps Internet",
+    desc: "Dedicated fiber + power backup",
+  },
+  {
+    icon: "support",
+    label: "On-site Support",
+    desc: "Paramedic, security, volunteer crew",
+  },
 ];
 
 const DEFAULT_OVERVIEW = `DEVTHON 2026 is Asia's Largest Open Innovation Hackathon, designed to bridge academia, industry, and the startup ecosystem.
@@ -106,7 +263,8 @@ This 36-hour non-stop marathon challenges you to push the boundaries of technolo
 
 Top performers not only walk away with a share of the ₹1,50,000+ prize pool but will also be fast-tracked for incubation support and seed funding up to ₹4 Cr.`;
 
-const DEFAULT_SUBTITLE = "36-Hour Non-Stop Offline National Innovation Challenge";
+const DEFAULT_SUBTITLE =
+  "36-Hour Non-Stop Offline National Innovation Challenge";
 
 // ─── REGISTER MODAL ───
 function RegisterModal({
@@ -120,9 +278,20 @@ function RegisterModal({
   hackathonId: string;
   registrationLink: string | null;
 }) {
-  const [step, setStep] = useState<"form" | "members" | "upload" | "success">("form");
-  const [form, setForm] = useState({ name: "", email: "", phone: "", teamName: "", teamCount: 1, college: "" });
-  const [members, setMembers] = useState<{name: string, email: string, phone: string}[]>([]);
+  const [step, setStep] = useState<"form" | "members" | "upload" | "success">(
+    "form",
+  );
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    teamName: "",
+    teamCount: 1,
+    college: "",
+  });
+  const [members, setMembers] = useState<
+    { name: string; email: string; phone: string }[]
+  >([]);
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -133,17 +302,25 @@ function RegisterModal({
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "unset";
-    return () => { document.body.style.overflow = "unset"; };
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, [isOpen]);
 
   const validateForm = () => {
     const e: Record<string, string> = {};
-    if (form.name.trim().length < 2) e.name = "Name must be at least 2 characters";
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Invalid email";
-    if (!/^[6-9]\d{9}$/.test(form.phone)) e.phone = "Enter a valid 10-digit Indian phone number";
-    if (form.teamCount < 1 || form.teamCount > 5) e.teamCount = "Team count must be 1–5";
-    if (form.teamCount > 1 && form.teamName.trim().length < 2) e.teamName = "Team Name is required for teams";
-    if (form.college.trim().length < 2) e.college = "College must be at least 2 characters";
+    if (form.name.trim().length < 2)
+      e.name = "Name must be at least 2 characters";
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      e.email = "Invalid email";
+    if (!/^[6-9]\d{9}$/.test(form.phone))
+      e.phone = "Enter a valid 10-digit Indian phone number";
+    if (form.teamCount < 1 || form.teamCount > 5)
+      e.teamCount = "Team count must be 1–5";
+    if (form.teamCount > 1 && form.teamName.trim().length < 2)
+      e.teamName = "Team Name is required for teams";
+    if (form.college.trim().length < 2)
+      e.college = "College must be at least 2 characters";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -152,8 +329,10 @@ function RegisterModal({
     const e: Record<string, string> = {};
     members.forEach((m, i) => {
       if (m.name.trim().length < 2) e[`member_${i}_name`] = "Required";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m.email)) e[`member_${i}_email`] = "Invalid email";
-      if (!/^[6-9]\d{9}$/.test(m.phone)) e[`member_${i}_phone`] = "Invalid phone";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m.email))
+        e[`member_${i}_email`] = "Invalid email";
+      if (!/^[6-9]\d{9}$/.test(m.phone))
+        e[`member_${i}_phone`] = "Invalid phone";
     });
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -163,8 +342,20 @@ function RegisterModal({
     const colors = ["#c8f135", "#ffffff", "#FFD700", "#a78bfa", "#38bdf8"];
     const end = Date.now() + 2500;
     const frame = () => {
-      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors });
-      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors });
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors,
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors,
+      });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     frame();
@@ -175,7 +366,10 @@ function RegisterModal({
 
   const triggerRedirect = async (leadId: string) => {
     try {
-      await fetch(`${API}/api/hackathons/${hackathonId}/lead/${leadId}/redirect`, { method: "PATCH" });
+      await fetch(
+        `${API}/api/hackathons/${hackathonId}/lead/${leadId}/redirect`,
+        { method: "PATCH" },
+      );
     } catch (e) {}
     window.open(registrationLink || GOOGLE_FORM_BASE, "_blank");
   };
@@ -197,7 +391,7 @@ function RegisterModal({
 
   const handleSubmit = async () => {
     if (form.teamCount > 1 && !validateMembers()) return;
-    
+
     setSubmitting(true);
     try {
       const res = await fetch(`${API}/api/hackathons/${hackathonId}/lead`, {
@@ -210,11 +404,17 @@ function RegisterModal({
           teamName: form.teamName.trim(),
           teamCount: form.teamCount,
           college: form.college.trim(),
-          members: form.teamCount > 1 ? members : undefined
+          members: form.teamCount > 1 ? members : undefined,
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.errors?.[0]?.message || data?.error || data?.message || "Registration failed");
+      if (!res.ok)
+        throw new Error(
+          data?.errors?.[0]?.message ||
+            data?.error ||
+            data?.message ||
+            "Registration failed",
+        );
       const newLeadId = data.data?.registrationId || null;
       setRegistrationId(newLeadId);
       setStep("upload");
@@ -239,13 +439,17 @@ function RegisterModal({
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch(`${API}/api/hackathons/${hackathonId}/leads/${registrationId}/submission`, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        `${API}/api/hackathons/${hackathonId}/leads/${registrationId}/submission`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || data?.message || "Upload failed");
-      
+      if (!res.ok)
+        throw new Error(data?.error || data?.message || "Upload failed");
+
       setStep("success");
       fireConfetti();
       setTimeout(() => {
@@ -275,7 +479,14 @@ function RegisterModal({
   useEffect(() => {
     if (isOpen) {
       setStep("form");
-      setForm({ name: "", email: "", phone: "", teamName: "", teamCount: 1, college: "" });
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        teamName: "",
+        teamCount: 1,
+        college: "",
+      });
       setMembers([]);
       setErrors({});
       setRegistrationId(null);
@@ -307,307 +518,416 @@ function RegisterModal({
           >
             <div className="min-h-full flex items-center justify-center p-4">
               <div className="w-full max-w-lg bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl pointer-events-auto my-8">
-              {step === "form" ? (
-                <div className="p-6">
-                  <h2
-                    className="text-xl font-bold text-white mb-1"
-                    style={{ fontFamily: "var(--font-syne), sans-serif" }}
-                  >
-                    Register Now
-                  </h2>
-                  <p
-                    className="text-sm text-[#6b6b6b] mb-6"
-                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                  >
-                    Secure your spot — {registrationLink?.includes("whatsapp") ? "we'll redirect you to the official WhatsApp group next." : "we'll redirect you to the official form next."}
-                  </p>
+                {step === "form" ? (
+                  <div className="p-6">
+                    <h2
+                      className="text-xl font-bold text-white mb-1"
+                      style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                    >
+                      Register Now
+                    </h2>
+                    <p
+                      className="text-sm text-[#6b6b6b] mb-6"
+                      style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                    >
+                      Secure your spot —{" "}
+                      {registrationLink?.includes("whatsapp")
+                        ? "we'll redirect you to the official WhatsApp group next."
+                        : "we'll redirect you to the official form next."}
+                    </p>
 
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs text-[#888] mb-1.5">Full Name (Lead) *</label>
-                        <input
-                          value={form.name}
-                          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                          className={inputClass}
-                          placeholder="Your full name"
-                        />
-                        {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
-                      </div>
-                      <div>
-                        <label className="block text-xs text-[#888] mb-1.5">Email Address</label>
-                        <input
-                          type="email"
-                          value={form.email}
-                          onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                          className={inputClass}
-                          placeholder="Lead's email"
-                        />
-                        {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-[#888] mb-1.5">Phone Number (WhatsApp) *</label>
-                      <input
-                        value={form.phone}
-                        onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))}
-                        className={inputClass}
-                        placeholder="10-digit Indian phone number"
-                        inputMode="numeric"
-                      />
-                      {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs text-[#888] mb-1.5">Team Size (max 5) *</label>
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => setForm((p) => ({ ...p, teamCount: Math.max(1, p.teamCount - 1) }))}
-                            className="w-12 h-12 rounded-xl bg-[#111] border border-white/10 text-white text-xl font-bold flex items-center justify-center hover:bg-white/5 active:scale-95 transition-all"
-                          >
-                            −
-                          </button>
-                          <div
-                            className="flex-1 h-12 bg-[#111] border border-white/10 rounded-xl flex items-center justify-center text-white text-lg font-bold"
-                            style={{ fontFamily: "var(--font-syne), sans-serif" }}
-                          >
-                            {form.teamCount}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setForm((p) => ({ ...p, teamCount: Math.min(5, p.teamCount + 1) }))}
-                            className="w-12 h-12 rounded-xl bg-[#111] border border-white/10 text-white text-xl font-bold flex items-center justify-center hover:bg-white/5 active:scale-95 transition-all"
-                          >
-                            +
-                          </button>
-                        </div>
-                        {errors.teamCount && <p className="text-red-400 text-xs mt-1">{errors.teamCount}</p>}
-                      </div>
-                      
-                      {form.teamCount > 1 && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs text-[#888] mb-1.5">Team Name *</label>
+                          <label className="block text-xs text-[#888] mb-1.5">
+                            Full Name (Lead) *
+                          </label>
                           <input
-                            value={form.teamName}
-                            onChange={(e) => setForm((p) => ({ ...p, teamName: e.target.value }))}
+                            value={form.name}
+                            onChange={(e) =>
+                              setForm((p) => ({ ...p, name: e.target.value }))
+                            }
                             className={inputClass}
-                            placeholder="Awesome Team"
+                            placeholder="Your full name"
                           />
-                          {errors.teamName && <p className="text-red-400 text-xs mt-1">{errors.teamName}</p>}
+                          {errors.name && (
+                            <p className="text-red-400 text-xs mt-1">
+                              {errors.name}
+                            </p>
+                          )}
                         </div>
-                      )}
+                        <div>
+                          <label className="block text-xs text-[#888] mb-1.5">
+                            Email Address
+                          </label>
+                          <input
+                            type="email"
+                            value={form.email}
+                            onChange={(e) =>
+                              setForm((p) => ({ ...p, email: e.target.value }))
+                            }
+                            className={inputClass}
+                            placeholder="Lead's email"
+                          />
+                          {errors.email && (
+                            <p className="text-red-400 text-xs mt-1">
+                              {errors.email}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-[#888] mb-1.5">
+                          Phone Number (WhatsApp) *
+                        </label>
+                        <input
+                          value={form.phone}
+                          onChange={(e) =>
+                            setForm((p) => ({
+                              ...p,
+                              phone: e.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 10),
+                            }))
+                          }
+                          className={inputClass}
+                          placeholder="10-digit Indian phone number"
+                          inputMode="numeric"
+                        />
+                        {errors.phone && (
+                          <p className="text-red-400 text-xs mt-1">
+                            {errors.phone}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs text-[#888] mb-1.5">
+                            Team Size (max 5) *
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setForm((p) => ({
+                                  ...p,
+                                  teamCount: Math.max(1, p.teamCount - 1),
+                                }))
+                              }
+                              className="w-12 h-12 rounded-xl bg-[#111] border border-white/10 text-white text-xl font-bold flex items-center justify-center hover:bg-white/5 active:scale-95 transition-all"
+                            >
+                              −
+                            </button>
+                            <div
+                              className="flex-1 h-12 bg-[#111] border border-white/10 rounded-xl flex items-center justify-center text-white text-lg font-bold"
+                              style={{
+                                fontFamily: "var(--font-syne), sans-serif",
+                              }}
+                            >
+                              {form.teamCount}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setForm((p) => ({
+                                  ...p,
+                                  teamCount: Math.min(5, p.teamCount + 1),
+                                }))
+                              }
+                              className="w-12 h-12 rounded-xl bg-[#111] border border-white/10 text-white text-xl font-bold flex items-center justify-center hover:bg-white/5 active:scale-95 transition-all"
+                            >
+                              +
+                            </button>
+                          </div>
+                          {errors.teamCount && (
+                            <p className="text-red-400 text-xs mt-1">
+                              {errors.teamCount}
+                            </p>
+                          )}
+                        </div>
+
+                        {form.teamCount > 1 && (
+                          <div>
+                            <label className="block text-xs text-[#888] mb-1.5">
+                              Team Name *
+                            </label>
+                            <input
+                              value={form.teamName}
+                              onChange={(e) =>
+                                setForm((p) => ({
+                                  ...p,
+                                  teamName: e.target.value,
+                                }))
+                              }
+                              className={inputClass}
+                              placeholder="Awesome Team"
+                            />
+                            {errors.teamName && (
+                              <p className="text-red-400 text-xs mt-1">
+                                {errors.teamName}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-[#888] mb-1.5">
+                          College / University *
+                        </label>
+                        <input
+                          value={form.college}
+                          onChange={(e) =>
+                            setForm((p) => ({ ...p, college: e.target.value }))
+                          }
+                          className={inputClass}
+                          placeholder="Your institution name"
+                        />
+                        {errors.college && (
+                          <p className="text-red-400 text-xs mt-1">
+                            {errors.college}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    
-                    <div>
-                      <label className="block text-xs text-[#888] mb-1.5">College / University *</label>
-                      <input
-                        value={form.college}
-                        onChange={(e) => setForm((p) => ({ ...p, college: e.target.value }))}
-                        className={inputClass}
-                        placeholder="Your institution name"
-                      />
-                      {errors.college && <p className="text-red-400 text-xs mt-1">{errors.college}</p>}
+
+                    {errors.submit && (
+                      <p className="text-red-400 text-sm mt-4 text-center">
+                        {errors.submit}
+                      </p>
+                    )}
+
+                    <div className="flex gap-3 mt-6">
+                      <button
+                        onClick={onClose}
+                        className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-[#888] text-sm font-medium hover:bg-white/5 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleNextToMembers}
+                        disabled={submitting}
+                        className="flex-1 px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors disabled:opacity-50"
+                      >
+                        {form.teamCount > 1 ? "Next: Members →" : "Register →"}
+                      </button>
                     </div>
                   </div>
-
-                  {errors.submit && (
-                    <p className="text-red-400 text-sm mt-4 text-center">{errors.submit}</p>
-                  )}
-
-                  <div className="flex gap-3 mt-6">
-                    <button
-                      onClick={onClose}
-                      className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-[#888] text-sm font-medium hover:bg-white/5 transition-colors"
+                ) : step === "members" ? (
+                  <div className="p-6">
+                    <h2
+                      className="text-xl font-bold text-white mb-1"
+                      style={{ fontFamily: "var(--font-syne), sans-serif" }}
                     >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleNextToMembers}
-                      disabled={submitting}
-                      className="flex-1 px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors disabled:opacity-50"
+                      Team Members
+                    </h2>
+                    <p
+                      className="text-sm text-[#6b6b6b] mb-6"
+                      style={{ fontFamily: "var(--font-inter), sans-serif" }}
                     >
-                      {form.teamCount > 1 ? "Next: Members →" : "Register →"}
-                    </button>
-                  </div>
-                </div>
-              ) : step === "members" ? (
-                <div className="p-6">
-                  <h2
-                    className="text-xl font-bold text-white mb-1"
-                    style={{ fontFamily: "var(--font-syne), sans-serif" }}
-                  >
-                    Team Members
-                  </h2>
-                  <p
-                    className="text-sm text-[#6b6b6b] mb-6"
-                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                  >
-                    Enter the details for the remaining {form.teamCount - 1} members.
-                  </p>
+                      Enter the details for the remaining {form.teamCount - 1}{" "}
+                      members.
+                    </p>
 
-                  <div className="space-y-6">
-                    {members.map((m, i) => (
-                      <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-3">
-                        <h4 className="text-xs font-bold text-[#c8f135] uppercase">Member {i + 2}</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-6">
+                      {members.map((m, i) => (
+                        <div
+                          key={i}
+                          className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-3"
+                        >
+                          <h4 className="text-xs font-bold text-[#c8f135] uppercase">
+                            Member {i + 2}
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <input
+                                value={m.name}
+                                onChange={(e) => {
+                                  const newM = [...members];
+                                  newM[i].name = e.target.value;
+                                  setMembers(newM);
+                                }}
+                                className={inputClass}
+                                placeholder="Full Name"
+                              />
+                              {errors[`member_${i}_name`] && (
+                                <p className="text-red-400 text-xs mt-1">
+                                  {errors[`member_${i}_name`]}
+                                </p>
+                              )}
+                            </div>
+                            <div>
+                              <input
+                                type="email"
+                                value={m.email}
+                                onChange={(e) => {
+                                  const newM = [...members];
+                                  newM[i].email = e.target.value;
+                                  setMembers(newM);
+                                }}
+                                className={inputClass}
+                                placeholder="Email Address"
+                              />
+                              {errors[`member_${i}_email`] && (
+                                <p className="text-red-400 text-xs mt-1">
+                                  {errors[`member_${i}_email`]}
+                                </p>
+                              )}
+                            </div>
+                          </div>
                           <div>
                             <input
-                              value={m.name}
+                              value={m.phone}
                               onChange={(e) => {
                                 const newM = [...members];
-                                newM[i].name = e.target.value;
+                                newM[i].phone = e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 10);
                                 setMembers(newM);
                               }}
                               className={inputClass}
-                              placeholder="Full Name"
+                              placeholder="Phone Number"
+                              inputMode="numeric"
                             />
-                            {errors[`member_${i}_name`] && <p className="text-red-400 text-xs mt-1">{errors[`member_${i}_name`]}</p>}
-                          </div>
-                          <div>
-                            <input
-                              type="email"
-                              value={m.email}
-                              onChange={(e) => {
-                                const newM = [...members];
-                                newM[i].email = e.target.value;
-                                setMembers(newM);
-                              }}
-                              className={inputClass}
-                              placeholder="Email Address"
-                            />
-                            {errors[`member_${i}_email`] && <p className="text-red-400 text-xs mt-1">{errors[`member_${i}_email`]}</p>}
+                            {errors[`member_${i}_phone`] && (
+                              <p className="text-red-400 text-xs mt-1">
+                                {errors[`member_${i}_phone`]}
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <div>
-                          <input
-                            value={m.phone}
-                            onChange={(e) => {
-                              const newM = [...members];
-                              newM[i].phone = e.target.value.replace(/\D/g, "").slice(0, 10);
-                              setMembers(newM);
-                            }}
-                            className={inputClass}
-                            placeholder="Phone Number"
-                            inputMode="numeric"
-                          />
-                          {errors[`member_${i}_phone`] && <p className="text-red-400 text-xs mt-1">{errors[`member_${i}_phone`]}</p>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
 
-                  {errors.submit && (
-                    <p className="text-red-400 text-sm mt-4 text-center">{errors.submit}</p>
-                  )}
+                    {errors.submit && (
+                      <p className="text-red-400 text-sm mt-4 text-center">
+                        {errors.submit}
+                      </p>
+                    )}
 
-                  <div className="flex gap-3 mt-6">
-                    <button
-                      onClick={() => setStep("form")}
-                      className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-[#888] text-sm font-medium hover:bg-white/5 transition-colors"
-                    >
-                      ← Back
-                    </button>
-                    <button
-                      onClick={handleSubmit}
-                      disabled={submitting}
-                      className="flex-1 px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors disabled:opacity-50"
-                    >
-                      {submitting ? "Submitting..." : "Register →"}
-                    </button>
-                  </div>
-                </div>
-              ) : step === "upload" ? (
-                <div className="p-6">
-                  <h2
-                    className="text-xl font-bold text-white mb-1"
-                    style={{ fontFamily: "var(--font-syne), sans-serif" }}
-                  >
-                    Phase 1 Submission
-                  </h2>
-                  <p
-                    className="text-sm text-[#6b6b6b] mb-6"
-                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                  >
-                    Upload your 1-page PDF abstract or Pitch Deck. Max size 10MB.
-                  </p>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <input
-                        type="file"
-                        accept=".pdf,.ppt,.pptx"
-                        onChange={(e) => setFile(e.target.files?.[0] || null)}
-                        className="w-full text-sm text-[#888] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#c8f135] file:text-black hover:file:bg-[#b0d829] transition-all cursor-pointer"
-                      />
-                      {errors.upload && <p className="text-red-400 text-xs mt-2">{errors.upload}</p>}
+                    <div className="flex gap-3 mt-6">
+                      <button
+                        onClick={() => setStep("form")}
+                        className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-[#888] text-sm font-medium hover:bg-white/5 transition-colors"
+                      >
+                        ← Back
+                      </button>
+                      <button
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        className="flex-1 px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors disabled:opacity-50"
+                      >
+                        {submitting ? "Submitting..." : "Register →"}
+                      </button>
                     </div>
                   </div>
+                ) : step === "upload" ? (
+                  <div className="p-6">
+                    <h2
+                      className="text-xl font-bold text-white mb-1"
+                      style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                    >
+                      Phase 1 Submission
+                    </h2>
+                    <p
+                      className="text-sm text-[#6b6b6b] mb-6"
+                      style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                    >
+                      Upload your 1-page PDF abstract or Pitch Deck. Max size
+                      10MB.
+                    </p>
 
-                  <div className="flex gap-3 mt-6">
-                    <button
-                      onClick={skipUpload}
-                      className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-[#888] text-sm font-medium hover:bg-white/5 transition-colors"
+                    <div className="space-y-4">
+                      <div>
+                        <input
+                          type="file"
+                          accept=".pdf,.ppt,.pptx"
+                          onChange={(e) => setFile(e.target.files?.[0] || null)}
+                          className="w-full text-sm text-[#888] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#c8f135] file:text-black hover:file:bg-[#b0d829] transition-all cursor-pointer"
+                        />
+                        {errors.upload && (
+                          <p className="text-red-400 text-xs mt-2">
+                            {errors.upload}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6">
+                      <button
+                        onClick={skipUpload}
+                        className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-[#888] text-sm font-medium hover:bg-white/5 transition-colors"
+                      >
+                        Skip for now
+                      </button>
+                      <button
+                        onClick={handleUploadSubmit}
+                        disabled={submitting || !file}
+                        className="flex-1 px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors disabled:opacity-50"
+                      >
+                        {submitting ? "Uploading..." : "Submit & Continue"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-10 text-center">
+                    <div className="w-20 h-20 bg-[#c8f135]/10 text-[#c8f135] rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Check className="w-10 h-10" />
+                    </div>
+                    <h2
+                      className="text-2xl font-bold text-white mb-2"
+                      style={{ fontFamily: "var(--font-syne), sans-serif" }}
                     >
-                      Skip for now
-                    </button>
+                      Registration Complete!
+                    </h2>
+                    <p className="text-[#888] mb-8 max-w-sm mx-auto">
+                      You're successfully registered for DEVTHON 2026. We will
+                      now redirect you to the official WhatsApp community to
+                      stay updated!
+                    </p>
+
                     <button
-                      onClick={handleUploadSubmit}
-                      disabled={submitting || !file}
-                      className="flex-1 px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors disabled:opacity-50"
+                      onClick={handleContinueToForm}
+                      className="w-full px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors"
                     >
-                      {submitting ? "Uploading..." : "Submit & Continue"}
+                      Join WhatsApp Community →
                     </button>
                   </div>
-                </div>
-              ) : (
-                <div className="p-10 text-center">
-                  <div className="w-20 h-20 bg-[#c8f135]/10 text-[#c8f135] rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Check className="w-10 h-10" />
-                  </div>
-                  <h2
-                    className="text-2xl font-bold text-white mb-2"
-                    style={{ fontFamily: "var(--font-syne), sans-serif" }}
-                  >
-                    Registration Complete!
-                  </h2>
-                  <p className="text-[#888] mb-8 max-w-sm mx-auto">
-                    You're successfully registered for DEVTHON 2026. We will now redirect you to the official WhatsApp community to stay updated!
-                  </p>
-
-                  <button
-                    onClick={handleContinueToForm}
-                    className="w-full px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors"
-                  >
-                    Join WhatsApp Community →
-                  </button>
-                </div>
-              )}
+                )}
               </div>
             </div>
           </motion.div>
         </>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }
 
 export default function HackathonDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  const isLocked = id === "9298523b-88d7-4512-81a3-9624faf8baa8";
   const [hackathon, setHackathon] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showRegister, setShowRegister] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
-  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [countdown, setCountdown] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+  const [showAnnouncement, setShowAnnouncement] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/api/hackathons/${id}`)
       .then((r) => r.json())
-      .then((d) => { if (d.success) setHackathon(d.data); })
+      .then((d) => {
+        if (d.success) setHackathon(d.data);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [id]);
@@ -615,8 +935,10 @@ export default function HackathonDetailPage() {
   useEffect(() => {
     if (!hackathon?.registrationDeadline) return;
     const tick = () => {
-      const diff = new Date(hackathon.registrationDeadline).getTime() - Date.now();
-      if (diff <= 0) return setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      const diff =
+        new Date(hackathon.registrationDeadline).getTime() - Date.now();
+      if (diff <= 0)
+        return setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       setCountdown({
         days: Math.floor(diff / 86400000),
         hours: Math.floor((diff % 86400000) / 3600000),
@@ -628,6 +950,15 @@ export default function HackathonDetailPage() {
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [hackathon?.registrationDeadline]);
+
+  useEffect(() => {
+    if (
+      id === "9298523b-88d7-4512-81a3-9624faf8baa8" &&
+      !sessionStorage.getItem("devthonAnnouncementShown")
+    ) {
+      setShowAnnouncement(true);
+    }
+  }, [id]);
 
   if (loading) {
     return (
@@ -642,41 +973,64 @@ export default function HackathonDetailPage() {
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-center">
           <p className="text-white text-lg mb-4">Hackathon not found</p>
-          <Link href="/hackathons" className="text-[#c8f135] hover:underline text-sm">← Back to Hackathons</Link>
+          <Link
+            href="/hackathons"
+            className="text-[#c8f135] hover:underline text-sm"
+          >
+            ← Back to Hackathons
+          </Link>
         </div>
       </div>
     );
   }
 
-  const bannerSrc = hackathon.bannerUrl || "/images/vynedam-talent-hunt-2k26.jpeg";
-  const startDate = new Date(hackathon.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-  const endDate = new Date(hackathon.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  const bannerSrc =
+    hackathon.bannerUrl || "/images/vynedam-talent-hunt-2k26.jpeg";
+  const startDate = new Date(hackathon.startDate).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const endDate = new Date(hackathon.endDate).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 
   // ─── DATA-DRIVEN CONTENT (falls back to built-in defaults when a field is empty) ───
   const subtitle = hackathon.subtitle || DEFAULT_SUBTITLE;
   const overview = hackathon.description || DEFAULT_OVERVIEW;
   // Prefer the rich per-event cards; fall back to the full default domain cards
   // (with their sub-lines) so existing hackathons keep all their detail.
-  const domains: { label: string; sub?: string; color?: string }[] =
-    hackathon.domainsDetailed?.length
-      ? hackathon.domainsDetailed
-      : hackathon.domain?.length
+  const domains: { label: string; sub?: string; color?: string }[] = hackathon
+    .domainsDetailed?.length
+    ? hackathon.domainsDetailed
+    : hackathon.domain?.length
       ? hackathon.domain.map((dName: string) => {
-          const found = ALL_DOMAINS.find(d => d.label === dName);
+          const found = ALL_DOMAINS.find((d) => d.label === dName);
           return found || { label: dName, color: "#c8f135" };
         })
       : ALL_DOMAINS;
   const timeline = hackathon.timeline?.length ? hackathon.timeline : TIMELINE;
   const perks = hackathon.perks?.length ? hackathon.perks : PERKS;
-  const logistics = hackathon.logistics?.length ? hackathon.logistics : LOGISTICS;
+  const logistics = hackathon.logistics?.length
+    ? hackathon.logistics
+    : LOGISTICS;
 
-  let displayLocation = hackathon.location || "Vidya Jyothi Institute Of Technology(VJIT)";
-  if (displayLocation === "Hyderabad,India" || displayLocation === "Hyderabad, India") {
+  let displayLocation =
+    hackathon.location || "Vidya Jyothi Institute Of Technology(VJIT)";
+  if (
+    displayLocation === "Hyderabad,India" ||
+    displayLocation === "Hyderabad, India"
+  ) {
     displayLocation = "Vidya Jyothi Institute Of Technology(VJIT)";
   }
 
-  const isClosed = new Date(hackathon.registrationDeadline).getTime() <= Date.now();
-  const openRegister = () => { if (!isClosed) setShowRegister(true); };
+  const isClosed =
+    new Date(hackathon.registrationDeadline).getTime() <= Date.now();
+  const openRegister = () => {
+    if (!isClosed) setShowRegister(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] relative overflow-hidden">
@@ -691,474 +1045,832 @@ export default function HackathonDetailPage() {
         <source src="/videos/interstellar-bg.mp4" type="video/mp4" />
       </video>
       <div className="relative z-10">
-      {/* Back nav */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-[100px] md:pt-[120px]">
-        <Link
-          href="/hackathons"
-          className="inline-flex items-center gap-2 text-[#6b6b6b] hover:text-white text-sm transition-colors"
-          style={{ fontFamily: "var(--font-inter), sans-serif" }}
+        {/* Back nav */}
+        <div className="max-w-7xl mx-auto px-4 md:px-8 pt-[100px] md:pt-[120px]">
+          <Link
+            href="/hackathons"
+            className="inline-flex items-center gap-2 text-[#6b6b6b] hover:text-white text-sm transition-colors"
+            style={{ fontFamily: "var(--font-inter), sans-serif" }}
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Hackathons
+          </Link>
+        </div>
+
+        {/* ─── HERO ─── */}
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 md:px-8 mt-6 relative"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Hackathons
-        </Link>
-      </div>
+          <div className="bg-[#111111] border border-white/10 rounded-[24px] overflow-hidden flex flex-col md:flex-row relative shadow-[0_8px_30px_rgb(0,0,0,0.4)]">
+            {/* Poster Section */}
+            <div className="w-full md:w-[400px] lg:w-[480px] h-[300px] md:h-auto min-h-[400px] relative overflow-hidden shrink-0 group bg-transparent">
+              <Image
+                src={bannerSrc}
+                alt={`${hackathon.title} – Innovation Hackathon banner poster by DevUp Ecosystem`}
+                fill
+                sizes="(max-width: 768px) 100vw, 480px"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                priority
+                fetchPriority="high"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-[#111111] via-[#111111]/20 to-transparent md:from-[#111111] md:via-[#111111]/40 md:to-transparent" />
+            </div>
 
-      {/* ─── HERO ─── */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-7xl mx-auto px-4 md:px-8 mt-6 relative"
-      >
-        <div className="bg-[#111111] border border-white/10 rounded-[24px] overflow-hidden flex flex-col md:flex-row relative shadow-[0_8px_30px_rgb(0,0,0,0.4)]">
-          
-          {/* Poster Section */}
-          <div className="w-full md:w-[400px] lg:w-[480px] h-[300px] md:h-auto min-h-[400px] relative overflow-hidden shrink-0 group bg-transparent">
-            <Image
-              src={bannerSrc}
-              alt={`${hackathon.title} – Innovation Hackathon banner poster by DevUp Ecosystem`}
-              fill
-              sizes="(max-width: 768px) 100vw, 480px"
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-              priority
-              fetchPriority="high"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-[#111111] via-[#111111]/20 to-transparent md:from-[#111111] md:via-[#111111]/40 md:to-transparent" />
-          </div>
-
-          {/* Hero content */}
-          <div className="relative p-8 md:p-12 flex-1 flex flex-col justify-center z-10 bg-[#111111]">
-            <div className="flex flex-wrap gap-2 mb-6">
-              <span
-                className="px-3 py-1 bg-[rgba(200,241,53,0.15)] border border-[rgba(200,241,53,0.3)] text-[#c8f135] rounded-full"
-                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", fontWeight: 600, letterSpacing: "0.05em" }}
-              >
-                {prettyMode(hackathon.mode)}
-              </span>
-              {hackathon.isFeatured && (
+            {/* Hero content */}
+            <div className="relative p-8 md:p-12 flex-1 flex flex-col justify-center z-10 bg-[#111111]">
+              <div className="flex flex-wrap gap-2 mb-6">
                 <span
-                  className="px-3 py-1 bg-[rgba(167,139,250,0.1)] border border-[rgba(167,139,250,0.3)] text-[#a78bfa] rounded-full"
-                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", fontWeight: 600 }}
+                  className="px-3 py-1 bg-[rgba(200,241,53,0.15)] border border-[rgba(200,241,53,0.3)] text-[#c8f135] rounded-full"
+                  style={{
+                    fontFamily: "var(--font-inter), sans-serif",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    letterSpacing: "0.05em",
+                  }}
                 >
-                  FEATURED
+                  {prettyMode(hackathon.mode)}
                 </span>
+                {hackathon.isFeatured && (
+                  <span
+                    className="px-3 py-1 bg-[rgba(167,139,250,0.1)] border border-[rgba(167,139,250,0.3)] text-[#a78bfa] rounded-full"
+                    style={{
+                      fontFamily: "var(--font-inter), sans-serif",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    FEATURED
+                  </span>
+                )}
+              </div>
+
+              <h1
+                className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
+                style={{
+                  fontFamily: "var(--font-syne), sans-serif",
+                  lineHeight: 1.1,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {hackathon.title}
+              </h1>
+              <h2
+                className="text-lg md:text-xl text-[#c8f135] font-semibold mb-2"
+                style={{ fontFamily: "var(--font-syne), sans-serif" }}
+              >
+                Building Asia&apos;s Largest Innovation Hackathon
+              </h2>
+              <p
+                className="text-sm text-[#888] italic mb-4"
+                style={{ fontFamily: "var(--font-inter), sans-serif" }}
+              >
+                Where Innovation Meets Opportunity
+              </p>
+              <p
+                className="text-base md:text-lg text-[#a1a1a1] mb-8 max-w-2xl"
+                style={{ fontFamily: "var(--font-inter), sans-serif" }}
+              >
+                {subtitle}
+              </p>
+
+              {id === "9298523b-88d7-4512-81a3-9624faf8baa8" && (
+                <div className="mt-4 p-4 bg-[#0d0d0d] border border-[#c8f135]/10 rounded-xl max-w-2xl">
+                  <h3 className="text-sm font-semibold text-[#c8f135]">
+                    Important Update
+                  </h3>
+                  <p className="text-sm text-[#d0d0d0] mt-2">
+                    We understand that many of you have requested a change in
+                    the schedule due to exams and other academic commitments. We
+                    genuinely value your participation, so we are considering
+                    the schedule accordingly to ensure everyone gets a fair
+                    opportunity to be part of it.
+                  </p>
+                  <p className="text-sm text-[#d0d0d0] mt-2">
+                    DevUp will also be conducting two more major activities this
+                    month — the Founder Meet on 29th and another event that will
+                    be announced shortly.
+                  </p>
+                  <p className="text-sm text-[#bfbfbf] mt-3">
+                    The final schedule will be communicated officially. Thank
+                    you for your understanding and continued support. 🚀
+                  </p>
+                  <p className="text-sm text-[#c8f135] mt-3 font-semibold">
+                    DevUp Ecosystem
+                    <br />
+                    Building People. Products. Possibilities.
+                  </p>
+                </div>
+              )}
+
+              <div
+                className="flex flex-wrap items-center gap-6 text-sm text-[#e4e4e4] bg-white/5 border border-white/10 rounded-2xl p-5"
+                style={{ fontFamily: "var(--font-inter), sans-serif" }}
+              >
+                <div className="flex flex-col gap-1">
+                  <span className="text-[#888] text-xs">Prize Pool</span>
+                  <span className="flex items-center gap-1.5 font-semibold text-[#c8f135]">
+                    <Trophy className="w-4 h-4" /> {hackathon.prizePool}
+                  </span>
+                </div>
+                <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[#888] text-xs">Dates</span>
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Calendar className="w-4 h-4 text-[#c8f135]" /> {startDate}{" "}
+                    – {endDate}
+                  </span>
+                </div>
+                <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
+                {displayLocation && (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[#888] text-xs">Location</span>
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <MapPin className="w-4 h-4 text-[#c8f135]" />{" "}
+                      {displayLocation}
+                    </span>
+                  </div>
+                )}
+                {hackathon.registrationFee && (
+                  <>
+                    <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[#888] text-xs">
+                        Registration Fee
+                      </span>
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <Ticket className="w-4 h-4 text-[#c8f135]" />{" "}
+                        {hackathon.registrationFee}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {id === "f40eb44c-138c-4b86-86bd-2da45ae60b3a" && (
+                <div className="mt-8 flex flex-wrap gap-4">
+                  <a
+                    href="/devthon-problem-statements.pdf"
+                    download="DEVTHON_2026_Problem_Statements.pdf"
+                    className="inline-flex items-center gap-2 h-[48px] px-6 bg-[#c8f135]/10 border border-[#c8f135]/30 text-[#c8f135] font-bold rounded-xl hover:bg-[#c8f135]/20 transition-all"
+                    style={{
+                      fontFamily: "var(--font-inter), sans-serif",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <Download className="w-4 h-4" /> Official Problem Statement
+                    Book
+                  </a>
+                </div>
+              )}
+
+              {/* Presented By Strip */}
+              {hackathon.partners && hackathon.partners.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-white/5">
+                  <div
+                    style={{
+                      fontFamily: "var(--font-inter), sans-serif",
+                      fontSize: "10px",
+                      color: "#6b6b6b",
+                      letterSpacing: "0.15em",
+                      marginBottom: "12px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    PRESENTED BY
+                  </div>
+                  <div className="flex flex-wrap gap-4 items-center">
+                    {hackathon.partners.map((p: any) => (
+                      <div
+                        key={p.id}
+                        className="group relative flex items-center justify-center w-12 h-12 rounded-[14px] bg-[#1a1a1a] border border-white/5 hover:border-[#c8f135]/30 hover:bg-[#222] transition-all cursor-pointer"
+                      >
+                        {p.logoUrl ? (
+                          <img
+                            src={p.logoUrl}
+                            alt={p.name}
+                            className="w-8 h-8 object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
+                          />
+                        ) : (
+                          <span
+                            className="text-xs font-bold text-gray-500 group-hover:text-[#c8f135] transition-colors"
+                            style={{
+                              fontFamily: "var(--font-syne), sans-serif",
+                            }}
+                          >
+                            {p.name.substring(0, 2).toUpperCase()}
+                          </span>
+                        )}
+                        {/* Tooltip */}
+                        <div className="absolute -top-10 bg-[#222] border border-white/10 text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none text-[#e4e4e4] shadow-xl">
+                          {p.name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
+          </div>
+        </motion.section>
 
-            <h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
-              style={{ fontFamily: "var(--font-syne), sans-serif", lineHeight: 1.1, letterSpacing: "-0.02em" }}
-            >
-              {hackathon.title}
-            </h1>
-            <h2 className="text-lg md:text-xl text-[#c8f135] font-semibold mb-2" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-              Building Asia&apos;s Largest Innovation Hackathon
-            </h2>
-            <p className="text-sm text-[#888] italic mb-4" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-              Where Innovation Meets Opportunity
-            </p>
-            <p className="text-base md:text-lg text-[#a1a1a1] mb-8 max-w-2xl" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-              {subtitle}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-6 text-sm text-[#e4e4e4] bg-white/5 border border-white/10 rounded-2xl p-5" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-              <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Prize Pool</span><span className="flex items-center gap-1.5 font-semibold text-[#c8f135]"><Trophy className="w-4 h-4" /> {hackathon.prizePool}</span></div>
-              <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
-              <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Dates</span><span className="flex items-center gap-1.5 font-medium"><Calendar className="w-4 h-4 text-[#c8f135]" /> {startDate} – {endDate}</span></div>
-              <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
-              {displayLocation && (
-                <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Location</span><span className="flex items-center gap-1.5 font-medium"><MapPin className="w-4 h-4 text-[#c8f135]" /> {displayLocation}</span></div>
-              )}
-              {hackathon.registrationFee && (
-                <>
-                  <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
-                  <div className="flex flex-col gap-1"><span className="text-[#888] text-xs">Registration Fee</span><span className="flex items-center gap-1.5 font-medium"><Ticket className="w-4 h-4 text-[#c8f135]" /> {hackathon.registrationFee}</span></div>
-                </>
-              )}
+        {/* ─── COUNTDOWN ─── */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+          className="max-w-7xl mx-auto px-4 md:px-8 mt-8"
+        >
+          <div className="bg-[#111] border border-white/5 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <p
+                className="text-xs text-[#6b6b6b] uppercase tracking-widest mb-1"
+                style={{ fontFamily: "var(--font-inter), sans-serif" }}
+              >
+                {isClosed ? "Registration closed" : "Registration closes in"}
+              </p>
+              <div className="flex items-center gap-2 sm:gap-3">
+                {(["days", "hours", "minutes", "seconds"] as const).map(
+                  (unit, i) => (
+                    <div
+                      key={unit}
+                      className="flex items-center gap-2 sm:gap-3"
+                    >
+                      <div className="text-center">
+                        <div
+                          className="w-[clamp(46px,15vw,60px)] h-[clamp(46px,15vw,60px)] bg-[#0a0a0a] border border-white/10 rounded-xl flex items-center justify-center"
+                          style={{
+                            fontFamily: "var(--font-syne), sans-serif",
+                            fontSize: "clamp(20px, 6vw, 28px)",
+                            fontWeight: 700,
+                            color: "#fff",
+                          }}
+                        >
+                          {countdown[unit].toString().padStart(2, "0")}
+                        </div>
+                        <span className="text-[10px] text-[#6b6b6b] mt-1 block uppercase">
+                          {unit}
+                        </span>
+                      </div>
+                      {i < 3 && (
+                        <span className="text-[#4a4a4a] text-lg sm:text-xl pb-5">
+                          :
+                        </span>
+                      )}
+                    </div>
+                  ),
+                )}
+              </div>
             </div>
-
-            {id === 'f40eb44c-138c-4b86-86bd-2da45ae60b3a' && (
-              <div className="mt-8 flex flex-wrap gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              {id === "f40eb44c-138c-4b86-86bd-2da45ae60b3a" && (
                 <a
                   href="/devthon-problem-statements.pdf"
                   download="DEVTHON_2026_Problem_Statements.pdf"
-                  className="inline-flex items-center gap-2 h-[48px] px-6 bg-[#c8f135]/10 border border-[#c8f135]/30 text-[#c8f135] font-bold rounded-xl hover:bg-[#c8f135]/20 transition-all"
-                  style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}
+                  className="h-[52px] px-8 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                  style={{
+                    fontFamily: "var(--font-inter), sans-serif",
+                    fontSize: "15px",
+                  }}
                 >
-                  <Download className="w-4 h-4" /> Official Problem Statement Book
+                  <Download className="w-5 h-5" /> Problem Statements
                 </a>
-              </div>
-            )}
-
-            {/* Presented By Strip */}
-            {hackathon.partners && hackathon.partners.length > 0 && (
-              <div className="mt-8 pt-6 border-t border-white/5">
-                <div style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "10px", color: "#6b6b6b", letterSpacing: "0.15em", marginBottom: "12px", fontWeight: 600 }}>
-                  PRESENTED BY
-                </div>
-                <div className="flex flex-wrap gap-4 items-center">
-                  {hackathon.partners.map((p: any) => (
-                    <div key={p.id} className="group relative flex items-center justify-center w-12 h-12 rounded-[14px] bg-[#1a1a1a] border border-white/5 hover:border-[#c8f135]/30 hover:bg-[#222] transition-all cursor-pointer">
-                      {p.logoUrl ? (
-                        <img 
-                          src={p.logoUrl} 
-                          alt={p.name} 
-                          className="w-8 h-8 object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300" 
-                        />
-                      ) : (
-                        <span className="text-xs font-bold text-gray-500 group-hover:text-[#c8f135] transition-colors" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-                          {p.name.substring(0, 2).toUpperCase()}
-                        </span>
-                      )}
-                      {/* Tooltip */}
-                      <div className="absolute -top-10 bg-[#222] border border-white/10 text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none text-[#e4e4e4] shadow-xl">
-                        {p.name}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ─── COUNTDOWN ─── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.5 }}
-        className="max-w-7xl mx-auto px-4 md:px-8 mt-8"
-      >
-        <div className="bg-[#111] border border-white/5 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <p className="text-xs text-[#6b6b6b] uppercase tracking-widest mb-1" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-              {isClosed ? "Registration closed" : "Registration closes in"}
-            </p>
-            <div className="flex items-center gap-2 sm:gap-3">
-              {(["days", "hours", "minutes", "seconds"] as const).map((unit, i) => (
-                <div key={unit} className="flex items-center gap-2 sm:gap-3">
-                  <div className="text-center">
-                    <div
-                      className="w-[clamp(46px,15vw,60px)] h-[clamp(46px,15vw,60px)] bg-[#0a0a0a] border border-white/10 rounded-xl flex items-center justify-center"
-                      style={{ fontFamily: "var(--font-syne), sans-serif", fontSize: "clamp(20px, 6vw, 28px)", fontWeight: 700, color: "#fff" }}
-                    >
-                      {countdown[unit].toString().padStart(2, "0")}
-                    </div>
-                    <span className="text-[10px] text-[#6b6b6b] mt-1 block uppercase">{unit}</span>
-                  </div>
-                  {i < 3 && <span className="text-[#4a4a4a] text-lg sm:text-xl pb-5">:</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4">
-            {id === 'f40eb44c-138c-4b86-86bd-2da45ae60b3a' && (
-              <a
-                href="/devthon-problem-statements.pdf"
-                download="DEVTHON_2026_Problem_Statements.pdf"
-                className="h-[52px] px-8 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
-              >
-                <Download className="w-5 h-5" /> Problem Statements
-              </a>
-            )}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => setShowStatus(true)}
-                className="h-[52px] px-10 border border-[#c8f135] text-[#c8f135] bg-[#c8f135]/10 font-bold rounded-xl hover:bg-[#c8f135]/20 transition-all hover:scale-105"
-                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
-              >
-                Check Phase 1 Status
-              </button>
-              <button
-                onClick={openRegister}
-                disabled={isClosed}
-                className="h-[52px] px-10 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-[#c8f135]"
-                style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
-              >
-                {isClosed ? "Closed" : "Register Now"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </motion.section>
-
-            {/* ─── TWO WAYS TO COMPETE ─── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-        className="max-w-7xl mx-auto px-4 md:px-8 mt-16 relative"
-      >
-        
-        <div className="relative z-10 mb-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-            Your Mission
-          </h2>
-        </div>
-
-        <div className="max-w-3xl mx-auto relative z-10">
-          <div className="bg-[#111] border border-white/5 rounded-2xl p-6 md:p-8 group hover:border-white/15 transition-colors">
-            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 text-2xl">
-              <Rocket className="w-6 h-6 text-[#38bdf8]" />
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-syne), sans-serif" }}>Pitch Your Own Problem Statement</h3>
-            <p className="text-[#a1a1a1] leading-relaxed mb-6" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-              Have a disruptive idea? Pitch your own problem statement during Phase 1. If selected, you get to build your vision and compete for massive funding.
-            </p>
-            <ul className="space-y-3">
-              <li className="flex items-center gap-3 text-sm text-[#e4e4e4]"><div className="w-1.5 h-1.5 rounded-full bg-[#c8f135]" /> Pre-approval required (Phase 1)</li>
-              <li className="flex items-center gap-3 text-sm text-[#e4e4e4]"><div className="w-1.5 h-1.5 rounded-full bg-[#c8f135]" /> Pitch to angel investors</li>
-              <li className="flex items-center gap-3 text-sm text-[#e4e4e4]"><div className="w-1.5 h-1.5 rounded-full bg-[#c8f135]" /> Up to ₹4 Cr seed funding</li>
-            </ul>
-          </div>
-        </div>
-      </motion.section>
-
-{/* ─── OVERVIEW ─── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-        className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
-      >
-        <h2 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-          Overview
-        </h2>
-        <div className="bg-[#111] border border-white/5 rounded-2xl p-6 md:p-8">
-          <p className="text-[#a1a1a1] leading-relaxed whitespace-pre-line" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px" }}>
-            {overview}
-          </p>
-        </div>
-      </motion.section>
-
-            {/* ─── DOMAINS ─── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.5 }}
-        className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
-        aria-labelledby="domains-heading"
-      >
-                <h2 id="domains-heading" className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-          Innovation Domains
-        </h2>
-        <p className="text-sm text-[#a1a1a1] mb-6" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-          Compete across 36 innovation domains spanning AI, Cybersecurity, Blockchain, HealthTech, SpaceTech, and more.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {domains.map((d, i) => (
-            <motion.div
-              key={`${d.label}-${i}`}
-              whileHover={{ scale: 1.03, y: -2 }}
-              className="bg-[#111] border border-white/5 rounded-xl p-4 group hover:border-white/15 transition-all"
-            >
-              <div
-                className="w-2 h-2 rounded-full mb-3"
-                style={{ background: d.color || DOMAIN_COLORS[i % DOMAIN_COLORS.length] }}
-              />
-              <h3 className="text-sm font-semibold text-white mb-1" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-                {d.label}
-              </h3>
-              {d.sub && (
-                <p className="text-xs text-[#6b6b6b]" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-                  {d.sub}
-                </p>
               )}
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
-
-      {/* ─── TIMELINE ─── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-        className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
-      >
-                <h2 className="text-xs text-[#c8f135] uppercase tracking-[0.2em] font-bold mb-2 text-center">
-          Mission Log
-        </h2>
-        <h2 className="text-3xl font-bold text-white mb-12 text-center" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-          Event Timeline
-        </h2>
-        <div className="space-y-16 max-w-4xl mx-auto relative before:absolute before:inset-0 before:ml-[28px] md:before:mx-auto md:before:translate-x-0 before:h-full before:w-[1px] before:bg-gradient-to-b before:from-transparent before:via-[#c8f135]/30 before:to-transparent">
-          {timeline.map((day: TimelineDay, dayIndex: number) => (
-            <div key={day.label} className="relative z-10">
-              <div className="flex flex-col md:flex-row items-center gap-3 mb-10 text-center">
-                <div className="w-full md:w-1/2 flex justify-end md:pr-12">
-                   <span className="px-4 py-1.5 bg-[#111827] border border-[#374151] text-white rounded-full text-sm font-bold tracking-[0.1em] shadow-[0_0_15px_rgba(200,241,53,0.1)]">
-                     {day.label} — {day.date}
-                   </span>
-                </div>
-                <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#c8f135] shadow-[0_0_15px_#c8f135]" />
-                <div className="w-full md:w-1/2 flex justify-start md:pl-12">
-                   <span className="text-lg text-[#a1a1a1]" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-                     {day.subtitle}
-                   </span>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                {day.slots.map((slot, i) => {
-                  const isLeft = i % 2 === 0;
-                  return (
-                  <motion.div
-                    key={slot.time}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ delay: i * 0.1 }}
-                    className={`relative flex flex-col md:flex-row items-center justify-between group ${isLeft ? "md:flex-row-reverse" : ""}`}
-                  >
-                    <div className="w-full md:w-5/12 hidden md:block" />
-                    
-                    {/* Constellation Node */}
-                    <div className="absolute left-[28px] md:left-1/2 -translate-x-1/2 w-[11px] h-[11px] rounded-full bg-[#0a0a0a] border-2 border-[#c8f135]/50 group-hover:border-[#c8f135] group-hover:scale-150 transition-all z-10 shadow-[0_0_10px_rgba(200,241,53,0.3)]" />
-                    
-                    {/* Horizontal Connector Line on Desktop */}
-                    <div className={`hidden md:block absolute top-1/2 -translate-y-1/2 w-[8%] h-[1px] bg-dashed border-t border-white/20 ${isLeft ? 'right-[50%] mr-3' : 'left-[50%] ml-3'}`} />
-
-                    <div className={`w-full md:w-5/12 pl-16 md:pl-0 ${isLeft ? 'md:pr-8 md:text-right' : 'md:pl-8 md:text-left'}`}>
-                      <div className="bg-[#111] backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-[#c8f135]/40 transition-colors shadow-lg">
-                        <div className={`flex items-start gap-4 ${isLeft ? 'md:flex-row-reverse' : ''}`}>
-                          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl shadow-inner">
-                            {slot.icon}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="text-base font-bold text-white mb-1 tracking-wide" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-                              {slot.title}
-                            </h4>
-                            <div className={`text-xs text-[#c8f135] font-mono mb-2 ${isLeft ? 'md:justify-end' : ''} flex`}>{slot.time}</div>
-                            <p className="text-sm text-[#888] leading-relaxed" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-                              {slot.description}
-                            </p>
-                          </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                {isLocked ? (
+                  <div className="flex items-center gap-4">
+                    <div className="p-4 bg-[#0d0d0d] border border-white/5 rounded-xl flex items-center gap-3">
+                      <Lock className="w-6 h-6 text-[#c8f135]" />
+                      <div>
+                        <div className="text-sm font-semibold text-[#c8f135]">
+                          Important Update
+                        </div>
+                        <div className="text-xs text-[#d0d0d0] max-w-sm">
+                          We are considering the schedule due to exams and
+                          academic commitments. Final schedule will be announced
+                          officially. Thank you for your understanding and
+                          continued support. 🚀
                         </div>
                       </div>
                     </div>
-                  </motion.div>
-                )})}
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setShowStatus(true)}
+                      className="h-[52px] px-10 border border-[#c8f135] text-[#c8f135] bg-[#c8f135]/10 font-bold rounded-xl hover:bg-[#c8f135]/20 transition-all hover:scale-105"
+                      style={{
+                        fontFamily: "var(--font-inter), sans-serif",
+                        fontSize: "15px",
+                      }}
+                    >
+                      Check Phase 1 Status
+                    </button>
+                    <button
+                      onClick={openRegister}
+                      disabled={isClosed}
+                      className="h-[52px] px-10 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-[#c8f135]"
+                      style={{
+                        fontFamily: "var(--font-inter), sans-serif",
+                        fontSize: "15px",
+                      }}
+                    >
+                      {isClosed ? "Closed" : "Register Now"}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
-          ))}
-        </div>
-      </motion.section>
+          </div>
+        </motion.section>
 
-      {/* ─── REWARDS & PERKS ─── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35, duration: 0.5 }}
-        className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
-      >
-        <h2 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-          Rewards, Career & Swag
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {perks.map((p: { icon?: string; title: string; desc?: string }, i: number) => (
-            <motion.div
-              key={`${p.title}-${i}`}
-              whileHover={{ scale: 1.02 }}
-              className="bg-[#111] border border-white/5 rounded-xl p-5 hover:border-[#c8f135]/20 transition-all"
+        {/* ─── TWO WAYS TO COMPETE ─── */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="max-w-7xl mx-auto px-4 md:px-8 mt-16 relative"
+        >
+          <div className="relative z-10 mb-8 text-center">
+            <h2
+              className="text-2xl font-bold text-white mb-4"
+              style={{ fontFamily: "var(--font-syne), sans-serif" }}
             >
-              <span className="text-2xl mb-3 block">{p.icon || "🎁"}</span>
-              <h3 className="text-sm font-semibold text-white mb-1" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-                {p.title}
-              </h3>
-              <p className="text-xs text-[#6b6b6b]" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-                {p.desc}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
+              Your Mission
+            </h2>
+          </div>
 
-      {/* ─── LOGISTICS ─── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-        className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
-      >
-        <h2 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-          Logistics & Facilities
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {logistics.map((l: { icon?: string; label: string; desc?: string }, i: number) => {
-            const Icon = LOGISTICS_ICONS[(l.icon || "").toLowerCase()] ?? Shield;
-            return (
-              <div key={`${l.label}-${i}`} className="bg-[#111] border border-white/5 rounded-xl p-5">
-                <Icon className="w-5 h-5 text-[#c8f135] mb-3" />
-                <h3 className="text-sm font-semibold text-white mb-1" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-                  {l.label}
-                </h3>
-                <p className="text-xs text-[#6b6b6b]" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-                  {l.desc}
-                </p>
+          <div className="max-w-3xl mx-auto relative z-10">
+            <div className="bg-[#111] border border-white/5 rounded-2xl p-6 md:p-8 group hover:border-white/15 transition-colors">
+              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 text-2xl">
+                <Rocket className="w-6 h-6 text-[#38bdf8]" />
               </div>
-            );
-          })}
-        </div>
-      </motion.section>
+              <h3
+                className="text-2xl font-bold text-white mb-4"
+                style={{ fontFamily: "var(--font-syne), sans-serif" }}
+              >
+                Pitch Your Own Problem Statement
+              </h3>
+              <p
+                className="text-[#a1a1a1] leading-relaxed mb-6"
+                style={{ fontFamily: "var(--font-inter), sans-serif" }}
+              >
+                Have a disruptive idea? Pitch your own problem statement during
+                Phase 1. If selected, you get to build your vision and compete
+                for massive funding.
+              </p>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-3 text-sm text-[#e4e4e4]">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#c8f135]" />{" "}
+                  Pre-approval required (Phase 1)
+                </li>
+                <li className="flex items-center gap-3 text-sm text-[#e4e4e4]">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#c8f135]" />{" "}
+                  Pitch to angel investors
+                </li>
+                <li className="flex items-center gap-3 text-sm text-[#e4e4e4]">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#c8f135]" /> Up
+                  to ₹4 Cr seed funding
+                </li>
+              </ul>
+            </div>
+          </div>
+        </motion.section>
 
-      {/* ─── FAQ (SEO) ─── */}
-      <HackathonFAQ hackathon={hackathon} />
-
-      {/* ─── STRUCTURED DATA ─── */}
-      <HackathonSchema hackathon={hackathon} />
-      <BreadcrumbSchema
-        hackathonName={hackathon.title}
-        hackathonId={id}
-      />
-
-      {/* ─── BOTTOM SPACER (extra room on mobile for raised CTA + bottom-nav) ─── */}
-      <div className="h-44 md:h-32" />
-
-      {/* ─── STICKY CTA (sits above the global mobile bottom-nav on small screens) ─── */}
-      <div className="fixed bottom-[calc(64px+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-transparent pb-4 pt-8 px-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="hidden md:block">
-            <p className="text-white font-semibold text-sm" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
-              {hackathon.title}
+        {/* ─── OVERVIEW ─── */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
+        >
+          <h2
+            className="text-2xl font-bold text-white mb-4"
+            style={{ fontFamily: "var(--font-syne), sans-serif" }}
+          >
+            Overview
+          </h2>
+          <div className="bg-[#111] border border-white/5 rounded-2xl p-6 md:p-8">
+            <p
+              className="text-[#a1a1a1] leading-relaxed whitespace-pre-line"
+              style={{
+                fontFamily: "var(--font-inter), sans-serif",
+                fontSize: "14px",
+              }}
+            >
+              {overview}
             </p>
-            <p className="text-xs text-[#6b6b6b]">{startDate} – {endDate}{hackathon.location ? ` · ${hackathon.location}` : ""}</p>
           </div>
-          <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
-            <button
-              onClick={() => setShowStatus(true)}
-              className="flex-1 md:flex-none h-[52px] px-6 border border-[#c8f135] text-[#c8f135] bg-[#0d0d0d] font-bold rounded-xl hover:bg-[#1a1a1a] transition-all flex items-center justify-center gap-2"
-              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
-            >
-              Check Status
-            </button>
-            <button
-              onClick={openRegister}
-              disabled={isClosed}
-              className="flex-1 md:flex-none h-[52px] px-8 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#c8f135]"
-              style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "15px" }}
-            >
-              {isClosed ? "Closed" : "Register Now"}
-              {!isClosed && <ChevronRight className="w-4 h-4 hidden sm:block" />}
-            </button>
+        </motion.section>
+
+        {/* ─── DOMAINS ─── */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25, duration: 0.5 }}
+          className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
+          aria-labelledby="domains-heading"
+        >
+          <h2
+            id="domains-heading"
+            className="text-2xl font-bold text-white mb-2"
+            style={{ fontFamily: "var(--font-syne), sans-serif" }}
+          >
+            Innovation Domains
+          </h2>
+          <p
+            className="text-sm text-[#a1a1a1] mb-6"
+            style={{ fontFamily: "var(--font-inter), sans-serif" }}
+          >
+            Compete across 36 innovation domains spanning AI, Cybersecurity,
+            Blockchain, HealthTech, SpaceTech, and more.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {domains.map((d, i) => (
+              <motion.div
+                key={`${d.label}-${i}`}
+                whileHover={{ scale: 1.03, y: -2 }}
+                className="bg-[#111] border border-white/5 rounded-xl p-4 group hover:border-white/15 transition-all"
+              >
+                <div
+                  className="w-2 h-2 rounded-full mb-3"
+                  style={{
+                    background:
+                      d.color || DOMAIN_COLORS[i % DOMAIN_COLORS.length],
+                  }}
+                />
+                <h3
+                  className="text-sm font-semibold text-white mb-1"
+                  style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                >
+                  {d.label}
+                </h3>
+                {d.sub && (
+                  <p
+                    className="text-xs text-[#6b6b6b]"
+                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                  >
+                    {d.sub}
+                  </p>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* ─── TIMELINE ─── */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
+        >
+          <h2 className="text-xs text-[#c8f135] uppercase tracking-[0.2em] font-bold mb-2 text-center">
+            Mission Log
+          </h2>
+          <h2
+            className="text-3xl font-bold text-white mb-12 text-center"
+            style={{ fontFamily: "var(--font-syne), sans-serif" }}
+          >
+            Event Timeline
+          </h2>
+          <div className="space-y-16 max-w-4xl mx-auto relative before:absolute before:inset-0 before:ml-[28px] md:before:mx-auto md:before:translate-x-0 before:h-full before:w-[1px] before:bg-gradient-to-b before:from-transparent before:via-[#c8f135]/30 before:to-transparent">
+            {timeline.map((day: TimelineDay, dayIndex: number) => (
+              <div key={day.label} className="relative z-10">
+                <div className="flex flex-col md:flex-row items-center gap-3 mb-10 text-center">
+                  <div className="w-full md:w-1/2 flex justify-end md:pr-12">
+                    <span className="px-4 py-1.5 bg-[#111827] border border-[#374151] text-white rounded-full text-sm font-bold tracking-[0.1em] shadow-[0_0_15px_rgba(200,241,53,0.1)]">
+                      {day.label} — {day.date}
+                    </span>
+                  </div>
+                  <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#c8f135] shadow-[0_0_15px_#c8f135]" />
+                  <div className="w-full md:w-1/2 flex justify-start md:pl-12">
+                    <span
+                      className="text-lg text-[#a1a1a1]"
+                      style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                    >
+                      {day.subtitle}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {day.slots.map((slot, i) => {
+                    const isLeft = i % 2 === 0;
+                    return (
+                      <motion.div
+                        key={slot.time}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        transition={{ delay: i * 0.1 }}
+                        className={`relative flex flex-col md:flex-row items-center justify-between group ${isLeft ? "md:flex-row-reverse" : ""}`}
+                      >
+                        <div className="w-full md:w-5/12 hidden md:block" />
+
+                        {/* Constellation Node */}
+                        <div className="absolute left-[28px] md:left-1/2 -translate-x-1/2 w-[11px] h-[11px] rounded-full bg-[#0a0a0a] border-2 border-[#c8f135]/50 group-hover:border-[#c8f135] group-hover:scale-150 transition-all z-10 shadow-[0_0_10px_rgba(200,241,53,0.3)]" />
+
+                        {/* Horizontal Connector Line on Desktop */}
+                        <div
+                          className={`hidden md:block absolute top-1/2 -translate-y-1/2 w-[8%] h-[1px] bg-dashed border-t border-white/20 ${isLeft ? "right-[50%] mr-3" : "left-[50%] ml-3"}`}
+                        />
+
+                        <div
+                          className={`w-full md:w-5/12 pl-16 md:pl-0 ${isLeft ? "md:pr-8 md:text-right" : "md:pl-8 md:text-left"}`}
+                        >
+                          <div className="bg-[#111] backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-[#c8f135]/40 transition-colors shadow-lg">
+                            <div
+                              className={`flex items-start gap-4 ${isLeft ? "md:flex-row-reverse" : ""}`}
+                            >
+                              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl shadow-inner">
+                                {slot.icon}
+                              </div>
+                              <div className="flex-1">
+                                <h4
+                                  className="text-base font-bold text-white mb-1 tracking-wide"
+                                  style={{
+                                    fontFamily: "var(--font-syne), sans-serif",
+                                  }}
+                                >
+                                  {slot.title}
+                                </h4>
+                                <div
+                                  className={`text-xs text-[#c8f135] font-mono mb-2 ${isLeft ? "md:justify-end" : ""} flex`}
+                                >
+                                  {slot.time}
+                                </div>
+                                <p
+                                  className="text-sm text-[#888] leading-relaxed"
+                                  style={{
+                                    fontFamily: "var(--font-inter), sans-serif",
+                                  }}
+                                >
+                                  {slot.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* ─── REWARDS & PERKS ─── */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.5 }}
+          className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
+        >
+          <h2
+            className="text-2xl font-bold text-white mb-4"
+            style={{ fontFamily: "var(--font-syne), sans-serif" }}
+          >
+            Rewards, Career & Swag
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {perks.map(
+              (
+                p: { icon?: string; title: string; desc?: string },
+                i: number,
+              ) => (
+                <motion.div
+                  key={`${p.title}-${i}`}
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-[#111] border border-white/5 rounded-xl p-5 hover:border-[#c8f135]/20 transition-all"
+                >
+                  <span className="text-2xl mb-3 block">{p.icon || "🎁"}</span>
+                  <h3
+                    className="text-sm font-semibold text-white mb-1"
+                    style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                  >
+                    {p.title}
+                  </h3>
+                  <p
+                    className="text-xs text-[#6b6b6b]"
+                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                  >
+                    {p.desc}
+                  </p>
+                </motion.div>
+              ),
+            )}
+          </div>
+        </motion.section>
+
+        {/* ─── LOGISTICS ─── */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="max-w-7xl mx-auto px-4 md:px-8 mt-12"
+        >
+          <h2
+            className="text-2xl font-bold text-white mb-4"
+            style={{ fontFamily: "var(--font-syne), sans-serif" }}
+          >
+            Logistics & Facilities
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {logistics.map(
+              (
+                l: { icon?: string; label: string; desc?: string },
+                i: number,
+              ) => {
+                const Icon =
+                  LOGISTICS_ICONS[(l.icon || "").toLowerCase()] ?? Shield;
+                return (
+                  <div
+                    key={`${l.label}-${i}`}
+                    className="bg-[#111] border border-white/5 rounded-xl p-5"
+                  >
+                    <Icon className="w-5 h-5 text-[#c8f135] mb-3" />
+                    <h3
+                      className="text-sm font-semibold text-white mb-1"
+                      style={{ fontFamily: "var(--font-syne), sans-serif" }}
+                    >
+                      {l.label}
+                    </h3>
+                    <p
+                      className="text-xs text-[#6b6b6b]"
+                      style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                    >
+                      {l.desc}
+                    </p>
+                  </div>
+                );
+              },
+            )}
+          </div>
+        </motion.section>
+
+        {/* ─── FAQ (SEO) ─── */}
+        <HackathonFAQ hackathon={hackathon} />
+
+        {/* ─── STRUCTURED DATA ─── */}
+        <HackathonSchema hackathon={hackathon} />
+        <BreadcrumbSchema hackathonName={hackathon.title} hackathonId={id} />
+
+        {/* ─── BOTTOM SPACER (extra room on mobile for raised CTA + bottom-nav) ─── */}
+        <div className="h-44 md:h-32" />
+
+        {/* ─── STICKY CTA (sits above the global mobile bottom-nav on small screens) ─── */}
+        <div className="fixed bottom-[calc(64px+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-transparent pb-4 pt-8 px-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="hidden md:block">
+              <p
+                className="text-white font-semibold text-sm"
+                style={{ fontFamily: "var(--font-syne), sans-serif" }}
+              >
+                {hackathon.title}
+              </p>
+              <p className="text-xs text-[#6b6b6b]">
+                {startDate} – {endDate}
+                {hackathon.location ? ` · ${hackathon.location}` : ""}
+              </p>
+            </div>
+            <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
+              {isLocked ? (
+                <div className="flex-1 md:flex-none h-[52px] px-6 border border-white/5 bg-[#0d0d0d] text-[#d0d0d0] rounded-xl flex items-center justify-center gap-2">
+                  <Lock className="w-5 h-5 text-[#c8f135]" />
+                  <span className="font-semibold text-[#c8f135]">
+                    Important Update
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setShowStatus(true)}
+                    className="flex-1 md:flex-none h-[52px] px-6 border border-[#c8f135] text-[#c8f135] bg-[#0d0d0d] font-bold rounded-xl hover:bg-[#1a1a1a] transition-all flex items-center justify-center gap-2"
+                    style={{
+                      fontFamily: "var(--font-inter), sans-serif",
+                      fontSize: "15px",
+                    }}
+                  >
+                    Check Status
+                  </button>
+                  <button
+                    onClick={openRegister}
+                    disabled={isClosed}
+                    className="flex-1 md:flex-none h-[52px] px-8 bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#c8f135]"
+                    style={{
+                      fontFamily: "var(--font-inter), sans-serif",
+                      fontSize: "15px",
+                    }}
+                  >
+                    {isClosed ? "Closed" : "Register Now"}
+                    {!isClosed && (
+                      <ChevronRight className="w-4 h-4 hidden sm:block" />
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ─── REGISTER MODAL ─── */}
-      <RegisterModal
-        isOpen={showRegister}
-        onClose={() => setShowRegister(false)}
-        hackathonId={id}
-        registrationLink={hackathon.registrationLink}
-      />
+        {/* ─── REGISTER MODAL ─── */}
+        {!isLocked && (
+          <>
+            <RegisterModal
+              isOpen={showRegister}
+              onClose={() => setShowRegister(false)}
+              hackathonId={id}
+              registrationLink={hackathon.registrationLink}
+            />
 
-      <StatusModal
-        isOpen={showStatus}
-        onClose={() => setShowStatus(false)}
-        hackathonId={id}
-      />
+            <StatusModal
+              isOpen={showStatus}
+              onClose={() => setShowStatus(false)}
+              hackathonId={id}
+            />
+          </>
+        )}
+        {/* Announcement modal for locked DevThon */}
+        {showAnnouncement && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => {
+                setShowAnnouncement(false);
+                sessionStorage.setItem("devthonAnnouncementShown", "1");
+              }}
+            />
+            <div className="relative w-full max-w-2xl bg-gradient-to-b from-[#0b0b0b] to-[#090909] border border-white/6 rounded-2xl p-6 z-60 shadow-xl">
+              <div className="flex items-start gap-4">
+                <div className="p-3 rounded-lg bg-[#0f0f0f] border border-white/6 flex items-center justify-center">
+                  <Lock className="w-7 h-7 text-[#c8f135]" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-extrabold text-white">
+                    Important Update
+                  </h3>
+                  <p className="mt-3 text-sm text-[#d0d0d0] leading-relaxed">
+                    We understand that many of you have requested a change in
+                    the schedule due to exams and other academic commitments. We
+                    genuinely value your participation, so we are reviewing the
+                    schedule to ensure everyone has a fair opportunity to take
+                    part.
+                  </p>
+
+                  <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-[#0d0d0d] border border-white/6 rounded-xl p-4 flex flex-col justify-between">
+                      <div>
+                        <div className="text-sm font-semibold text-[#c8f135]">
+                          Founder Meet
+                        </div>
+                        <div className="mt-1 text-sm text-[#e4e4e4]">
+                          29th — Join founders, mentors, and startup teams for
+                          networking and fireside chats.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-[#0d0d0d] border border-white/6 rounded-xl p-4 flex flex-col justify-between">
+                      <div>
+                        <div className="text-sm font-semibold text-[#a78bfa]">
+                          Another DevUp Event
+                        </div>
+                        <div className="mt-1 text-sm text-[#e4e4e4]">
+                          Details will be announced shortly — stay tuned and
+                          join our communities to receive updates.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex items-center justify-between">
+                    <div className="text-xs text-[#9a9a9a]">
+                      The final schedule will be communicated officially. Thank
+                      you for your understanding and continued support. 🚀
+                    </div>
+                    <div>
+                      <button
+                        onClick={() => {
+                          setShowAnnouncement(false);
+                          sessionStorage.setItem(
+                            "devthonAnnouncementShown",
+                            "1",
+                          );
+                        }}
+                        className="ml-4 px-4 py-2 bg-[#c8f135] text-black font-semibold rounded-xl"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
