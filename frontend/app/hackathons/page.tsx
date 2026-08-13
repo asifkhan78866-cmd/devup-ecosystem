@@ -138,7 +138,7 @@ export default function HackathonsPage() {
     return () => clearInterval(timer);
   }, [featuredHackathon]);
 
-  const filteredHackathons = hackathons.filter((h) => {
+  const filteredHackathons = hackathons.filter((h: any) => {
     if (activeFilter === "All") return true;
     if (activeFilter === "Online") return h.mode === "ONLINE";
     if (activeFilter === "Offline") return h.mode === "OFFLINE";
@@ -600,7 +600,11 @@ export default function HackathonsPage() {
         <PageControls
           filters={
             <>
+<<<<<<< HEAD
               {FILTERS.map((f) => {
+=======
+              {FILTERS.map((f: string) => {
+>>>>>>> ac09578 (fix(ui): resolve TS7006 implicit any type error in hackathons page)
                 const isActive = activeFilter === f;
                 return (
                   <button
