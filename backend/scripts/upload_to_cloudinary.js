@@ -9,13 +9,18 @@
  * ../../frontend/public/showcase_reels, and ../../frontend/public/videos and
  * writes `cloudinary_mapping.json` alongside this script with local -> remote URLs.
  */
-const fs = require('fs');
-const path = require('path');
-const cloudinary = require('cloudinary').v2;
+const fs = require("fs");
+const path = require("path");
+const cloudinary = require("cloudinary").v2;
 
-const ROOT = path.resolve(__dirname, '..', '..');
-const PUBLIC_DIR = path.join(ROOT, 'frontend', 'public');
-const TARGET_DIRS = ['showcase_photos_videos', 'showcase_reels', 'videos', 'video'];
+const ROOT = path.resolve(__dirname, "..", "..");
+const PUBLIC_DIR = path.join(ROOT, "frontend", "public");
+const TARGET_DIRS = [
+  "showcase_photos_videos",
+  "showcase_reels",
+  "videos",
+  "video",
+];
 
 function walk(dir) {
   const res = [];
@@ -30,9 +35,12 @@ function walk(dir) {
 }
 
 async function main() {
-  const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
+  const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } =
+    process.env;
   if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-    console.error('Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in env');
+    console.error(
+      "Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in env",
+    );
     process.exit(1);
   }
 
@@ -48,26 +56,26 @@ async function main() {
     const dir = path.join(PUBLIC_DIR, dirName);
     const files = walk(dir);
     for (const filePath of files) {
-      const rel = path.relative(PUBLIC_DIR, filePath).replace(/\\/g, '/');
-      const publicId = `devup/${rel}`.replace(/\.[^.]+$/, '');
+      const rel = path.relative(PUBLIC_DIR, filePath).replace(/\\/g, "/");
+      const publicId = `devup/${rel}`.replace(/\.[^.]+$/, "");
       try {
-        console.log('Uploading', rel);
+        console.log("Uploading", rel);
         const res = await cloudinary.uploader.upload(filePath, {
           public_id: publicId,
-          resource_type: 'auto',
+          resource_type: "auto",
           overwrite: false,
-          folder: 'devup',
+          folder: "devup",
         });
         mapping[rel] = res.secure_url;
       } catch (err) {
-        console.error('Failed upload', rel, err.message || err);
+        console.error("Failed upload", rel, err.message || err);
       }
     }
   }
 
-  const outPath = path.join(__dirname, 'cloudinary_mapping.json');
-  fs.writeFileSync(outPath, JSON.stringify(mapping, null, 2), 'utf8');
-  console.log('Mapping written to', outPath);
+  const outPath = path.join(__dirname, "cloudinary_mapping.json");
+  fs.writeFileSync(outPath, JSON.stringify(mapping, null, 2), "utf8");
+  console.log("Mapping written to", outPath);
 }
 
 main().catch((e) => {

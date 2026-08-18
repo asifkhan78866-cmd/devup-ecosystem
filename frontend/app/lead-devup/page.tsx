@@ -47,64 +47,244 @@ import { Navbar } from "@/components/Navbar";
 
 // All 18 Real WhatsApp Video Reels from public/showcase_reels
 const SHOWCASE_REELS = [
-  { id: 1, title: "DevUp Flagship Hackathon", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.26.31 AM.mp4") },
-  { id: 2, title: "Campus Founder Meetup", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.26.32 AM.mp4") },
-  { id: 3, title: "Student Innovation Summit", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.13 AM (1).mp4") },
-  { id: 4, title: "Territory Leadership Onboarding", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.13 AM.mp4") },
-  { id: 5, title: "National Builder Community", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.14 AM (1).mp4") },
-  { id: 6, title: "Startup Keynote & Teardown", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.14 AM (2).mp4") },
-  { id: 7, title: "City Tech Mixer", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.14 AM.mp4") },
-  { id: 8, title: "Code & Build Sprint", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.15 AM (1).mp4") },
-  { id: 9, title: "Regional Campus Chapter", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.15 AM.mp4") },
-  { id: 10, title: "Product Pitch Competition", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.16 AM (1).mp4") },
-  { id: 11, title: "DevUp Community Awards", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.16 AM (2).mp4") },
-  { id: 12, title: "State Director Briefing", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.16 AM (3).mp4") },
-  { id: 13, title: "Innovation Mentorship Circle", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.16 AM.mp4") },
-  { id: 14, title: "Cross-College Network Hub", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.17 AM (1).mp4") },
-  { id: 15, title: "Campus Leader Showcase", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.17 AM (2).mp4") },
-  { id: 16, title: "DevUp Tech Workshop", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.17 AM.mp4") },
-  { id: 17, title: "Founders & Students Connect", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.18 AM (1).mp4") },
-  { id: 18, title: "DevUp Community Celebration", src: getMediaUrl("/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.18 AM.mp4") },
+  {
+    id: 1,
+    title: "DevUp Flagship Hackathon",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.26.31 AM.mp4",
+    ),
+  },
+  {
+    id: 2,
+    title: "Campus Founder Meetup",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.26.32 AM.mp4",
+    ),
+  },
+  {
+    id: 3,
+    title: "Student Innovation Summit",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.13 AM (1).mp4",
+    ),
+  },
+  {
+    id: 4,
+    title: "Territory Leadership Onboarding",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.13 AM.mp4",
+    ),
+  },
+  {
+    id: 5,
+    title: "National Builder Community",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.14 AM (1).mp4",
+    ),
+  },
+  {
+    id: 6,
+    title: "Startup Keynote & Teardown",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.14 AM (2).mp4",
+    ),
+  },
+  {
+    id: 7,
+    title: "City Tech Mixer",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.14 AM.mp4",
+    ),
+  },
+  {
+    id: 8,
+    title: "Code & Build Sprint",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.15 AM (1).mp4",
+    ),
+  },
+  {
+    id: 9,
+    title: "Regional Campus Chapter",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.15 AM.mp4",
+    ),
+  },
+  {
+    id: 10,
+    title: "Product Pitch Competition",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.16 AM (1).mp4",
+    ),
+  },
+  {
+    id: 11,
+    title: "DevUp Community Awards",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.16 AM (2).mp4",
+    ),
+  },
+  {
+    id: 12,
+    title: "State Director Briefing",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.16 AM (3).mp4",
+    ),
+  },
+  {
+    id: 13,
+    title: "Innovation Mentorship Circle",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.16 AM.mp4",
+    ),
+  },
+  {
+    id: 14,
+    title: "Cross-College Network Hub",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.17 AM (1).mp4",
+    ),
+  },
+  {
+    id: 15,
+    title: "Campus Leader Showcase",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.17 AM (2).mp4",
+    ),
+  },
+  {
+    id: 16,
+    title: "DevUp Tech Workshop",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.17 AM.mp4",
+    ),
+  },
+  {
+    id: 17,
+    title: "Founders & Students Connect",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.18 AM (1).mp4",
+    ),
+  },
+  {
+    id: 18,
+    title: "DevUp Community Celebration",
+    src: getMediaUrl(
+      "/showcase_reels/WhatsApp Video 2026-08-18 at 12.27.18 AM.mp4",
+    ),
+  },
 ];
 
 // All 36 Real Photos array from public/showcase_photos_videos
 const SHOWCASE_PHOTOS = [
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.16 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.17 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.17 AM (2).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.17 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.18 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.18 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.20 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.23 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.23 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.24 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.24 AM (2).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.24 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.25 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.25 AM (2).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.25 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.26 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.30 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.31 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.31 AM (2).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.31 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.32 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.32 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.33 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.33 AM (2).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.33 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.34 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.34 AM (2).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.34 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.35 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.35 AM (2).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.35 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.36 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.36 AM (2).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.36 AM.jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.37 AM (1).jpeg"),
-  getMediaUrl("/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.37 AM.jpeg"),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.16 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.17 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.17 AM (2).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.17 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.18 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.18 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.20 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.23 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.23 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.24 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.24 AM (2).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.24 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.25 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.25 AM (2).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.25 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.26 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.30 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.31 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.31 AM (2).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.31 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.32 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.32 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.33 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.33 AM (2).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.33 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.34 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.34 AM (2).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.34 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.35 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.35 AM (2).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.35 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.36 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.36 AM (2).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.36 AM.jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.37 AM (1).jpeg",
+  ),
+  getMediaUrl(
+    "/showcase_photos_videos/WhatsApp Image 2026-08-18 at 12.13.37 AM.jpeg",
+  ),
 ];
 
 // Roles & Territory data with assigned video reel preview & cover photo
@@ -116,7 +296,8 @@ const LEADERSHIP_POSITIONS = [
     coverVideo: SHOWCASE_REELS[0].src,
     coverPhoto: SHOWCASE_PHOTOS[0],
     icon: Globe,
-    shortDesc: "Build the DevUp presence across colleges and communities in your city.",
+    shortDesc:
+      "Build the DevUp presence across colleges and communities in your city.",
     fullDesc:
       "Own the city network. Connect colleges, tech communities, local startups, and city-level activities into one vibrant tech ecosystem.",
     perks: [
@@ -132,9 +313,11 @@ const LEADERSHIP_POSITIONS = [
     scope: "College / Campus",
     coverVideo: SHOWCASE_REELS[3].src,
     coverPhoto: SHOWCASE_PHOTOS[30],
-    badgeColor: "from-lime-500/20 to-emerald-500/20 text-lime-400 border-lime-500/30",
+    badgeColor:
+      "from-lime-500/20 to-emerald-500/20 text-lime-400 border-lime-500/30",
     icon: GraduationCap,
-    shortDesc: "Lead DevUp inside your college and build the next generation of student leaders.",
+    shortDesc:
+      "Lead DevUp inside your college and build the next generation of student leaders.",
     fullDesc:
       "Own your campus. Build the community, team, events, and student network inside your college. Inspire fellow students to build real products.",
     perks: [
@@ -151,84 +334,96 @@ const BENEFITS = [
   {
     icon: Network,
     title: "Build Your Own Network",
-    description: "Lead students, communities and campus teams while building a real professional network across colleges.",
+    description:
+      "Lead students, communities and campus teams while building a real professional network across colleges.",
     color: "#38bdf8",
     photo: SHOWCASE_PHOTOS[0],
   },
   {
     icon: Rocket,
     title: "Exclusive Opportunities",
-    description: "Get priority access to selected internships, startup opportunities, projects, hackathons, founder meets and ecosystem programs.",
+    description:
+      "Get priority access to selected internships, startup opportunities, projects, hackathons, founder meets and ecosystem programs.",
     color: "#c8f135",
     photo: SHOWCASE_PHOTOS[3],
   },
   {
     icon: Handshake,
     title: "Founder & Industry Access",
-    description: "Connect directly with founders, industry professionals, mentors and ecosystem leaders through selected DevUp programs.",
+    description:
+      "Connect directly with founders, industry professionals, mentors and ecosystem leaders through selected DevUp programs.",
     color: "#a855f7",
     photo: SHOWCASE_PHOTOS[6],
   },
   {
     icon: Landmark,
     title: "Institutional & Government Exposure",
-    description: "Opportunities to represent DevUp at appropriate institutional, government and ecosystem programs.",
+    description:
+      "Opportunities to represent DevUp at appropriate institutional, government and ecosystem programs.",
     color: "#f59e0b",
     photo: SHOWCASE_PHOTOS[9],
   },
   {
     icon: Briefcase,
     title: "Startup & Entrepreneurship Exposure",
-    description: "Get closer to startups, innovation programs, incubation initiatives and real-world product building.",
+    description:
+      "Get closer to startups, innovation programs, incubation initiatives and real-world product building.",
     color: "#ec4899",
     photo: SHOWCASE_PHOTOS[12],
   },
   {
     icon: Mic,
     title: "Lead Major Events",
-    description: "Take responsibility for organizing flagship events, hackathons, founder meets and community initiatives.",
+    description:
+      "Take responsibility for organizing flagship events, hackathons, founder meets and community initiatives.",
     color: "#3b82f6",
     photo: SHOWCASE_PHOTOS[15],
   },
   {
     icon: BrainCircuit,
     title: "Leadership Development",
-    description: "Develop practical experience in People Management • Operations • Partnerships • Strategy • Growth.",
+    description:
+      "Develop practical experience in People Management • Operations • Partnerships • Strategy • Growth.",
     color: "#10b981",
     photo: SHOWCASE_PHOTOS[18],
   },
   {
     icon: UserCheck,
     title: "Build Your Professional Profile",
-    description: "Your verified DevUp contributions, leadership roles, projects and achievements become part of your profile.",
+    description:
+      "Your verified DevUp contributions, leadership roles, projects and achievements become part of your profile.",
     color: "#8b5cf6",
     photo: SHOWCASE_PHOTOS[21],
   },
   {
     icon: Trophy,
     title: "Recognition",
-    description: "Outstanding leaders receive Leadership certificates, Awards, Featured profiles & VIP access.",
+    description:
+      "Outstanding leaders receive Leadership certificates, Awards, Featured profiles & VIP access.",
     color: "#eab308",
     photo: SHOWCASE_PHOTOS[24],
   },
   {
     icon: Gift,
     title: "Exclusive DevUp Perks",
-    description: "Official merchandise, Swags, Event passes, Gifts, Partner perks and special access.",
+    description:
+      "Official merchandise, Swags, Event passes, Gifts, Partner perks and special access.",
     color: "#f43f5e",
     photo: SHOWCASE_PHOTOS[27],
   },
   {
     icon: Coins,
     title: "Funding & Innovation Opportunities",
-    description: "Selected leaders get access to relevant DevUp innovation programs and startup initiatives.",
+    description:
+      "Selected leaders get access to relevant DevUp innovation programs and startup initiatives.",
     color: "#14b8a6",
     photo: SHOWCASE_PHOTOS[30],
   },
   {
     icon: Compass,
     title: "National Network",
-    description: "Your work isn't limited to your college. Connect with leaders and builders across the DevUp network.",
+    description:
+      "Your work isn't limited to your college. Connect with leaders and builders across the DevUp network.",
     color: "#6366f1",
     photo: SHOWCASE_PHOTOS[33],
   },
@@ -241,7 +436,11 @@ const JOURNEY_STEPS = [
   { step: 3, title: "LEADERSHIP ONBOARDING", sub: "Toolkit & Strategy Brief" },
   { step: 4, title: "BUILD YOUR TEAM", sub: "Recruit Core Leads" },
   { step: 5, title: "LAUNCH YOUR COMMUNITY", sub: "Official Announcement" },
-  { step: 6, title: "LEAD EVENTS & INITIATIVES", sub: "Host Hackathons & Meets" },
+  {
+    step: 6,
+    title: "LEAD EVENTS & INITIATIVES",
+    sub: "Host Hackathons & Meets",
+  },
   { step: 7, title: "GROW YOUR NETWORK", sub: "Connect Across Territory" },
   { step: 8, title: "CREATE IMPACT", sub: "Empower Student Builders" },
   { step: 9, title: "GET RECOGNIZED", sub: "Badges & Certificates" },
@@ -291,7 +490,7 @@ function VideoBackdrop({
           video.pause();
         }
       },
-      { threshold: 0.05 }
+      { threshold: 0.05 },
     );
 
     observer.observe(video);
@@ -366,7 +565,9 @@ function ReelCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent flex flex-col justify-end p-3 sm:p-4">
         <div className="flex items-center justify-between text-white">
           <div className="truncate">
-            <span className="text-xs font-bold truncate block">{reel.title}</span>
+            <span className="text-xs font-bold truncate block">
+              {reel.title}
+            </span>
             <span className="text-[10px] text-[#c8f135] font-semibold flex items-center gap-1 mt-0.5">
               <Film className="w-3 h-3" /> Reel #{reel.id}
             </span>
@@ -390,8 +591,12 @@ export default function LeadDevUpPage() {
   const [isMuted, setIsMuted] = useState(true);
 
   // Lightbox States
-  const [activeLightBoxPhoto, setActiveLightBoxPhoto] = useState<string | null>(null);
-  const [activeLightBoxReel, setActiveLightBoxReel] = useState<string | null>(null);
+  const [activeLightBoxPhoto, setActiveLightBoxPhoto] = useState<string | null>(
+    null,
+  );
+  const [activeLightBoxReel, setActiveLightBoxReel] = useState<string | null>(
+    null,
+  );
 
   // Form state
   const [formStep, setFormStep] = useState<number>(1);
@@ -457,7 +662,9 @@ export default function LeadDevUpPage() {
   };
 
   const prevReel = () => {
-    setActiveReelIndex((prev) => (prev - 1 + SHOWCASE_REELS.length) % SHOWCASE_REELS.length);
+    setActiveReelIndex(
+      (prev) => (prev - 1 + SHOWCASE_REELS.length) % SHOWCASE_REELS.length,
+    );
   };
 
   // Calculate leadership match score
@@ -479,7 +686,15 @@ export default function LeadDevUpPage() {
     e.preventDefault();
     setErrorMsg("");
 
-    if (!formData.fullName || !formData.email || !formData.phone || !formData.state || !formData.city || !formData.college || !formData.whyLead) {
+    if (
+      !formData.fullName ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.state ||
+      !formData.city ||
+      !formData.college ||
+      !formData.whyLead
+    ) {
       setErrorMsg("Please fill in all required fields marked with *");
       return;
     }
@@ -516,14 +731,16 @@ export default function LeadDevUpPage() {
       setErrorMsg(
         err instanceof Error
           ? err.message
-          : "We could not submit your application. Please try again."
+          : "We could not submit your application. Please try again.",
       );
     } finally {
       setSubmitting(false);
     }
   };
 
-  const currentRoleInfo = LEADERSHIP_POSITIONS.find((p) => p.id === selectedRole) || LEADERSHIP_POSITIONS[3];
+  const currentRoleInfo =
+    LEADERSHIP_POSITIONS.find((p) => p.id === selectedRole) ||
+    LEADERSHIP_POSITIONS[3];
   const activeReel = SHOWCASE_REELS[activeReelIndex];
 
   return (
@@ -533,7 +750,11 @@ export default function LeadDevUpPage() {
       {/* HERO SECTION - CLEAN BACKDROP CARD TO PREVENT TEXT COLLISION WITH VIDEO CAPTIONS */}
       <section className="relative z-10 pt-24 pb-14 sm:pt-32 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center overflow-hidden rounded-2xl sm:rounded-3xl my-2 sm:my-4">
         {/* Continuous Video Backdrop */}
-        <VideoBackdrop src={SHOWCASE_REELS[0].src} poster="/video/hero-space-poster.jpg" opacity={0.45} />
+        <VideoBackdrop
+          src={SHOWCASE_REELS[0].src}
+          poster="/video/hero-space-poster.jpg"
+          opacity={0.45}
+        />
 
         {/* Content Card with dark blur container so overlay text contrasts sharply */}
         <div className="relative z-10 max-w-4xl mx-auto p-6 sm:p-12 rounded-3xl bg-black/60 sm:bg-black/40 backdrop-blur-md border border-white/[0.1] shadow-2xl">
@@ -568,7 +789,8 @@ export default function LeadDevUpPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-4 sm:mt-6 text-sm sm:text-xl text-zinc-300 max-w-3xl mx-auto font-medium drop-shadow-sm px-2"
           >
-            Choose your territory. Build your community. Lead people. Create opportunities. Represent DevUp.
+            Choose your territory. Build your community. Lead people. Create
+            opportunities. Represent DevUp.
           </motion.p>
 
           <motion.div
@@ -599,13 +821,16 @@ export default function LeadDevUpPage() {
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
             <div className="text-[11px] sm:text-xs font-bold tracking-widest text-[#c8f135] uppercase flex items-center gap-1.5 sm:gap-2">
-              <Film className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Live Video Reel Showcase
+              <Film className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Live Video Reel
+              Showcase
             </div>
             <h3 className="text-xl sm:text-2xl font-extrabold font-syne text-white mt-1">
               Explore 18 Live DevUp Reels
             </h3>
           </div>
-          <span className="text-[11px] sm:text-xs text-zinc-400">Swipe horizontally →</span>
+          <span className="text-[11px] sm:text-xs text-zinc-400">
+            Swipe horizontally →
+          </span>
         </div>
 
         <div className="-mx-4 px-4 sm:mx-0 sm:px-0 flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-none select-none touch-pan-x">
@@ -623,66 +848,78 @@ export default function LeadDevUpPage() {
       <section className="relative z-10 py-6 sm:py-8 overflow-hidden bg-black/50 border-y border-white/[0.08]">
         <div className="mb-3 sm:mb-4 text-center px-4">
           <span className="text-[11px] sm:text-xs font-bold tracking-widest text-[#c8f135] uppercase flex items-center justify-center gap-2">
-            <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Live Community Atmosphere Across Campuses
+            <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Live Community
+            Atmosphere Across Campuses
           </span>
         </div>
 
         {/* Row 1 Marquee (22s Dynamic Speed) */}
         <div className="flex w-full overflow-hidden select-none py-1.5 sm:py-2">
           <div className="flex gap-3 sm:gap-4 animate-marquee-fast whitespace-nowrap min-w-full">
-            {SHOWCASE_PHOTOS.slice(0, 18).concat(SHOWCASE_PHOTOS.slice(0, 18)).map((src, i) => (
-              <div
-                key={i}
-                onClick={() => setActiveLightBoxPhoto(src)}
-                className="w-48 sm:w-80 h-32 sm:h-44 shrink-0 rounded-xl sm:rounded-2xl overflow-hidden border border-white/[0.1] relative group cursor-pointer"
-              >
-                <img
-                  src={src}
-                  alt={`DevUp Community ${i}`}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5 sm:p-3">
-                  <span className="text-[10px] sm:text-xs text-white font-medium flex items-center gap-1">
-                    <Maximize2 className="w-3 h-3 text-[#c8f135]" /> View photo
-                  </span>
+            {SHOWCASE_PHOTOS.slice(0, 18)
+              .concat(SHOWCASE_PHOTOS.slice(0, 18))
+              .map((src, i) => (
+                <div
+                  key={i}
+                  onClick={() => setActiveLightBoxPhoto(src)}
+                  className="w-48 sm:w-80 h-32 sm:h-44 shrink-0 rounded-xl sm:rounded-2xl overflow-hidden border border-white/[0.1] relative group cursor-pointer"
+                >
+                  <img
+                    src={src}
+                    alt={`DevUp Community ${i}`}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5 sm:p-3">
+                    <span className="text-[10px] sm:text-xs text-white font-medium flex items-center gap-1">
+                      <Maximize2 className="w-3 h-3 text-[#c8f135]" /> View
+                      photo
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
 
         {/* Row 2 Marquee (22s Dynamic Reverse Speed) */}
         <div className="flex w-full overflow-hidden select-none py-1.5 sm:py-2 mt-1 sm:mt-2">
           <div className="flex gap-3 sm:gap-4 animate-marquee-reverse-fast whitespace-nowrap min-w-full">
-            {SHOWCASE_PHOTOS.slice(18, 36).concat(SHOWCASE_PHOTOS.slice(18, 36)).map((src, i) => (
-              <div
-                key={i}
-                onClick={() => setActiveLightBoxPhoto(src)}
-                className="w-48 sm:w-80 h-32 sm:h-44 shrink-0 rounded-xl sm:rounded-2xl overflow-hidden border border-white/[0.1] relative group cursor-pointer"
-              >
-                <img
-                  src={src}
-                  alt={`DevUp Community Event ${i}`}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5 sm:p-3">
-                  <span className="text-[10px] sm:text-xs text-white font-medium flex items-center gap-1">
-                    <Maximize2 className="w-3 h-3 text-[#c8f135]" /> View photo
-                  </span>
+            {SHOWCASE_PHOTOS.slice(18, 36)
+              .concat(SHOWCASE_PHOTOS.slice(18, 36))
+              .map((src, i) => (
+                <div
+                  key={i}
+                  onClick={() => setActiveLightBoxPhoto(src)}
+                  className="w-48 sm:w-80 h-32 sm:h-44 shrink-0 rounded-xl sm:rounded-2xl overflow-hidden border border-white/[0.1] relative group cursor-pointer"
+                >
+                  <img
+                    src={src}
+                    alt={`DevUp Community Event ${i}`}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5 sm:p-3">
+                    <span className="text-[10px] sm:text-xs text-white font-medium flex items-center gap-1">
+                      <Maximize2 className="w-3 h-3 text-[#c8f135]" /> View
+                      photo
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </section>
 
       {/* OPEN LEADERSHIP POSITIONS CARDS */}
-      <section id="positions" className="relative z-10 py-14 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section
+        id="positions"
+        className="relative z-10 py-14 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+      >
         <div className="text-center mb-8 sm:mb-12">
           <div className="text-[#c8f135] font-semibold text-xs tracking-wider uppercase mb-2 flex items-center justify-center gap-1.5">
             <Award className="w-4 h-4" /> Territory Roles & Scope
           </div>
-          <h2 className="text-2xl sm:text-5xl font-extrabold font-syne">OPEN LEADERSHIP POSITIONS</h2>
+          <h2 className="text-2xl sm:text-5xl font-extrabold font-syne">
+            OPEN LEADERSHIP POSITIONS
+          </h2>
           <p className="text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto mt-2 sm:mt-3">
             Select the leadership scope where you can make the biggest impact.
           </p>
@@ -731,12 +968,19 @@ export default function LeadDevUpPage() {
 
                 <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-white mb-1.5 sm:mb-2">{pos.title}</h3>
-                    <p className="text-xs sm:text-sm text-zinc-400 mb-4 line-clamp-3 leading-relaxed">{pos.shortDesc}</p>
+                    <h3 className="text-lg sm:text-xl font-bold text-white mb-1.5 sm:mb-2">
+                      {pos.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-zinc-400 mb-4 line-clamp-3 leading-relaxed">
+                      {pos.shortDesc}
+                    </p>
 
                     <div className="space-y-2 mb-6">
                       {pos.perks.slice(0, 2).map((perk, i) => (
-                        <div key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                        <div
+                          key={i}
+                          className="flex items-start gap-2 text-xs text-zinc-300"
+                        >
                           <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#c8f135] shrink-0 mt-0.5" />
                           <span>{perk}</span>
                         </div>
@@ -773,7 +1017,8 @@ export default function LeadDevUpPage() {
               SEE DEVUP BUILDERS & EVENTS IN ACTION
             </h2>
             <p className="text-zinc-400 text-xs sm:text-base mt-2">
-              Select and play real WhatsApp community reels from hackathons, founder meets, and campus chapters.
+              Select and play real WhatsApp community reels from hackathons,
+              founder meets, and campus chapters.
             </p>
           </div>
 
@@ -800,17 +1045,29 @@ export default function LeadDevUpPage() {
                     onClick={toggleVideoPlay}
                     className="p-2.5 sm:p-3 rounded-xl bg-black/70 border border-white/[0.2] text-white hover:bg-black transition-all cursor-pointer"
                   >
-                    {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8f135]" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8f135] fill-current" />}
+                    {isPlaying ? (
+                      <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8f135]" />
+                    ) : (
+                      <Play className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8f135] fill-current" />
+                    )}
                   </button>
                   <button
                     onClick={toggleVideoMute}
                     className="p-2.5 sm:p-3 rounded-xl bg-black/70 border border-white/[0.2] text-white hover:bg-black transition-all cursor-pointer"
                   >
-                    {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-400" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8f135]" />}
+                    {isMuted ? (
+                      <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-400" />
+                    ) : (
+                      <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8f135]" />
+                    )}
                   </button>
                   <div className="text-xs font-medium text-zinc-300 truncate max-w-[140px] sm:max-w-none">
-                    <div className="font-bold text-white truncate text-xs sm:text-sm">{activeReel.title}</div>
-                    <div className="text-[10px] sm:text-xs text-zinc-400">Reel #{activeReel.id} of {SHOWCASE_REELS.length}</div>
+                    <div className="font-bold text-white truncate text-xs sm:text-sm">
+                      {activeReel.title}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-zinc-400">
+                      Reel #{activeReel.id} of {SHOWCASE_REELS.length}
+                    </div>
                   </div>
                 </div>
 
@@ -857,8 +1114,12 @@ export default function LeadDevUpPage() {
                     )}
                   </div>
                   <div className="truncate">
-                    <div className="text-xs font-bold text-white truncate">{reel.title}</div>
-                    <div className="text-[10px] text-zinc-400">Reel #{reel.id}</div>
+                    <div className="text-xs font-bold text-white truncate">
+                      {reel.title}
+                    </div>
+                    <div className="text-[10px] text-zinc-400">
+                      Reel #{reel.id}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -916,8 +1177,12 @@ export default function LeadDevUpPage() {
 
                 <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold text-white mb-1.5 sm:mb-2">{item.title}</h3>
-                    <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">{item.description}</p>
+                    <h3 className="text-base sm:text-lg font-bold text-white mb-1.5 sm:mb-2">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                      {item.description}
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -958,19 +1223,31 @@ export default function LeadDevUpPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-left max-w-2xl mx-auto">
               <div className="p-3.5 sm:p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center gap-3">
                 <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8f135] shrink-0" />
-                <span className="text-xs sm:text-sm text-zinc-200">You don&apos;t just attend events — <strong>You create them.</strong></span>
+                <span className="text-xs sm:text-sm text-zinc-200">
+                  You don&apos;t just attend events —{" "}
+                  <strong>You create them.</strong>
+                </span>
               </div>
               <div className="p-3.5 sm:p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center gap-3">
                 <Users className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 shrink-0" />
-                <span className="text-xs sm:text-sm text-zinc-200">You don&apos;t just join communities — <strong>You build them.</strong></span>
+                <span className="text-xs sm:text-sm text-zinc-200">
+                  You don&apos;t just join communities —{" "}
+                  <strong>You build them.</strong>
+                </span>
               </div>
               <div className="p-3.5 sm:p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center gap-3">
                 <Target className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 shrink-0" />
-                <span className="text-xs sm:text-sm text-zinc-200">You don&apos;t just look for opportunities — <strong>You create access for others.</strong></span>
+                <span className="text-xs sm:text-sm text-zinc-200">
+                  You don&apos;t just look for opportunities —{" "}
+                  <strong>You create access for others.</strong>
+                </span>
               </div>
               <div className="p-3.5 sm:p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center gap-3">
                 <Star className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
-                <span className="text-xs sm:text-sm text-zinc-200">You don&apos;t just put a title on your profile — <strong>You build a track record.</strong></span>
+                <span className="text-xs sm:text-sm text-zinc-200">
+                  You don&apos;t just put a title on your profile —{" "}
+                  <strong>You build a track record.</strong>
+                </span>
               </div>
             </div>
           </div>
@@ -983,7 +1260,9 @@ export default function LeadDevUpPage() {
           <div className="text-[#c8f135] font-semibold text-xs tracking-wider uppercase mb-2 flex items-center justify-center gap-1.5">
             <Compass className="w-4 h-4" /> Trajectory & Milestones
           </div>
-          <h2 className="text-2xl sm:text-5xl font-extrabold font-syne">YOUR LEADERSHIP JOURNEY</h2>
+          <h2 className="text-2xl sm:text-5xl font-extrabold font-syne">
+            YOUR LEADERSHIP JOURNEY
+          </h2>
           <p className="text-zinc-400 text-xs sm:text-base max-w-xl mx-auto mt-2 sm:mt-3">
             From application to ecosystem leadership — step by step.
           </p>
@@ -1008,7 +1287,9 @@ export default function LeadDevUpPage() {
                 <div className="text-xs sm:text-sm font-bold text-white mb-1 group-hover:text-[#c8f135] transition-colors leading-tight">
                   {step.title}
                 </div>
-                <div className="text-[10px] sm:text-xs text-zinc-400 leading-tight">{step.sub}</div>
+                <div className="text-[10px] sm:text-xs text-zinc-400 leading-tight">
+                  {step.sub}
+                </div>
               </motion.div>
             ))}
           </div>
@@ -1023,7 +1304,8 @@ export default function LeadDevUpPage() {
               Who should apply?
             </h2>
             <p className="text-zinc-400 text-xs sm:text-base mt-2">
-              You should apply if you are someone who aligns with these qualities:
+              You should apply if you are someone who aligns with these
+              qualities:
             </p>
           </div>
 
@@ -1034,7 +1316,9 @@ export default function LeadDevUpPage() {
                 className="p-3.5 sm:p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center gap-3 hover:border-white/[0.15] transition-all"
               >
                 <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8f135] shrink-0" />
-                <span className="text-xs sm:text-sm text-zinc-200">{trait}</span>
+                <span className="text-xs sm:text-sm text-zinc-200">
+                  {trait}
+                </span>
               </div>
             ))}
           </div>
@@ -1042,24 +1326,33 @@ export default function LeadDevUpPage() {
           <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#c8f135]/15 via-emerald-500/10 to-cyan-500/15 border border-[#c8f135]/30 text-center flex flex-col items-center gap-2">
             <div className="flex items-center gap-2 text-sm sm:text-lg text-white font-semibold">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8f135]" />
-              <span className="text-[#c8f135]">You don&apos;t need to be the best coder.</span>
+              <span className="text-[#c8f135]">
+                You don&apos;t need to be the best coder.
+              </span>
             </div>
             <p className="text-xs sm:text-sm text-zinc-300">
-              We need builders, organizers, communicators, creators, strategists and people who take ownership.
+              We need builders, organizers, communicators, creators, strategists
+              and people who take ownership.
             </p>
           </div>
         </div>
       </section>
 
       {/* INTERACTIVE APPLICATION FORM SECTION */}
-      <section ref={formRef} className="relative z-10 py-14 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+      <section
+        ref={formRef}
+        className="relative z-10 py-14 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto"
+      >
         <div className="text-center mb-8 sm:mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#c8f135]/10 border border-[#c8f135]/30 text-[#c8f135] font-semibold text-xs mb-2">
             <Sparkles className="w-3.5 h-3.5" /> Official Application Form
           </div>
-          <h2 className="text-2xl sm:text-5xl font-extrabold font-syne">APPLY TO LEAD DEVUP</h2>
+          <h2 className="text-2xl sm:text-5xl font-extrabold font-syne">
+            APPLY TO LEAD DEVUP
+          </h2>
           <p className="text-zinc-400 text-xs sm:text-base mt-2">
-            Applications are reviewed based on leadership potential, ownership, communication, and ability to execute.
+            Applications are reviewed based on leadership potential, ownership,
+            communication, and ability to execute.
           </p>
         </div>
 
@@ -1078,25 +1371,38 @@ export default function LeadDevUpPage() {
                 APPLICATION SUBMITTED!
               </h3>
               <p className="text-zinc-300 text-sm sm:text-base max-w-md mx-auto mb-6 px-2">
-                Congratulations <span className="text-[#c8f135] font-bold">{submittedApp.fullName}</span>! Your leadership application has been received by the DevUp Core Team.
+                Congratulations{" "}
+                <span className="text-[#c8f135] font-bold">
+                  {submittedApp.fullName}
+                </span>
+                ! Your leadership application has been received by the DevUp
+                Core Team.
               </p>
 
               <div className="p-4 sm:p-6 rounded-2xl bg-black/60 border border-white/[0.1] max-w-md mx-auto text-left space-y-3 mb-6 sm:mb-8 text-xs sm:text-sm">
                 <div className="flex justify-between items-center text-zinc-400 border-b border-white/[0.06] pb-2">
                   <span>Application Number</span>
-                  <span className="font-mono text-[#c8f135] font-bold">{submittedApp.applicationNo}</span>
+                  <span className="font-mono text-[#c8f135] font-bold">
+                    {submittedApp.applicationNo}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-zinc-400">
                   <span>Position Applied</span>
-                  <span className="text-white font-semibold">{currentRoleInfo.title}</span>
+                  <span className="text-white font-semibold">
+                    {currentRoleInfo.title}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-zinc-400">
                   <span>College / Institution</span>
-                  <span className="text-white truncate max-w-[180px]">{submittedApp.college}</span>
+                  <span className="text-white truncate max-w-[180px]">
+                    {submittedApp.college}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-zinc-400">
                   <span>Review Status</span>
-                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-medium">UNDER REVIEW</span>
+                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-medium">
+                    UNDER REVIEW
+                  </span>
                 </div>
               </div>
 
@@ -1113,7 +1419,10 @@ export default function LeadDevUpPage() {
               </div>
             </motion.div>
           ) : (
-            <form onSubmit={handleFormSubmit} className="space-y-6 sm:space-y-8">
+            <form
+              onSubmit={handleFormSubmit}
+              className="space-y-6 sm:space-y-8"
+            >
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/[0.08] pb-4 sm:pb-6 gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-[#c8f135] text-black font-bold flex items-center justify-center text-sm shrink-0">
@@ -1177,13 +1486,21 @@ export default function LeadDevUpPage() {
                               : "bg-white/[0.03] border-white/[0.08] hover:border-white/[0.2]"
                           }`}
                         >
-                          <div className={`p-2 rounded-xl border shrink-0 ${active ? "bg-[#c8f135] text-black border-[#c8f135]" : "bg-white/[0.05] text-zinc-400 border-white/[0.1]"}`}>
+                          <div
+                            className={`p-2 rounded-xl border shrink-0 ${active ? "bg-[#c8f135] text-black border-[#c8f135]" : "bg-white/[0.05] text-zinc-400 border-white/[0.1]"}`}
+                          >
                             <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                           </div>
                           <div>
-                            <div className="text-xs sm:text-sm font-bold text-white">{pos.title}</div>
-                            <div className="text-[11px] text-[#c8f135] font-semibold">{pos.scope}</div>
-                            <div className="text-[11px] sm:text-xs text-zinc-400 mt-1 line-clamp-2">{pos.shortDesc}</div>
+                            <div className="text-xs sm:text-sm font-bold text-white">
+                              {pos.title}
+                            </div>
+                            <div className="text-[11px] text-[#c8f135] font-semibold">
+                              {pos.scope}
+                            </div>
+                            <div className="text-[11px] sm:text-xs text-zinc-400 mt-1 line-clamp-2">
+                              {pos.shortDesc}
+                            </div>
                           </div>
                         </div>
                       );
@@ -1191,11 +1508,18 @@ export default function LeadDevUpPage() {
                   </div>
 
                   <div className="p-4 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/[0.08] mt-4 sm:mt-6">
-                    <div className="text-[11px] sm:text-xs font-bold text-zinc-300 uppercase tracking-wider mb-2">Selected Role Highlights</div>
-                    <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed mb-3">{currentRoleInfo.fullDesc}</p>
+                    <div className="text-[11px] sm:text-xs font-bold text-zinc-300 uppercase tracking-wider mb-2">
+                      Selected Role Highlights
+                    </div>
+                    <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed mb-3">
+                      {currentRoleInfo.fullDesc}
+                    </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {currentRoleInfo.perks.map((p, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs text-zinc-400">
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 text-xs text-zinc-400"
+                        >
                           <CheckCircle2 className="w-3.5 h-3.5 text-[#c8f135] shrink-0" />
                           <span>{p}</span>
                         </div>
@@ -1232,7 +1556,9 @@ export default function LeadDevUpPage() {
                         type="text"
                         placeholder="e.g. Alex Sharma"
                         value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, fullName: e.target.value })
+                        }
                         className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                       />
                     </div>
@@ -1245,7 +1571,9 @@ export default function LeadDevUpPage() {
                         type="email"
                         placeholder="alex@college.edu"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
                         className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                       />
                     </div>
@@ -1258,7 +1586,9 @@ export default function LeadDevUpPage() {
                         type="tel"
                         placeholder="+91 9876543210"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
                         className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                       />
                     </div>
@@ -1271,7 +1601,9 @@ export default function LeadDevUpPage() {
                         type="text"
                         placeholder="e.g. Maharashtra, Karnataka"
                         value={formData.state}
-                        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, state: e.target.value })
+                        }
                         className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                       />
                     </div>
@@ -1284,7 +1616,9 @@ export default function LeadDevUpPage() {
                         type="text"
                         placeholder="e.g. Mumbai, Bengaluru"
                         value={formData.city}
-                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, city: e.target.value })
+                        }
                         className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                       />
                     </div>
@@ -1297,7 +1631,9 @@ export default function LeadDevUpPage() {
                         type="text"
                         placeholder="e.g. IIT Bombay / VJTI"
                         value={formData.college}
-                        onChange={(e) => setFormData({ ...formData, college: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, college: e.target.value })
+                        }
                         className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                       />
                     </div>
@@ -1310,7 +1646,9 @@ export default function LeadDevUpPage() {
                         type="text"
                         placeholder="e.g. Computer Science, AI, Management"
                         value={formData.branch}
-                        onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, branch: e.target.value })
+                        }
                         className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                       />
                     </div>
@@ -1321,14 +1659,21 @@ export default function LeadDevUpPage() {
                       </label>
                       <select
                         value={formData.yearOfStudy}
-                        onChange={(e) => setFormData({ ...formData, yearOfStudy: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            yearOfStudy: e.target.value,
+                          })
+                        }
                         className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                       >
                         <option value="1st Year">1st Year</option>
                         <option value="2nd Year">2nd Year</option>
                         <option value="3rd Year">3rd Year</option>
                         <option value="4th Year">4th Year</option>
-                        <option value="Postgraduate / Recent Grad">Postgraduate / Recent Grad</option>
+                        <option value="Postgraduate / Recent Grad">
+                          Postgraduate / Recent Grad
+                        </option>
                       </select>
                     </div>
                   </div>
@@ -1368,7 +1713,9 @@ export default function LeadDevUpPage() {
                       rows={3}
                       placeholder="Share your drive, what motivates you to build community..."
                       value={formData.whyLead}
-                      onChange={(e) => setFormData({ ...formData, whyLead: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, whyLead: e.target.value })
+                      }
                       className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                     />
                   </div>
@@ -1381,7 +1728,12 @@ export default function LeadDevUpPage() {
                       rows={2}
                       placeholder="Mention any tech clubs, hackathons, or projects you led..."
                       value={formData.pastExperience}
-                      onChange={(e) => setFormData({ ...formData, pastExperience: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          pastExperience: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                     />
                   </div>
@@ -1394,7 +1746,12 @@ export default function LeadDevUpPage() {
                       rows={2}
                       placeholder="Briefly describe your strategy to recruit your team and launch your first event..."
                       value={formData.first30DaysPlan}
-                      onChange={(e) => setFormData({ ...formData, first30DaysPlan: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          first30DaysPlan: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                     />
                   </div>
@@ -1408,7 +1765,12 @@ export default function LeadDevUpPage() {
                         type="url"
                         placeholder="https://linkedin.com/in/username"
                         value={formData.linkedinUrl}
-                        onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            linkedinUrl: e.target.value,
+                          })
+                        }
                         className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                       />
                     </div>
@@ -1421,7 +1783,12 @@ export default function LeadDevUpPage() {
                         type="url"
                         placeholder="https://github.com/username"
                         value={formData.portfolioUrl}
-                        onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            portfolioUrl: e.target.value,
+                          })
+                        }
                         className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.1] text-white text-base sm:text-sm focus:border-[#c8f135] focus:outline-none transition-colors"
                       />
                     </div>
@@ -1473,7 +1840,8 @@ export default function LeadDevUpPage() {
             </video>
             <div className="absolute inset-0 bg-gradient-to-t from-[#070709] via-transparent to-black/30" />
             <div className="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/70 border border-[#c8f135]/40 text-[#c8f135] text-xs font-semibold backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5" /> DevUp Leadership Call to Action
+              <Sparkles className="w-3.5 h-3.5" /> DevUp Leadership Call to
+              Action
             </div>
           </div>
 
@@ -1559,12 +1927,20 @@ export default function LeadDevUpPage() {
       {/* CSS KEYFRAMES FOR CONTINUOUS MARQUEES (DYNAMIC REFRESHED SPEED - 22s DURATION) */}
       <style jsx global>{`
         @keyframes marquee-fast {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
+          0% {
+            transform: translateX(0%);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
         }
         @keyframes marquee-reverse-fast {
-          0% { transform: translateX(-50%); }
-          100% { transform: translateX(0%); }
+          0% {
+            transform: translateX(-50%);
+          }
+          100% {
+            transform: translateX(0%);
+          }
         }
         .animate-marquee-fast {
           animation: marquee-fast 22s linear infinite;
@@ -1572,7 +1948,8 @@ export default function LeadDevUpPage() {
         .animate-marquee-reverse-fast {
           animation: marquee-reverse-fast 22s linear infinite;
         }
-        .animate-marquee-fast:hover, .animate-marquee-reverse-fast:hover {
+        .animate-marquee-fast:hover,
+        .animate-marquee-reverse-fast:hover {
           animation-play-state: paused;
         }
       `}</style>
