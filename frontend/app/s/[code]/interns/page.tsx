@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { workspaceApi } from "@/lib/api/workspace";
-import { PeopleTable } from "../employees/page";
+import { PeopleTable } from "@/components/workspace/PeopleTable";
 
 export default function InternsPage() {
   const { code } = useParams<{ code: string }>();
