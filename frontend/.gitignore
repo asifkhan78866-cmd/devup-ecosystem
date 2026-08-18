@@ -42,3 +42,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ignore large local media now stored in Supabase
+public/showcase_photos_videos/
+public/showcase_reels/
+public/videos/
+public/video/
