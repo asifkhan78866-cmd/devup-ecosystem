@@ -32,7 +32,7 @@ import candidateRoutes from "./modules/recruiting/candidate.routes";
 import platformAnalyticsRoutes from "./modules/analytics/platform.routes";
 import founderLetterRoutes from "./modules/hrms/documents/founderLetter.routes";
 import profileRoutes from "./modules/profile/profile.routes";
-// ... (will import as implemented)
+import leadApplicationsRoutes from "./modules/lead-applications/lead-applications.routes";
 
 export const app = express();
 
@@ -204,6 +204,7 @@ app.use("/api", candidateRoutes);
 app.use("/api/admin/analytics", platformAnalyticsRoutes);
 app.use("/api/admin/founders", founderLetterRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/lead-applications", leadApplicationsRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth/AuthProvider';
 import { motion, AnimatePresence } from "framer-motion";
 import LogoutButton from "@/components/auth/LogoutButton";
 import {
-  Globe2, Briefcase, Trophy, Users, Hammer, Rocket,
+  Globe2, Briefcase, Trophy, Users, Hammer, Rocket, Crown,
   LayoutDashboard, LogIn, LogOut
 } from "lucide-react";
 
@@ -16,6 +16,7 @@ const navLinks = [
   { href: '/careers', label: 'Careers', icon: Briefcase },
   { href: '/hackathons', label: 'Hackathons', icon: Trophy },
   { href: '/cofounders', label: 'Co-Founders', icon: Users },
+  { href: '/lead-devup', label: 'Lead DevUp', icon: Crown },
   { href: '/build-with-devup', label: 'Build With Us', icon: Hammer },
   { href: '/apply', label: 'Apply', icon: Rocket },
 ];

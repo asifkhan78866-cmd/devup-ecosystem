@@ -4,20 +4,23 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Globe2, Briefcase, Trophy, Grid2x2,
-  Users, Hammer, Rocket, LayoutDashboard,
-  LogIn, LogOut, X
+  Users, Hammer, Rocket, Crown, LayoutDashboard,
+  LogIn, LogOut, X, ShieldCheck, Flame
 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth/AuthProvider'
 
+// 5 Mobile Tabs with Lead DevUp right in the MIDDLE (3rd position)
 const PRIMARY_TABS = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/ecosystem', label: 'Ecosystem', icon: Globe2 },
+  { href: '/lead-devup', label: 'Lead DevUp', icon: Crown, isHighlighted: true },
   { href: '/careers', label: 'Careers', icon: Briefcase },
-  { href: '/hackathons', label: 'Events', icon: Trophy },
 ]
 
 const MORE_ITEMS = [
+  { href: '/hackathons', label: 'Events', icon: Trophy,
+    desc: 'Hackathons & Meets' },
   { href: '/cofounders', label: 'Co-Founders', icon: Users, 
     desc: 'Find your match' },
   { href: '/build-with-devup', label: 'Build With Us', icon: Hammer,
@@ -50,15 +53,17 @@ export default function MobileBottomNav() {
         position: 'fixed',
         bottom: 0, left: 0, right: 0,
         zIndex: 200,
-        background: 'rgba(10,10,10,0.92)',
+        background: 'rgba(10,10,10,0.95)',
         backdropFilter: 'blur(24px) saturate(180%)',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
-      className="mobile-bottom-nav md:hidden flex"
+      className="mobile-bottom-nav md:hidden flex items-center justify-around"
       >
         {PRIMARY_TABS.map(tab => {
           const active = isActive(tab.href)
+          const isLeadDevUp = tab.isHighlighted
+
           return (
             <Link
               key={tab.href}
@@ -69,8 +74,8 @@ export default function MobileBottomNav() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 4,
-                padding: '10px 0 8px',
+                gap: 3,
+                padding: '6px 0 5px',
                 textDecoration: 'none',
                 position: 'relative',
               }}
@@ -79,32 +84,66 @@ export default function MobileBottomNav() {
                 <motion.div
                   layoutId="bottomNavActiveDot"
                   style={{
-                    position: 'absolute', top: 4, left: '50%', x: '-50%',
+                    position: 'absolute', top: 2, left: '50%', x: '-50%',
                     width: 4, height: 4, borderRadius: '50%',
                     background: '#c8f135',
                   }}
                   transition={{ duration: 0.25, ease: [0.16,1,0.3,1] }}
                 />
               )}
-              <tab.icon
-                size={22}
-                strokeWidth={1.75}
-                color={active ? '#c8f135' : '#6b6b6b'}
-              />
-              <span style={{
-                fontFamily: 'Inter',
-                fontSize: 10.5,
-                fontWeight: active ? 600 : 500,
-                color: active ? '#ffffff' : '#6b6b6b',
-                letterSpacing: '-0.01em',
-              }}>
-                {tab.label}
-              </span>
+
+              {/* Special highlight container for Lead DevUp in the middle */}
+              {isLeadDevUp ? (
+                <div className="flex flex-col items-center">
+                  <div style={{
+                    width: 32,
+                    height: 28,
+                    borderRadius: 10,
+                    background: active ? '#c8f135' : 'rgba(200,241,53,0.18)',
+                    border: '1px solid rgba(200,241,53,0.5)',
+                    boxShadow: active ? '0 0 12px rgba(200,241,53,0.6)' : '0 0 8px rgba(200,241,53,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Crown size={15} color={active ? '#000000' : '#c8f135'} strokeWidth={2.2} />
+                  </div>
+                  <span style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: active ? '#c8f135' : '#c8f135',
+                    letterSpacing: '-0.01em',
+                    marginTop: 2,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    Lead DevUp
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <tab.icon
+                    size={20}
+                    strokeWidth={1.75}
+                    color={active ? '#c8f135' : '#6b6b6b'}
+                  />
+                  <span style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10.5,
+                    fontWeight: active ? 600 : 500,
+                    color: active ? '#ffffff' : '#6b6b6b',
+                    letterSpacing: '-0.01em',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {tab.label}
+                  </span>
+                </>
+              )}
             </Link>
           )
         })}
 
-        {/* More tab */}
+        {/* More tab (5th position) */}
         <button
           onClick={() => setMoreOpen(true)}
           style={{
@@ -114,7 +153,7 @@ export default function MobileBottomNav() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 4,
-            padding: '10px 0 8px',
+            padding: '6px 0 5px',
             background: 'none',
             border: 'none',
             position: 'relative',
@@ -122,21 +161,22 @@ export default function MobileBottomNav() {
         >
           {isMoreActive && (
             <div style={{
-              position: 'absolute', top: 4, left: '50%', transform: 'translateX(-50%)',
+              position: 'absolute', top: 2, left: '50%', transform: 'translateX(-50%)',
               width: 4, height: 4, borderRadius: '50%',
               background: '#c8f135',
             }} />
           )}
           <Grid2x2
-            size={22}
+            size={20}
             strokeWidth={1.75}
             color={isMoreActive ? '#c8f135' : '#6b6b6b'}
           />
           <span style={{
-            fontFamily: 'Inter',
+            fontFamily: 'Inter, sans-serif',
             fontSize: 10.5,
             fontWeight: isMoreActive ? 600 : 500,
             color: isMoreActive ? '#ffffff' : '#6b6b6b',
+            whiteSpace: 'nowrap',
           }}>
             More
           </span>

@@ -60,6 +60,46 @@ export interface Application {
   createdAt: string
 }
 
+export type LeadershipRole =
+  | 'STATE_DIRECTOR'
+  | 'REGIONAL_DIRECTOR'
+  | 'CITY_DIRECTOR'
+  | 'CAMPUS_DIRECTOR'
+
+export type LeadershipApplicationStatus =
+  | 'PENDING'
+  | 'REVIEWING'
+  | 'SHORTLISTED'
+  | 'INTERVIEWING'
+  | 'SELECTED'
+  | 'REJECTED'
+
+export interface LeadApplication {
+  id: string
+  applicationNo: string
+  role: LeadershipRole
+  fullName: string
+  email: string
+  phone: string
+  state: string
+  city: string
+  college: string
+  branch: string | null
+  yearOfStudy: string | null
+  linkedinUrl: string | null
+  githubUrl: string | null
+  twitterUrl: string | null
+  portfolioUrl: string | null
+  whyLead: string
+  pastExperience: string | null
+  first30DaysPlan: string | null
+  status: LeadershipApplicationStatus
+  reviewNotes: string | null
+  reviewedBy: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Job {
   id: string
   startupId: string

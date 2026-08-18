@@ -280,6 +280,51 @@ model Application {
   updatedAt DateTime @updatedAt
 }
 
+enum LeadershipRole {
+  STATE_DIRECTOR
+  REGIONAL_DIRECTOR
+  CITY_DIRECTOR
+  CAMPUS_DIRECTOR
+}
+
+enum LeadershipAppStatus {
+  PENDING
+  REVIEWING
+  SHORTLISTED
+  INTERVIEWING
+  SELECTED
+  REJECTED
+}
+
+model LeadApplication {
+  id              String              @id @default(uuid())
+  applicationNo   String              @unique
+  role            LeadershipRole
+  fullName        String
+  email           String
+  phone           String
+  state           String
+  city            String
+  college         String
+  branch          String?
+  yearOfStudy     String?
+  linkedinUrl     String?
+  githubUrl       String?
+  twitterUrl      String?
+  portfolioUrl    String?
+  whyLead         String
+  pastExperience  String?
+  first30DaysPlan String?
+  status          LeadershipAppStatus @default(PENDING)
+  reviewNotes     String?
+  reviewedBy      String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([role, status])
+  @@index([state, city])
+}
+
 enum JobType {
   INTERNSHIP
   FULL_TIME

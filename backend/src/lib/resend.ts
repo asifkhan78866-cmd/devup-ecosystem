@@ -3,7 +3,7 @@ import { env } from "../config/env";
 import { logger } from "../middleware/logger";
 import { AppError } from "../middleware/errorHandler";
 import { Emails } from "./email/templates";
-import { renderEmail, p as para } from "./email/layout";
+import { details, p as para, renderEmail } from "./email/layout";
 
 const client = new Resend(env.RESEND_API_KEY);
 
@@ -115,6 +115,94 @@ export const EmailTemplates = {
       heading: "New job application",
       body: para(`${applicantName} has applied for the ${roleName} role.`),
     }),
+
+  leadApplicationReceived: (params: { applicantName: string; applicationNo: string; role: string }) =>
+    renderEmail({
+      preheader: `Your ${params.role} application has been received.`,
+      heading: "Your Lead DevUp application is in",
+      body:
+        para(`Hi ${params.applicantName},`) +
+        para(`Thanks for applying to become a ${params.role} with DevUp. Our team has received your application and will review it shortly.`) +
+        details([
+          ["Application reference", params.applicationNo],
+          ["Applied role", params.role],
+          ["Current status", "Pending review"],
+        ]) +
+        para("We will email you when there is an update. Please keep your application reference for your records."),
+    }),
+
+  newLeadApplicationForTeam: (params: {
+    applicationNo: string;
+    applicantName: string;
+    email: string;
+    phone: string;
+    role: string;
+    state: string;
+    city: string;
+    college: string;
+    branch?: string | null;
+    yearOfStudy?: string | null;
+    linkedinUrl?: string | null;
+    githubUrl?: string | null;
+    twitterUrl?: string | null;
+    portfolioUrl?: string | null;
+    whyLead: string;
+    pastExperience?: string | null;
+    first30DaysPlan?: string | null;
+  }) =>
+    renderEmail({
+      preheader: `${params.applicantName} applied for ${params.role}.`,
+      heading: "New Lead DevUp application",
+      body:
+        para(`${params.applicantName} has submitted a new leadership application.`) +
+        details([
+          ["Application reference", params.applicationNo],
+          ["Role", params.role],
+          ["Email", params.email],
+          ["Phone", params.phone],
+          ["Location", `${params.city}, ${params.state}`],
+          ["College", params.college],
+          ["Branch", params.branch],
+          ["Year of study", params.yearOfStudy],
+          ["LinkedIn", params.linkedinUrl],
+          ["GitHub", params.githubUrl],
+          ["Twitter", params.twitterUrl],
+          ["Portfolio", params.portfolioUrl],
+        ]) +
+        para(`Why they want to lead: ${params.whyLead}`) +
+        (params.pastExperience ? para(`Past experience: ${params.pastExperience}`) : "") +
+        (params.first30DaysPlan ? para(`First 30-day plan: ${params.first30DaysPlan}`) : ""),
+    }),
+
+  leadApplicationStatusUpdate: (params: {
+    applicantName: string;
+    applicationNo: string;
+    role: string;
+    status: string;
+  }) => {
+    const copy: Record<string, string> = {
+      REVIEWING: "Our team has started reviewing your application.",
+      SHORTLISTED: "You have been shortlisted for the next stage.",
+      INTERVIEWING: "We would like to continue with the next stage of the selection process. Our team will contact you with the details.",
+      SELECTED: "Congratulations — you have been selected. Our team will contact you with the onboarding details.",
+      REJECTED: "Thank you for your interest. After review, we will not be proceeding with your application at this time.",
+      PENDING: "Your application is pending review.",
+    };
+
+    return renderEmail({
+      preheader: `Your Lead DevUp application is now ${params.status.toLowerCase()}.`,
+      heading: "Update on your Lead DevUp application",
+      body:
+        para(`Hi ${params.applicantName},`) +
+        para(copy[params.status] ?? "Your application status has been updated.") +
+        details([
+          ["Application reference", params.applicationNo],
+          ["Applied role", params.role],
+          ["Current status", params.status],
+        ]) +
+        para("Thank you for your interest in building the DevUp community."),
+    });
+  },
 
   welcomeEmail: (userName: string) => Emails.welcome(userName),
 
