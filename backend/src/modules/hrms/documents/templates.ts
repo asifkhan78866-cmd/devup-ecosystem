@@ -384,10 +384,48 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
                font-family: Arial, Helvetica, sans-serif; font-size: 6.5pt;
                color: #B5B5B5; letter-spacing: 0.8px; text-transform: uppercase; }
 
-  .tagline { margin-top: auto; padding-top: 8mm; font-size: 9pt; font-style: italic;
+  .tagline { margin-top: auto; padding-top: 6mm; font-size: 9pt; font-style: italic;
              color: ${MUTED}; letter-spacing: 0.4px; }
-  .cert-foot { margin-top: 3.5mm; font-family: Arial, Helvetica, sans-serif;
-               font-size: 6.5pt; color: ${FAINT}; letter-spacing: 0.4px; }
+
+  /* Hairlines meeting a small lozenge. An old engraver's device, and it stops
+     the foil band arriving abruptly under the tagline. */
+  .brand-divider { display: flex; align-items: center; justify-content: center;
+                   gap: 3mm; width: 62mm; margin: 4mm 0 0; }
+  .brand-divider i { flex: 1; height: 0.5px; background: ${RULE}; }
+  .brand-divider b { width: 2.4mm; height: 2.4mm; background: ${INK};
+                     transform: rotate(45deg); }
+
+  /* ── Brand band ──────────────────────────────────────────
+     A foil strip across the foot of the certificate.
+
+     Printed on bond paper, a flat grey bar reads as a mistake; what sells
+     "foil" is the sweep — light catching along the strip and falling away.
+     Hence a multi-stop gradient rather than one tone, kept in the pale half of
+     the range so the ink over it stays legible under office lighting, with a
+     darker hairline top and bottom for the edge of the tape.
+
+     Bleeds past the inner padding so it meets the frame like real tape. */
+  .brand-band { width: calc(100% + 28mm); margin: 4.5mm -14mm 0;
+                padding: 2.4mm 14mm; box-sizing: border-box;
+                border-top: 0.5px solid #8E949A; border-bottom: 0.5px solid #8E949A;
+                background: linear-gradient(100deg,
+                  #B4BABF 0%, #EEF1F3 12%, #FFFFFF 24%, #D2D7DC 38%,
+                  #AEB4B9 50%, #E4E8EB 64%, #FFFFFF 78%, #CDD2D7 90%, #AFB5BA 100%);
+                display: flex; align-items: center; justify-content: center; gap: 5mm; }
+  .brand-crest { width: 9mm; height: 9mm; border-radius: 50%; background: #FFFFFF;
+                 border: 0.5px solid #9AA0A6; display: flex; align-items: center;
+                 justify-content: center; flex-shrink: 0; }
+  .brand-mark { height: 5.6mm; width: auto; object-fit: contain; }
+  .brand-name { font-family: Arial, Helvetica, sans-serif; font-size: 8.5pt;
+                font-weight: bold; letter-spacing: 4.5px; text-transform: uppercase;
+                color: #14181C; white-space: nowrap; }
+  .brand-dot { width: 2.6px; height: 2.6px; border-radius: 50%; background: #6E747A; }
+  .brand-site { font-family: Arial, Helvetica, sans-serif; font-size: 6.8pt;
+                letter-spacing: 1.4px; text-transform: uppercase; color: #3C4248;
+                white-space: nowrap; }
+
+  .cert-foot { margin-top: 2.6mm; font-family: Arial, Helvetica, sans-serif;
+               font-size: 6.3pt; color: ${FAINT}; letter-spacing: 0.6px; }
 </style></head><body>
 <div class="cert"><div class="frame"><div class="inner">
 
@@ -436,10 +474,20 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
   </div>
 
   <div class="tagline">Building People. Products. Possibilities.</div>
+
+  <div class="brand-divider"><i></i><b></b><i></i></div>
+
+  <div class="brand-band">
+    ${p._devupLogo ? `<span class="brand-crest"><img class="brand-mark" src="${esc(p._devupLogo)}" alt=""></span>` : ""}
+    <span class="brand-name">DevUp Community</span>
+    <span class="brand-dot"></span>
+    <span class="brand-site">${esc(p._siteUrl ?? "devupecosystem.com")}</span>
+  </div>
+
   <div class="cert-foot">
     ${p.serial ? `${esc(p.serial)} &middot; ` : ""}${esc(p._devupLegalName ?? SIGNING_ORG)}${
       p._devupCin ? ` &middot; CIN: ${esc(p._devupCin)}` : ""
-    }${p._siteUrl ? ` &middot; ${esc(p._siteUrl)}` : ""}
+    }
   </div>
 
 </div></div></div>
