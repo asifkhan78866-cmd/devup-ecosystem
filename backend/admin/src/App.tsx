@@ -13,6 +13,7 @@ import Jobs from '@/pages/Jobs'
 import Hackathons from '@/pages/Hackathons'
 import Documents from '@/pages/Documents'
 import Founders from '@/pages/Founders'
+import Certificates from '@/pages/Certificates'
 import Cofounders from '@/pages/Cofounders'
 import ServiceRequests from '@/pages/ServiceRequests'
 import SettingsPage from '@/pages/Settings'
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="hackathons" element={<Hackathons />} />
             <Route path="documents" element={<Documents />} />
             <Route path="founders" element={<Founders />} />
+            <Route path="certificates" element={<Certificates />} />
             <Route path="cofounders" element={<Cofounders />} />
             <Route path="services" element={<ServiceRequests />} />
             <Route path="settings" element={<SettingsPage />} />

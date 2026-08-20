@@ -31,6 +31,7 @@ import workspaceRoutes from "./modules/recruiting/workspace.routes";
 import candidateRoutes from "./modules/recruiting/candidate.routes";
 import platformAnalyticsRoutes from "./modules/analytics/platform.routes";
 import founderLetterRoutes from "./modules/hrms/documents/founderLetter.routes";
+import selectionCertificateRoutes from "./modules/hrms/documents/selectionCertificate.routes";
 import profileRoutes from "./modules/profile/profile.routes";
 import leadApplicationsRoutes from "./modules/lead-applications/lead-applications.routes";
 
@@ -203,6 +204,7 @@ app.use("/api/w", workspaceRoutes);
 app.use("/api", candidateRoutes);
 app.use("/api/admin/analytics", platformAnalyticsRoutes);
 app.use("/api/admin/founders", founderLetterRoutes);
+app.use("/api/admin/certificates", selectionCertificateRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/lead-applications", leadApplicationsRoutes);
 

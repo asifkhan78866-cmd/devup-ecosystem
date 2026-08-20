@@ -1,4 +1,5 @@
 export type TemplateKey =
+  | "SELECTION_CERTIFICATE"
   | "FOUNDER_LETTER"
   | "OFFER_LETTER"
   | "EXPERIENCE_LETTER"
@@ -314,6 +315,137 @@ function sheet(p: any, title: string, body: string, centre = false, confidential
 }
 
 const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
+  /**
+   * Blank selection certificate, handed out at events.
+   *
+   * Unlike every other document here it names nobody: organisers print a stack
+   * and write the student's name on the rule by hand, so the fields that would
+   * normally be merged are left as ruled space. It also carries DevUp Ecosystem
+   * branding alone — which startup a student joins is decided afterwards, and
+   * putting one company's logo on it now would promise something specific.
+   *
+   * Presentation is deliberately different from the letters: this is pinned to
+   * a noticeboard or shown to parents, so it is framed and centred rather than
+   * laid out like correspondence. Still monochrome — a printed certificate that
+   * relies on colour looks worse, not better, on an office printer.
+   */
+  SELECTION_CERTIFICATE: (p) => {
+    const line = (w: string) => `<span class="fill" style="width:${w}"></span>`;
+
+    return `<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Internship Selection Certificate</title>
+<style>${styles()}
+  .cert { width: 210mm; height: 297mm; padding: 10mm; display: flex;
+          page-break-after: always; }
+  /* Without this the final page is followed by a blank one. */
+  .cert:last-child { page-break-after: auto; }
+  /* Double rule: the outer frame reads as a certificate at a glance, and the
+     inner hairline stops the page looking like a boxed-in form. */
+  .frame { flex: 1; border: 1.4px solid ${INK}; padding: 2.2mm; display: flex; }
+  .inner { flex: 1; border: 0.5px solid ${RULE}; padding: 12mm 14mm 9mm;
+           display: flex; flex-direction: column; align-items: center;
+           text-align: center; }
+
+  .crest { height: 20mm; width: auto; object-fit: contain; margin-bottom: 4mm; }
+  .issuer { font-size: 17pt; font-weight: bold; letter-spacing: 3.4px;
+            text-transform: uppercase; line-height: 1.1; }
+  .issuer-rule { width: 34mm; height: 1.2px; background: ${INK}; margin: 3.5mm 0 5mm; }
+
+  .cert-title { font-size: 14pt; font-weight: bold; letter-spacing: 3px;
+                text-transform: uppercase; margin-bottom: 7mm; }
+  .certify { font-family: Arial, Helvetica, sans-serif; font-size: 8pt;
+             letter-spacing: 2.6px; text-transform: uppercase; color: ${MUTED}; }
+
+  /* The name rule is the whole point of the page — generous enough to write
+     across in pen without crowding the caption underneath. */
+  .name-rule { width: 100%; border-bottom: 1px solid ${INK}; height: 13mm; margin-top: 4mm; }
+  .name-cap { font-size: 8.5pt; font-style: italic; color: ${MUTED}; margin-top: 1.8mm; }
+
+  .cert-body { margin-top: 8mm; font-size: 10pt; line-height: 1.7;
+               display: flex; flex-direction: column; justify-content: center; }
+  .cert-body p { margin: 0 0 4.2mm; text-align: center; }
+
+  .fields { display: flex; gap: 12mm; width: 100%; margin-top: 9mm;
+            font-size: 9.5pt; text-align: left; }
+  /* Label and rule share one line: a fixed-width rule wraps underneath the
+     label as soon as the label is long enough, which looks like a mistake. */
+  .field { flex: 1; display: flex; align-items: baseline; gap: 2mm; }
+  .field b { font-weight: bold; white-space: nowrap; }
+  .fill { flex: 1; border-bottom: 0.8px solid ${INK}; height: 4.6mm; }
+
+  .cert-sign { display: flex; align-items: flex-end; justify-content: space-between;
+               width: 100%; margin-top: 14mm; padding-top: 0; }
+  .cert-sign-col { width: 62mm; text-align: left; }
+  .cert-sign-line { border-top: 1px solid ${INK}; padding-top: 1.8mm; }
+  .cert-sign-name { font-size: 10pt; font-weight: bold; }
+  .cert-seal { width: 30mm; height: 30mm; border: 1px dashed ${RULE}; border-radius: 2mm;
+               display: flex; align-items: center; justify-content: center;
+               font-family: Arial, Helvetica, sans-serif; font-size: 6.5pt;
+               color: #B5B5B5; letter-spacing: 0.8px; text-transform: uppercase; }
+
+  .tagline { margin-top: auto; padding-top: 8mm; font-size: 9pt; font-style: italic;
+             color: ${MUTED}; letter-spacing: 0.4px; }
+  .cert-foot { margin-top: 3.5mm; font-family: Arial, Helvetica, sans-serif;
+               font-size: 6.5pt; color: ${FAINT}; letter-spacing: 0.4px; }
+</style></head><body>
+<div class="cert"><div class="frame"><div class="inner">
+
+  ${p._devupLogo ? `<img class="crest" src="${esc(p._devupLogo)}" alt="DevUp Ecosystem">` : ""}
+  <div class="issuer">${esc(p._devupLegalName ?? SIGNING_ORG)}</div>
+  <div class="issuer-rule"></div>
+
+  <div class="cert-title">Internship Selection Certificate</div>
+  <div class="certify">This is to certify that</div>
+
+  <div class="name-rule"></div>
+  <div class="name-cap">Name of Student</div>
+
+  <div class="cert-body">
+    <p>has been <span class="strong">officially selected for an internship opportunity
+      with ${esc(p._devupLegalName ?? SIGNING_ORG)}</span> through their respective college.</p>
+
+    <p>This selection recognises the student&rsquo;s interest, participation and willingness to
+      gain <span class="strong">practical industry exposure, professional experience and
+      real-world learning</span> through the DevUp Ecosystem.</p>
+
+    <p>The internship opportunity will provide the student with an environment to
+      <span class="strong">learn, contribute, collaborate with teams, take responsibility and
+      develop professional skills</span> while working on relevant initiatives and activities.</p>
+
+    <p>We congratulate the student on being selected and wish them
+      <span class="strong">success, growth and excellence</span> in their academic and
+      professional journey.</p>
+  </div>
+
+  <div class="fields">
+    <div class="field"><b>College:</b>${p.college ? ` ${esc(p.college)}` : line("58mm")}</div>
+    <div class="field"><b>Date of Issue:</b>${p.issueDate ? ` ${esc(p.issueDate)}` : line("42mm")}</div>
+  </div>
+
+  <div class="cert-sign">
+    <div class="cert-sign-col">
+      <div style="height:11mm"></div>
+      <div class="cert-sign-line">
+        <div class="cert-sign-name">${esc(p.signatoryName ?? "Authorized Signatory")}</div>
+        <div class="sig-role">${esc(p.signatoryTitle ?? "Authorized Signatory")}</div>
+        <div class="sig-role">${esc(p._devupLegalName ?? SIGNING_ORG)}</div>
+      </div>
+    </div>
+    <div class="cert-seal">Official<br>Seal</div>
+  </div>
+
+  <div class="tagline">Building People. Products. Possibilities.</div>
+  <div class="cert-foot">
+    ${p.serial ? `${esc(p.serial)} &middot; ` : ""}${esc(p._devupLegalName ?? SIGNING_ORG)}${
+      p._devupCin ? ` &middot; CIN: ${esc(p._devupCin)}` : ""
+    }${p._siteUrl ? ` &middot; ${esc(p._siteUrl)}` : ""}
+  </div>
+
+</div></div></div>
+</body></html>`;
+  },
+
   OFFER_LETTER: (p) => {
     const isIntern = p.employmentType === "INTERNSHIP";
     const title = isIntern ? "Internship Offer Letter" : "Offer of Employment";
