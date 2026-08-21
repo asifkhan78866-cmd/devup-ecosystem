@@ -59,6 +59,8 @@ model User {
   interviewPanels    InterviewPanelist[]
   interviewFeedbacks InterviewFeedback[]     @relation("FeedbackReviewer")
   pushSubscriptions  PushSubscription[]
+  perkAwards         PerkAward[]
+  partnerAccounts    PartnerUser[]
 }
 
 model Profile {
@@ -205,6 +207,7 @@ model Startup {
   onboardingReqs OnboardingRequirement[]
   attendancePolicy AttendancePolicy?
   stipendPayouts   StipendPayout[]
+  partner          Partner?
 }
 
 enum StartupMemberRole {
@@ -1268,4 +1271,190 @@ model OnboardingRequirement {
   sortOrder  Int               @default(0)
 
   @@unique([startupId, docType])
+}
+
+/* ─────────────────────────────────────────────────────────
+   PARTNER PERKS
+
+   Organisations that give DevUp members a benefit — a discounted
+   coworking pass, a place on a programme, an introduction. DevUp awards
+   these to named people who earned them at an event; nobody claims one
+   for themselves. The printed ticket is the artefact, so a ticket must
+   be verifiable from the paper alone.
+   ───────────────────────────────────────────────────────── */
+
+enum PartnerCategory {
+  WORKSPACE
+  PROGRAM
+  COUNCIL
+  SERVICE
+  OTHER
+}
+
+enum PartnerStatus {
+  ACTIVE
+  PAUSED
+}
+
+/// A partner is not a Startup: D2PR Spaces is a coworking floor and I&EC is
+/// a council, and neither has a founding year, a funding stage or a domain.
+/// `startupId` links the ones that happen to be both.
+model Partner {
+  id            String          @id @default(uuid())
+  name          String
+  slug          String          @unique
+  /// Short immutable code used in every ticket code, e.g. "D2PR".
+  code          String          @unique
+  logoUrl       String?
+  /// Drives the ticket's accent so one template serves every partner.
+  brandColor    String          @default("#1F7A4D")
+  category      PartnerCategory @default(OTHER)
+  status        PartnerStatus   @default(ACTIVE)
+  website       String?
+  contactName   String?
+  contactPhone  String?
+  contactEmail  String?
+  addressLine1  String?
+  addressLine2  String?
+  city          String?
+  state         String?
+  pincode       String?
+  agreementStart DateTime?
+  agreementEnd   DateTime?
+
+  /// Set when the partner is also a startup in the ecosystem.
+  startupId String?  @unique
+  startup   Startup? @relation(fields: [startupId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  perks   Perk[]
+  members PartnerUser[]
+
+  @@index([status])
+}
+
+enum PerkType {
+  PERCENT_OFF
+  FLAT_OFF
+  FREE_ACCESS
+  REFERRAL
+}
+
+enum PerkStatus {
+  DRAFT
+  LIVE
+  PAUSED
+  EXPIRED
+}
+
+model Perk {
+  id            String     @id @default(uuid())
+  partnerId     String
+  partner       Partner    @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  title         String
+  subtitle      String?
+  description   String?
+  type          PerkType   @default(PERCENT_OFF)
+  percentOff    Int?
+  originalPrice Int?
+  finalPrice    Int?
+  priceUnit     String?
+  /// Bullet points shown on the ticket, e.g. the amenities strip.
+  highlights    String[]   @default([])
+  terms         String[]   @default([])
+  validFrom     DateTime?
+  validUntil    DateTime?
+  /// Total awards allowed. Null means uncapped.
+  totalCap      Int?
+  perPersonCap  Int        @default(1)
+  /// How long an awarded ticket stays usable.
+  awardValidityDays Int    @default(60)
+
+  /// Only a platform admin moves this to LIVE.
+  status     PerkStatus @default(DRAFT)
+  approvedBy String?
+  approvedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  awards PerkAward[]
+
+  @@index([partnerId, status])
+}
+
+enum AwardStatus {
+  ISSUED
+  REDEEMED
+  EXPIRED
+  REVOKED
+}
+
+/// One ticket, to one named person.
+///
+/// The recipient usually has no DevUp account — these go to people who turned
+/// up to an offline event — so name and email carry the record, and `userId`
+/// is filled in now or later by the same claim-by-email reconciliation that
+/// links direct hires.
+model PerkAward {
+  id             String      @id @default(uuid())
+  perkId         String
+  perk           Perk        @relation(fields: [perkId], references: [id], onDelete: Cascade)
+  /// Crypto-random, not derived from anything. Printed on the ticket.
+  code           String      @unique
+  recipientName  String
+  recipientEmail String
+  recipientPhone String?
+  userId         String?
+  user           User?       @relation(fields: [userId], references: [id])
+  /// Which event earned it, printed on the ticket.
+  sourceEvent    String?
+  note           String?
+  issuedAt       DateTime    @default(now())
+  issuedBy       String
+  expiresAt      DateTime
+  status         AwardStatus @default(ISSUED)
+  pdfUrl         String?
+  revokedAt      DateTime?
+  revokeReason   String?
+
+  redemption PerkRedemption?
+
+  @@index([perkId, status])
+  @@index([recipientEmail])
+  @@index([userId])
+}
+
+model PerkRedemption {
+  id               String    @id @default(uuid())
+  awardId          String    @unique
+  award            PerkAward @relation(fields: [awardId], references: [id], onDelete: Cascade)
+  redeemedAt       DateTime  @default(now())
+  /// Who confirmed it — a partner staff account, or a DevUp admin.
+  redeemedByUserId String?
+  redeemedByName   String?
+  note             String?
+}
+
+enum PartnerUserRole {
+  OWNER
+  STAFF
+}
+
+/// A partner's own login. Lets their reception desk redeem a ticket and see
+/// their numbers, without any access to the rest of the platform.
+model PartnerUser {
+  id        String          @id @default(uuid())
+  partnerId String
+  partner   Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String
+  role      PartnerUserRole @default(STAFF)
+  createdAt DateTime        @default(now())
+
+  @@unique([partnerId, userId])
+  @@index([userId])
 }

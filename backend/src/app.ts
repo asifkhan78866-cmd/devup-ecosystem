@@ -33,6 +33,8 @@ import platformAnalyticsRoutes from "./modules/analytics/platform.routes";
 import founderLetterRoutes from "./modules/hrms/documents/founderLetter.routes";
 import selectionCertificateRoutes from "./modules/hrms/documents/selectionCertificate.routes";
 import profileRoutes from "./modules/profile/profile.routes";
+import partnerAdminRoutes from "./modules/partners/partners.routes";
+import partnerPortalRoutes from "./modules/partners/portal.routes";
 import leadApplicationsRoutes from "./modules/lead-applications/lead-applications.routes";
 
 export const app = express();
@@ -206,6 +208,11 @@ app.use("/api/admin/analytics", platformAnalyticsRoutes);
 app.use("/api/admin/founders", founderLetterRoutes);
 app.use("/api/admin/certificates", selectionCertificateRoutes);
 app.use("/api/profile", profileRoutes);
+
+// Partner perks. Administration is platform-admin only; the portal routes
+// carry their own checks, including one public verification endpoint.
+app.use("/api/admin/partners", partnerAdminRoutes);
+app.use("/api", partnerPortalRoutes);
 app.use("/api/lead-applications", leadApplicationsRoutes);
 
 // Global Error Handler

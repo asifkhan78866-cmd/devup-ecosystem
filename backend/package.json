@@ -44,6 +44,7 @@
     "morgan": "^1.10.1",
     "multer": "^2.2.0",
     "puppeteer": "^25.4.0",
+    "qrcode": "^1.5.4",
     "rate-limit-redis": "^5.0.0",
     "resend": "^6.12.3",
     "swagger-ui-express": "^5.0.1",
@@ -53,6 +54,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/qrcode": "^1.5.6",
     "nodemon": "^3.1.14",
     "prisma": "^6.4.0",
     "ts-node": "^10.9.2"

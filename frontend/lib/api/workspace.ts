@@ -163,6 +163,8 @@ export const candidateApi = {
    */
   /** Documents issued TO them — offer letter, certificates, ID card. */
   myDocuments: () => api.get<any[]>("/api/me/documents"),
+  /** Partner passes awarded to them at events. */
+  myTickets: () => api.get<any[]>("/api/me/tickets"),
   myAttendance: () => api.get<any[]>("/api/me/attendance"),
   checkIn: (internId: string) => api.post<any>(`/api/me/attendance/${internId}/check-in`, {}),
   checkOut: (internId: string) => api.post<any>(`/api/me/attendance/${internId}/check-out`, {}),
@@ -232,4 +234,17 @@ export const founderApi = {
     api.post<any>(`/api/admin/founders/${memberId}/letter`, { force }),
   issueMany: (memberIds: string[]) =>
     api.post<any>("/api/admin/founders/letters", { memberIds }),
+};
+
+/**
+ * Partner desk. Verification is public on purpose — the person checking a
+ * ticket is the partner's reception staff, not a DevUp member — while
+ * redeeming needs a signed-in partner account.
+ */
+export const partnerApi = {
+  myPartners: () => api.get<any[]>("/api/me/partners"),
+  partnerAwards: (partnerId: string) => api.get<any[]>(`/api/me/partners/${partnerId}/awards`),
+  redeem: (partnerId: string, code: string) =>
+    api.post<any>(`/api/me/partners/${partnerId}/redeem`, { code }),
+  verify: (code: string) => api.get<any>(`/api/verify/${encodeURIComponent(code)}`),
 };

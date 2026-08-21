@@ -13,6 +13,8 @@ import Jobs from '@/pages/Jobs'
 import Hackathons from '@/pages/Hackathons'
 import Documents from '@/pages/Documents'
 import Founders from '@/pages/Founders'
+import Partners from '@/pages/Partners'
+import PerkTickets from '@/pages/PerkTickets'
 import Certificates from '@/pages/Certificates'
 import Cofounders from '@/pages/Cofounders'
 import ServiceRequests from '@/pages/ServiceRequests'
@@ -62,6 +64,8 @@ export default function App() {
             <Route path="hackathons" element={<Hackathons />} />
             <Route path="documents" element={<Documents />} />
             <Route path="founders" element={<Founders />} />
+            <Route path="partners" element={<Partners />} />
+            <Route path="perk-tickets" element={<PerkTickets />} />
             <Route path="certificates" element={<Certificates />} />
             <Route path="cofounders" element={<Cofounders />} />
             <Route path="services" element={<ServiceRequests />} />

@@ -13,6 +13,7 @@ import {
   LogOut,
   Award,
   ScrollText,
+  Ticket,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -26,6 +27,8 @@ const navItems = [
   { to: '/hackathons', icon: Trophy, label: 'Hackathons' },
   { to: '/documents', icon: Shield, label: 'Documents' },
   { to: '/founders', icon: Award, label: 'Founder Letters' },
+  { to: '/partners', icon: Handshake, label: 'Partners' },
+  { to: '/perk-tickets', icon: Ticket, label: 'Perk Tickets' },
   { to: '/certificates', icon: ScrollText, label: 'Certificates' },
   { to: '/cofounders', icon: Handshake, label: 'Co-Founders' },
   { to: '/services', icon: Building2, label: 'Services' },
