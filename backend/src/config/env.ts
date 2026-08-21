@@ -99,7 +99,7 @@ const envSchema = z.object({
    */
   DEVUP_SIGNATORIES: z
     .string()
-    .default("Faizan Sk:Founder & CEO|Syed Asif:Founder|Narsing Yadav:Founder")
+    .default("Faizan Sk:Co-Founder & CEO|Asif Syed:Co-Founder & CBSO|Narsing:F&H Dept")
     .transform((v) =>
       v
         .split("|")

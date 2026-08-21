@@ -14,13 +14,33 @@ import toast from 'react-hot-toast'
  * here and no recipient to choose — only how many, and which fields to
  * pre-print versus leave ruled for a pen.
  */
+/**
+ * Who signs these.
+ *
+ * The names go on a printed certificate a student keeps, so they are picked
+ * from a list rather than retyped each time — a typo in someone's title is not
+ * something you notice until a hundred are already printed.
+ */
+const SIGNATORIES = [
+  { name: 'Faizan Sk', title: 'Co-Founder & CEO' },
+  { name: 'Asif Syed', title: 'Co-Founder & CBSO' },
+  { name: 'Narsing', title: 'F&H Dept' },
+] as const
+
 export default function Certificates() {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    count: number
+    college: string
+    issueDate: string
+    signatoryName: string
+    signatoryTitle: string
+    numbered: boolean
+  }>({
     count: 10,
     college: '',
     issueDate: '',
-    signatoryName: '',
-    signatoryTitle: '',
+    signatoryName: SIGNATORIES[0].name,
+    signatoryTitle: SIGNATORIES[0].title,
     numbered: true,
   })
 
@@ -122,6 +142,36 @@ export default function Certificates() {
                 onChange={(e) => set('issueDate', e.target.value)}
                 className={field}
               />
+            </div>
+
+            <div>
+              <label className={label}>Signed by</label>
+              <div className="flex flex-wrap gap-2">
+                {SIGNATORIES.map((s) => {
+                  const active = form.signatoryName === s.name && form.signatoryTitle === s.title
+                  return (
+                    <button
+                      key={s.name}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, signatoryName: s.name, signatoryTitle: s.title }))}
+                      className="rounded-lg border px-3 py-2 text-left transition"
+                      style={
+                        active
+                          ? { borderColor: 'rgba(200,241,53,0.4)', background: 'rgba(200,241,53,0.08)' }
+                          : { borderColor: 'rgba(255,255,255,0.10)' }
+                      }
+                    >
+                      <div
+                        className="text-[12.5px] font-medium"
+                        style={{ color: active ? '#c8f135' : '#e4e4e4' }}
+                      >
+                        {s.name}
+                      </div>
+                      <div className="text-[10.5px] text-white/40">{s.title}</div>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
