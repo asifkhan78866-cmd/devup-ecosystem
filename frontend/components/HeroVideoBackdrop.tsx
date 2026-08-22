@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { getMediaUrl } from '@/lib/mediaMap'
 
 export default function HeroVideoBackdrop() {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -50,7 +51,7 @@ export default function HeroVideoBackdrop() {
         loop
         muted
         playsInline
-        poster="/video/hero-space-poster.jpg"
+        poster={getMediaUrl('video/hero-space-poster.jpg')}
         onLoadedData={() => setLoaded(true)}
         style={{
           position: 'absolute',
@@ -65,8 +66,8 @@ export default function HeroVideoBackdrop() {
           filter: 'brightness(0.45) saturate(0.55) contrast(1.05)',
         }}
       >
-        <source src="/video/hero-space-trimmed.webm" type="video/webm" />
-        <source src="/video/hero-space-trimmed.mp4" type="video/mp4" />
+        <source src={getMediaUrl('video/hero-space-trimmed.webm')} type="video/webm" />
+        <source src={getMediaUrl('video/hero-space-trimmed.mp4')} type="video/mp4" />
       </video>
 
       {/* Vignette + color-match overlay — pulls the video toward
