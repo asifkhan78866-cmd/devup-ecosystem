@@ -9,6 +9,7 @@ import ProtectedContent from "@/components/auth/ProtectedContent";
 import { candidateApi, ONBOARDING_DOC_LABELS } from "@/lib/api/workspace";
 import StartupLogo from "@/components/StartupLogo";
 import WorkUpdates from "@/components/worklog/WorkUpdates";
+import HowThisWorks from "@/components/worklog/HowThisWorks";
 
 /**
  * The intern's own dashboard.
@@ -110,6 +111,9 @@ export default function MyInternshipPage() {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Only shown to people who actually have an internship running. */}
+              {cards.length > 0 && <HowThisWorks />}
+
               {cards.map((c) => (
                 <div key={c.internId} className="space-y-6">
                   <InternshipCard card={c} busy={busy === c.internId} onAct={act} />
