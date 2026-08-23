@@ -2,6 +2,7 @@ import { prisma } from "../../../lib/prisma";
 import { AppError } from "../../../middleware/errorHandler";
 import { audit } from "../../shared/audit.service";
 import { policyFor } from "../attendance/intern.service";
+import { slotPolicyFor } from "../attendance/worklog.service";
 import * as R from "../attendance/rules";
 
 /**
@@ -46,6 +47,10 @@ export interface Computed {
   leaveDays: number;
   paidLeaveDays: number;
   payableCentidays: number;
+  slotsRequired: number;
+  slotsFiled: number;
+  incompleteDays: number;
+  compliancePercent: number;
   perDayRate: number;
   grossAmount: number;
   /** Set when the figure cannot be trusted — never silently zero. */
@@ -82,11 +87,14 @@ export async function computeFor(args: {
   const records = days.length
     ? await prisma.attendance.findMany({
         where: { internId: intern.id, date: { gte: days[0], lte: days[days.length - 1] } },
+        include: { workLogs: true, daySummary: { select: { id: true } } },
       })
     : [];
   const byDate = new Map(records.map((r) => [r.date.getTime(), r]));
   const today = R.dayOf(new Date());
 
+  const slotPolicy = await slotPolicyFor(args.startupId);
+  let slotsRequired = 0, slotsFiled = 0, incompleteDays = 0;
   let presentDays = 0, lateDays = 0, halfDays = 0, absentDays = 0, leaveDays = 0;
   let paidLeaveDays = 0, payableCentidays = 0, countedDays = 0;
   let paidLeaveRemaining = policy.paidLeavesPerMonth;
@@ -115,7 +123,43 @@ export async function computeFor(args: {
       default: absentDays++;
     }
 
-    payableCentidays += R.centidaysFor(status, paidLeaveRemaining);
+    /**
+     * Presence sets the ceiling; accounting for the time sets what is actually
+     * earned. A day spent checked in without filing any update is time nobody
+     * can vouch for, so it is paid pro-rata to what was reported — and a day
+     * with no end-of-day summary is capped separately.
+     *
+     * Leave and holidays are untouched: there is nothing to report on a day
+     * you were not working.
+     */
+    const base = R.centidaysFor(status, paidLeaveRemaining);
+    let dayCentidays = base;
+
+    if (rec?.checkIn && status !== "LEAVE" && status !== "HOLIDAY") {
+      const slots = R.slotsForDay({
+        policy: slotPolicy,
+        date: d,
+        mode: (rec.mode as R.AttendanceMode) ?? "OFFICE",
+        checkIn: rec.checkIn,
+        checkOut: rec.checkOut,
+      });
+      const filed = (rec.workLogs ?? []).filter((l: { kind: string }) =>
+        R.countsTowardCompliance(l.kind as R.WorkKind)
+      ).length;
+      const work = R.dayWorkFactor({
+        policy: slotPolicy,
+        requiredSlots: slots.length,
+        filedSlots: filed,
+        hasSummary: Boolean(rec.daySummary),
+      });
+
+      dayCentidays = Math.round(base * work.factor);
+      slotsRequired += slots.length;
+      slotsFiled += filed;
+      if (work.incomplete && slots.length > 0) incompleteDays++;
+    }
+
+    payableCentidays += dayCentidays;
     if (status === "LEAVE" && paidLeaveRemaining > 0) paidLeaveRemaining--;
   }
 
@@ -140,6 +184,10 @@ export async function computeFor(args: {
     workingDays: days.length,
     presentDays, lateDays, halfDays, absentDays, leaveDays, paidLeaveDays,
     payableCentidays,
+    slotsRequired,
+    slotsFiled,
+    incompleteDays,
+    compliancePercent: slotsRequired === 0 ? 100 : Math.round((slotsFiled / slotsRequired) * 100),
     perDayRate: Math.round(perDayRate * 100) / 100,
     grossAmount: problem ? 0 : grossAmount,
     problem,

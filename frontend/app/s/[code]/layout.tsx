@@ -6,7 +6,7 @@ import { useParams, usePathname } from "next/navigation";
 import {
   LayoutDashboard, Briefcase, Users, CalendarDays, FileText,
   UserCheck, GraduationCap, Settings, ChevronDown, AlertCircle,
-  CalendarCheck, Star, FileCheck, ArrowLeft, ClipboardCheck, IndianRupee,
+  CalendarCheck, Star, FileCheck, ArrowLeft, ClipboardCheck, IndianRupee, ListChecks,
 } from "lucide-react";
 import { workspaceApi, Workspace } from "@/lib/api/workspace";
 import StartupLogo from "@/components/StartupLogo";
@@ -21,6 +21,8 @@ const NAV = [
   { href: "/employees", label: "Employees", icon: UserCheck },
   { href: "/interns", label: "Interns", icon: GraduationCap },
   { href: "/attendance", label: "Attendance", icon: CalendarCheck },
+  // Founder-only: what people did with the time, not just that they were here.
+  { href: "/worklog", label: "Work Updates", icon: ListChecks, founderOnly: true },
   { href: "/performance", label: "Performance", icon: Star },
   { href: "/documents", label: "Documents", icon: FileCheck },
   // Stipend figures are the founder's business. Hidden here as well as blocked

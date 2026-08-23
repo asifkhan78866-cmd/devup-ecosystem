@@ -9,6 +9,7 @@ import { applySchema } from "./applications/applications.schema";
 import * as offers from "./offers/offers.service";
 import * as onboarding from "../hrms/onboarding/onboarding.service";
 import * as internAttendance from "../hrms/attendance/intern.service";
+import * as worklog from "../hrms/attendance/worklog.service";
 import { claimIfEmpty } from "../shared/claim.service";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
@@ -342,6 +343,92 @@ router.get("/me/attendance/:internId/month", requireAuth, async (req, res) => {
   ok(
     res,
     await internAttendance.month({
+      internId: req.params.internId as string,
+      userId: req.user!.id,
+      year: Number(req.query.year ?? now.getUTCFullYear()),
+      month: Number(req.query.month ?? now.getUTCMonth() + 1),
+    })
+  );
+});
+
+/**
+ * ── Their own work updates ───────────────────────────
+ *
+ * Same ownership rule as attendance: the intern record is resolved from the
+ * signed-in user, never from the URL, so one intern cannot file against
+ * another's day.
+ */
+router.get("/me/worklog/:internId", requireAuth, async (req, res) => {
+  ok(
+    res,
+    await worklog.dayView({
+      internId: req.params.internId as string,
+      userId: req.user!.id,
+      date: (req.query.date as string) ?? new Date(),
+    })
+  );
+});
+
+router.post(
+  "/me/worklog/:internId/slot",
+  requireAuth,
+  validate(
+    z.object({
+      body: z.object({
+        slotStart: z.string(),
+        kind: z.enum(["WORK", "MEETING", "BREAK", "BLOCKED", "TRAVEL"]),
+        summary: z.string().min(3).max(2000),
+        evidenceUrl: z.string().url().optional().or(z.literal("")),
+      }),
+    })
+  ),
+  async (req, res) => {
+    ok(
+      res,
+      await worklog.fileUpdate({
+        internId: req.params.internId as string,
+        userId: req.user!.id,
+        slotStart: req.body.slotStart,
+        kind: req.body.kind,
+        summary: req.body.summary,
+        evidenceUrl: req.body.evidenceUrl || undefined,
+      }),
+      201
+    );
+  }
+);
+
+router.post(
+  "/me/worklog/:internId/summary",
+  requireAuth,
+  validate(
+    z.object({
+      body: z.object({
+        done: z.string().min(10).max(4000),
+        blocked: z.string().max(2000).optional(),
+        tomorrow: z.string().max(2000).optional(),
+        date: z.string().optional(),
+      }),
+    })
+  ),
+  async (req, res) => {
+    ok(
+      res,
+      await worklog.fileSummary({
+        internId: req.params.internId as string,
+        userId: req.user!.id,
+        ...req.body,
+      }),
+      201
+    );
+  }
+);
+
+router.get("/me/worklog/:internId/month", requireAuth, async (req, res) => {
+  const now = new Date();
+  ok(
+    res,
+    await worklog.monthView({
       internId: req.params.internId as string,
       userId: req.user!.id,
       year: Number(req.query.year ?? now.getUTCFullYear()),

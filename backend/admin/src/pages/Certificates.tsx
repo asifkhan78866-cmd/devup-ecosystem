@@ -32,23 +32,35 @@ export default function Certificates() {
     count: number
     college: string
     issueDate: string
-    signatoryName: string
-    signatoryTitle: string
     numbered: boolean
   }>({
     count: 10,
     college: '',
     issueDate: '',
-    signatoryName: SIGNATORIES[0].name,
-    signatoryTitle: SIGNATORIES[0].title,
     numbered: true,
   })
+
+  // All three by default: a selection certificate carries the ecosystem's
+  // leadership, not one person's authority.
+  const [signing, setSigning] = useState<string[]>(SIGNATORIES.map((s) => s.name))
+
+  const toggleSigner = (name: string) =>
+    setSigning((prev) => {
+      // Never leave zero — an unsigned certificate is not a document.
+      if (prev.includes(name)) return prev.length === 1 ? prev : prev.filter((n) => n !== name)
+      return SIGNATORIES.filter((s) => prev.includes(s.name) || s.name === name).map((s) => s.name)
+    })
+
+  const signatories = SIGNATORIES.filter((s) => signing.includes(s.name)).map((s) => ({
+    name: s.name,
+    title: s.title,
+  }))
 
   const set = (k: string, v: string | number | boolean) => setForm((f) => ({ ...f, [k]: v }))
 
   const download = useMutation({
     mutationFn: async () => {
-      const res = await api.post('/api/admin/certificates/batch', form, { responseType: 'blob' })
+      const res = await api.post('/api/admin/certificates/batch', { ...form, signatories }, { responseType: 'blob' })
       return res.data as Blob
     },
     onSuccess: (blob) => {
@@ -79,7 +91,7 @@ export default function Certificates() {
 
   const preview = useMutation({
     mutationFn: async () => {
-      const res = await api.post('/api/admin/certificates/preview', form, { responseType: 'text' })
+      const res = await api.post('/api/admin/certificates/preview', { ...form, signatories }, { responseType: 'text' })
       return res.data as string
     },
     onSuccess: (html) => {
@@ -145,15 +157,17 @@ export default function Certificates() {
             </div>
 
             <div>
-              <label className={label}>Signed by</label>
+              <label className={label}>
+                Signed by — {signing.length} of {SIGNATORIES.length}
+              </label>
               <div className="flex flex-wrap gap-2">
                 {SIGNATORIES.map((s) => {
-                  const active = form.signatoryName === s.name && form.signatoryTitle === s.title
+                  const active = signing.includes(s.name)
                   return (
                     <button
                       key={s.name}
                       type="button"
-                      onClick={() => setForm((f) => ({ ...f, signatoryName: s.name, signatoryTitle: s.title }))}
+                      onClick={() => toggleSigner(s.name)}
                       className="rounded-lg border px-3 py-2 text-left transition"
                       style={
                         active
@@ -171,27 +185,6 @@ export default function Certificates() {
                     </button>
                   )
                 })}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={label}>Signatory</label>
-                <input
-                  placeholder="Faizan Sk"
-                  value={form.signatoryName}
-                  onChange={(e) => set('signatoryName', e.target.value)}
-                  className={field}
-                />
-              </div>
-              <div>
-                <label className={label}>Title</label>
-                <input
-                  placeholder="Founder and CEO"
-                  value={form.signatoryTitle}
-                  onChange={(e) => set('signatoryTitle', e.target.value)}
-                  className={field}
-                />
               </div>
             </div>
 

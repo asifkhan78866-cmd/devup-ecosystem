@@ -8,6 +8,7 @@ import {
 import ProtectedContent from "@/components/auth/ProtectedContent";
 import { candidateApi, ONBOARDING_DOC_LABELS } from "@/lib/api/workspace";
 import StartupLogo from "@/components/StartupLogo";
+import WorkUpdates from "@/components/worklog/WorkUpdates";
 
 /**
  * The intern's own dashboard.
@@ -110,7 +111,11 @@ export default function MyInternshipPage() {
           ) : (
             <div className="space-y-6">
               {cards.map((c) => (
-                <InternshipCard key={c.internId} card={c} busy={busy === c.internId} onAct={act} />
+                <div key={c.internId} className="space-y-6">
+                  <InternshipCard card={c} busy={busy === c.internId} onAct={act} />
+                  {/* Only meaningful once they are checked in for the day. */}
+                  <WorkUpdates internId={c.internId} />
+                </div>
               ))}
 
               {issued.length > 0 && <IssuedDocuments docs={issued} />}

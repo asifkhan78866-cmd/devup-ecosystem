@@ -29,7 +29,8 @@ let unavailableAt = 0;
 const RETRY_AFTER_MS = 5 * 60_000;
 
 async function getBrowser(): Promise<Browser | null> {
-  if (unavailableReason && Date.now() - unavailableAt < RETRY_AFTER_MS) return null;
+  if (unavailableReason && Date.now() - unavailableAt < RETRY_AFTER_MS)
+    return null;
   if (unavailableReason) {
     // Cooldown elapsed — clear the latch and try once more.
     unavailableReason = null;
@@ -48,7 +49,12 @@ async function getBrowser(): Promise<Browser | null> {
           ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH }
           : {}),
         // Required in containers; dev-shm is tiny there and Chrome will crash.
-        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--font-render-hinting=none"],
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--font-render-hinting=none",
+        ],
       })) as Browser;
     } catch (err) {
       unavailableReason = (err as Error).message;
@@ -56,7 +62,7 @@ async function getBrowser(): Promise<Browser | null> {
       logger.error(
         `PDF rendering unavailable — offer letters will be issued WITHOUT a PDF ` +
           `and without an email attachment. Install Chrome on this host ` +
-          `(build step: npx puppeteer browsers install chrome). Cause: ${unavailableReason}`
+          `(build step: npx puppeteer browsers install chrome). Cause: ${unavailableReason}`,
       );
       return null;
     }
@@ -80,7 +86,10 @@ export interface PdfOptions {
   landscape?: boolean;
 }
 
-export async function htmlToPdf(html: string, opts: PdfOptions = {}): Promise<Buffer | null> {
+export async function htmlToPdf(
+  html: string,
+  opts: PdfOptions = {},
+): Promise<Buffer | null> {
   const browser = await getBrowser();
   if (!browser) return null;
 
@@ -99,6 +108,7 @@ export async function htmlToPdf(html: string, opts: PdfOptions = {}): Promise<Bu
       landscape: opts.landscape ?? false,
       printBackground: true,
       preferCSSPageSize: true,
+      margin: { top: "0mm", bottom: "0mm", left: "0mm", right: "0mm" },
     });
 
     return Buffer.from(pdf);

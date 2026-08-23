@@ -24,6 +24,12 @@ export interface BatchInput {
   college?: string;
   /** Pre-printed date, or blank for the organiser to fill in on the day. */
   issueDate?: string;
+  /**
+   * Who signs. Several are normal — a selection certificate carries the
+   * ecosystem's leadership rather than one person's authority.
+   */
+  signatories?: Array<{ name: string; title: string }>;
+  /** Older single-signatory callers. */
   signatoryName?: string;
   signatoryTitle?: string;
   /** Suppresses the per-copy serial, for a plain unnumbered stack. */
@@ -31,6 +37,26 @@ export interface BatchInput {
 }
 
 const MAX_COPIES = 100;
+/** Three fit the width comfortably; a fourth starts crowding the seal. */
+const MAX_SIGNATORIES = 3;
+
+/**
+ * Resolves the signature block, newest calling convention first.
+ *
+ * Falls back to the configured ecosystem signatories so a caller that sends
+ * nothing still produces a signed certificate rather than a blank rule.
+ */
+function signatoriesFor(input: BatchInput) {
+  const list = (input.signatories ?? [])
+    .map((s) => ({ name: s.name?.trim() ?? "", title: s.title?.trim() ?? "" }))
+    .filter((s) => s.name);
+  if (list.length) return list.slice(0, MAX_SIGNATORIES);
+
+  if (input.signatoryName?.trim()) {
+    return [{ name: input.signatoryName.trim(), title: input.signatoryTitle?.trim() ?? "" }];
+  }
+  return env.DEVUP_SIGNATORIES.slice(0, MAX_SIGNATORIES);
+}
 
 /**
  * Serial for one copy, e.g. DEVUP/ISC/2026-27/060826-03.
@@ -59,8 +85,7 @@ function onePage(input: BatchInput, index: number) {
     _siteUrl: SITE_URL.replace(/^https?:\/\//, ""),
     college: input.college?.trim() || undefined,
     issueDate: input.issueDate?.trim() || undefined,
-    signatoryName: input.signatoryName?.trim() || env.DEVUP_SIGNATORIES[0]?.name,
-    signatoryTitle: input.signatoryTitle?.trim() || env.DEVUP_SIGNATORIES[0]?.title,
+    signatories: signatoriesFor(input),
     serial: input.numbered === false ? undefined : serialFor(index),
   });
 }

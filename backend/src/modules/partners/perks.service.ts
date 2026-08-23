@@ -427,3 +427,71 @@ export async function partnerStats(partnerId: string) {
     expired: counts.EXPIRED ?? 0,
   };
 }
+
+/**
+ * A sample ticket for one perk, before anybody has been awarded it.
+ *
+ * Built from the perk alone with a placeholder recipient and an obviously fake
+ * code, so the design and the wording can be checked without creating a real
+ * award. Awarding is not reversible in any way that matters — the recipient is
+ * emailed and the code is live — so being able to look first is the difference
+ * between catching a typo and reprinting a stack.
+ */
+// Two to a sheet, matching how they actually print: rendering one alone
+// stretches it to fill an A4 page and shows proportions nobody will ever hold.
+export async function renderPerkPreview(perkId: string, perSheet: 1 | 2 = 2) {
+  const perk = await prisma.perk.findUnique({
+    where: { id: perkId },
+    include: { partner: true },
+  });
+  if (!perk) throw new AppError(404, "Perk not found", "NOT_FOUND");
+
+  const { partner } = perk;
+  const issuedAt = new Date();
+  const expiresAt = new Date(issuedAt.getTime() + perk.awardValidityDays * 864e5);
+
+  // A code that cannot be mistaken for a real one, and a QR that resolves to
+  // the verify page so the scan can be tested end to end.
+  const code = "PREVIEW-SAMPLE";
+  const qrDataUrl = await QRCode.toDataURL(`${SITE_URL}/verify/${code}`, {
+    errorCorrectionLevel: "M",
+    margin: 0,
+    width: 320,
+  }).catch(() => null);
+
+  const address = [partner.addressLine1, partner.addressLine2, partner.city, partner.pincode]
+    .filter(Boolean)
+    .join(", ");
+
+  const payload: TicketPayload = {
+    partnerName: partner.name,
+    partnerLogoUrl: partner.logoUrl,
+    brandColor: partner.brandColor,
+    partnerAddress: address || null,
+    partnerPhone: partner.contactPhone,
+    perkTitle: perk.title,
+    perkSubtitle: perk.subtitle,
+    headline: perk.title,
+    highlights: perk.highlights,
+    terms: perk.terms,
+    originalPrice: perk.originalPrice,
+    finalPrice: perk.finalPrice,
+    priceUnit: perk.priceUnit,
+    percentOff: perk.percentOff,
+    recipientName: "Student Name",
+    recipientEmail: null,
+    sourceEvent: null,
+    code,
+    issuedAt,
+    expiresAt,
+    qrDataUrl,
+    devupLogoUrl: LOGO_URL,
+    siteUrl: SITE_URL.replace(/^https?:\/\//, ""),
+    cin: env.DEVUP_CIN,
+  };
+
+  // Two copies, because a ticket is `flex: 1` inside a fixed-height sheet: one
+  // alone stretches to fill A4 and shows a shape nobody will ever hold. Two is
+  // also what actually comes off the printer, cut guide and all.
+  return renderTicketSheet(perSheet === 2 ? [payload, payload] : [payload], { perSheet });
+}

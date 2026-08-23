@@ -19,6 +19,10 @@ const batchBody = z.object({
     count: z.coerce.number().int().min(1).max(100),
     college: z.string().max(160).optional(),
     issueDate: z.string().max(60).optional(),
+    signatories: z
+      .array(z.object({ name: z.string().max(120), title: z.string().max(120) }))
+      .max(3)
+      .optional(),
     signatoryName: z.string().max(120).optional(),
     signatoryTitle: z.string().max(120).optional(),
     numbered: z.boolean().optional(),

@@ -168,11 +168,33 @@ export const candidateApi = {
   myAttendance: () => api.get<any[]>("/api/me/attendance"),
   checkIn: (internId: string) => api.post<any>(`/api/me/attendance/${internId}/check-in`, {}),
   checkOut: (internId: string) => api.post<any>(`/api/me/attendance/${internId}/check-out`, {}),
+  /** Their own work updates — slots for a day, and the day summary. */
+  myWorkDay: (internId: string, date?: string) =>
+    api.get<any>(`/api/me/worklog/${internId}${date ? `?date=${date}` : ""}`),
+  fileSlot: (internId: string, body: { slotStart: string; kind: string; summary: string; evidenceUrl?: string }) =>
+    api.post<any>(`/api/me/worklog/${internId}/slot`, body),
+  fileDaySummary: (internId: string, body: { done: string; blocked?: string; tomorrow?: string }) =>
+    api.post<any>(`/api/me/worklog/${internId}/summary`, body),
+  myWorkMonth: (internId: string, year: number, month: number) =>
+    api.get<any>(`/api/me/worklog/${internId}/month?year=${year}&month=${month}`),
+
   myAttendanceMonth: (internId: string, year: number, month: number) =>
     api.get<any>(`/api/me/attendance/${internId}/month?year=${year}&month=${month}`),
 };
 
 /** Founder-only. Every call here 403s for HR and below. */
+/** Founder-only. Who accounted for their time, and who did not. */
+export const worklogApi = {
+  today: (code: string, date?: string) =>
+    api.get<any>(w(code, `/worklog/today${date ? `?date=${date}` : ""}`)),
+  month: (code: string, internId: string, year: number, month: number) =>
+    api.get<any>(w(code, `/worklog/${internId}/month?year=${year}&month=${month}`)),
+  day: (code: string, internId: string, date: string) =>
+    api.get<any>(w(code, `/worklog/${internId}/day?date=${date}`)),
+  excuse: (code: string, internId: string, body: { slotStart: string; reason: string; summary?: string }) =>
+    api.post<any>(w(code, `/worklog/${internId}/excuse`), body),
+};
+
 export const financeApi = {
   stipends: (code: string, year: number, month: number) =>
     api.get<any>(`/api/w/${code}/finance/stipends?year=${year}&month=${month}`),

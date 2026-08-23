@@ -23,7 +23,11 @@ const sentence = (v: unknown) => {
 
 const fmtDate = (d: unknown) =>
   d
-    ? new Date(String(d)).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+    ? new Date(String(d)).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
     : "";
 
 /* ─────────────────────────────────────────────────────────
@@ -66,14 +70,15 @@ function addressLine(b: any) {
 
 function styles() {
   return `
-  @page { size: A4; margin: 0; }
-  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { margin: 0; background: #fff; color: ${INK};
-         font-family: Georgia, "Times New Roman", serif;
-         font-size: 10pt; line-height: 1.45; }
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { height: 297mm; }
+    body { margin: 0; background: #fff; color: ${INK};
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 10pt; line-height: 1.45; }
 
-  .sheet { width: 210mm; height: 297mm; padding: 9mm 16mm 0;
-           display: flex; flex-direction: column; }
+  .sheet { width: 210mm; height: 297mm; padding: 9mm 16mm 8mm; box-sizing: border-box;
+           display: flex; flex-direction: column; position: relative; }
 
   /* ── Letterhead ── */
   .head { display: flex; align-items: center; gap: 7mm; padding-bottom: 3mm; }
@@ -118,8 +123,8 @@ function styles() {
 
   .terms { margin: 1.5mm 0 2mm; padding-left: 5mm; font-size: 8.6pt; color: ${MUTED}; }
   .terms li { margin-bottom: 0.7mm; text-align: justify; padding-left: 1mm; }
-  .terms .strong { color: ${INK}; }
-
+  .sheet { width: 210mm; height: 297mm; padding: 10mm 16mm 8mm; box-sizing: border-box;
+     display: flex; flex-direction: column; position: relative; }
   /* ── Signatures ── */
   .behalf { margin-top: 4mm; font-size: 8.5pt; color: ${MUTED}; font-style: italic; }
   .sign { display: flex; align-items: flex-end; gap: 10mm; margin-top: 1.5mm; }
@@ -176,7 +181,12 @@ function logos(p: any) {
   </div>`;
 }
 
-function signatoryBlock(name: string, title: string, org: string, image?: string) {
+function signatoryBlock(
+  name: string,
+  title: string,
+  org: string,
+  image?: string,
+) {
   return `<div class="sig-col">
       ${image ? `<img class="sig-img" src="${esc(image)}" alt="">` : `<div class="sig-space"></div>`}
       <div class="sig-rule">
@@ -214,7 +224,7 @@ function signatures(p: any, withAcceptance: boolean) {
             b.cosignatoryName,
             b.cosignatoryTitle,
             b.cosignatoryOrg || b.legalName,
-            b.cosignatureImageUrl
+            b.cosignatureImageUrl,
           )
         : ""
     }
@@ -241,7 +251,9 @@ function signatures(p: any, withAcceptance: boolean) {
  * letter keeps to a single page.
  */
 function ecosystemSignatures(p: any) {
-  const signers: Array<{ name: string; title: string }> = Array.isArray(p._devupSignatories)
+  const signers: Array<{ name: string; title: string }> = Array.isArray(
+    p._devupSignatories,
+  )
     ? p._devupSignatories
     : [];
   if (signers.length === 0) return signatures(p, false);
@@ -254,7 +266,7 @@ function ecosystemSignatures(p: any) {
         <div class="sign-line"></div>
         <div class="sig-name">${esc(s.name)}</div>
         <div class="sig-role">${esc(s.title)}</div>
-      </div>`
+      </div>`,
       )
       .join("")}
     <div class="stamp">Company<br>Seal</div>
@@ -262,7 +274,13 @@ function ecosystemSignatures(p: any) {
 }
 
 /** The single-page A4 frame every letter prints inside. */
-function sheet(p: any, title: string, body: string, centre = false, confidential = false) {
+function sheet(
+  p: any,
+  title: string,
+  body: string,
+  centre = false,
+  confidential = false,
+) {
   const b = p._branding ?? {};
   const orgName = b.legalName || p._startup?.name || "";
   const address = addressLine(b);
@@ -296,7 +314,11 @@ function sheet(p: any, title: string, body: string, centre = false, confidential
   <div class="foot">
     <div class="foot-row">
       <span>${esc(p._documentNo)}</span>
-      <span>${[esc(orgName), b.cin ? `CIN: ${esc(b.cin)}` : "", address ? esc(address) : ""]
+      <span>${[
+        esc(orgName),
+        b.cin ? `CIN: ${esc(b.cin)}` : "",
+        address ? esc(address) : "",
+      ]
         .filter(Boolean)
         .join(" · ")}</span>
       <span>Verify at <b>${esc(p._siteUrl)}</b></span>
@@ -336,19 +358,19 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
 <html><head><meta charset="utf-8">
 <title>Internship Selection Certificate</title>
 <style>${styles()}
-  .cert { width: 210mm; height: 297mm; padding: 10mm; display: flex;
-          page-break-after: always; }
+    .cert { width: 210mm; height: 297mm; padding: 10mm; display: flex;
+      page-break-after: always; page-break-inside: avoid; box-sizing: border-box; }
   /* Without this the final page is followed by a blank one. */
   .cert:last-child { page-break-after: auto; }
   /* Double rule: the outer frame reads as a certificate at a glance, and the
      inner hairline stops the page looking like a boxed-in form. */
   .frame { flex: 1; border: 1.4px solid ${INK}; padding: 2.2mm; display: flex; }
-  .inner { flex: 1; border: 0.5px solid ${RULE}; padding: 12mm 14mm 9mm;
+  .inner { flex: 1; border: 0.5px solid ${RULE}; padding: 10mm 12mm 8mm; box-sizing: border-box;
            display: flex; flex-direction: column; align-items: center;
-           text-align: center; }
+           text-align: center; overflow: hidden; justify-content: space-between; }
 
-  .crest { height: 20mm; width: auto; object-fit: contain; margin-bottom: 4mm; }
-  .issuer { font-size: 17pt; font-weight: bold; letter-spacing: 3.4px;
+  .crest { height: 18mm; width: auto; object-fit: contain; margin-bottom: 4mm; }
+  .issuer { font-size: 16pt; font-weight: bold; letter-spacing: 3.0px;
             text-transform: uppercase; line-height: 1.1; }
   .issuer-rule { width: 34mm; height: 1.2px; background: ${INK}; margin: 3.5mm 0 5mm; }
 
@@ -359,10 +381,10 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
 
   /* The name rule is the whole point of the page — generous enough to write
      across in pen without crowding the caption underneath. */
-  .name-rule { width: 100%; border-bottom: 1px solid ${INK}; height: 13mm; margin-top: 4mm; }
+  .name-rule { width: 100%; border-bottom: 1px solid ${INK}; height: 11mm; margin-top: 4mm; }
   .name-cap { font-size: 8.5pt; font-style: italic; color: ${MUTED}; margin-top: 1.8mm; }
 
-  .cert-body { margin-top: 8mm; font-size: 10pt; line-height: 1.7;
+  .cert-body { margin-top: 8mm; font-size: 9.6pt; line-height: 1.6;
                display: flex; flex-direction: column; justify-content: center; }
   .cert-body p { margin: 0 0 4.2mm; text-align: center; }
 
@@ -374,9 +396,15 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
   .field b { font-weight: bold; white-space: nowrap; }
   .fill { flex: 1; border-bottom: 0.8px solid ${INK}; height: 4.6mm; }
 
+  /* Said once above the row: repeating the organisation under three names
+     turns the foot of the certificate into a wall of the same words. */
+  .cert-behalf { width: 100%; margin-top: 12mm; text-align: left; font-size: 8.5pt;
+                 font-style: italic; color: ${MUTED}; }
   .cert-sign { display: flex; align-items: flex-end; justify-content: space-between;
-               width: 100%; margin-top: 14mm; padding-top: 0; }
-  .cert-sign-col { width: 62mm; text-align: left; }
+               width: 100%; margin-top: 2mm; padding-top: 0; gap: 6mm; flex-wrap: wrap; }
+  /* Signatories share the width evenly, so one name or three both sit
+     balanced against the seal rather than stranded at the left edge. */
+  .cert-sign-col { flex: 1; min-width: 0; max-width: 62mm; text-align: left; }
   .cert-sign-line { border-top: 1px solid ${INK}; padding-top: 1.8mm; }
   .cert-sign-name { font-size: 10pt; font-weight: bold; }
   .cert-seal { width: 30mm; height: 30mm; border: 1px dashed ${RULE}; border-radius: 2mm;
@@ -406,7 +434,7 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
 
      Bleeds past the inner padding so it meets the frame like real tape. */
   .brand-band { width: calc(100% + 28mm); margin: 4.5mm -14mm 0;
-                padding: 2.4mm 14mm; box-sizing: border-box;
+                padding: 1.6mm 12mm; box-sizing: border-box; height: auto;
                 border-top: 0.5px solid #8E949A; border-bottom: 0.5px solid #8E949A;
                 background: linear-gradient(100deg,
                   #B4BABF 0%, #EEF1F3 12%, #FFFFFF 24%, #D2D7DC 38%,
@@ -425,7 +453,11 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
                 white-space: nowrap; }
 
   .cert-foot { margin-top: 2.6mm; font-family: Arial, Helvetica, sans-serif;
-               font-size: 6.3pt; color: ${FAINT}; letter-spacing: 0.6px; }
+               font-size: 6pt; color: ${FAINT}; letter-spacing: 0.4px; }
+
+  /* Force footer to stay in the bottom band for single-page A4 output */
+  .foot { position: absolute; left: 16mm; right: 16mm; bottom: 6mm; margin: 0; padding: 2mm 0 0; border-top: 0.6px solid ${RULE}; font-family: Arial, Helvetica, sans-serif; font-size: 7pt; color: ${FAINT}; }
+  .foot-row { display: flex; justify-content: space-between; gap: 6mm; }
 </style></head><body>
 <div class="cert"><div class="frame"><div class="inner">
 
@@ -461,15 +493,27 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
     <div class="field"><b>Date of Issue:</b>${p.issueDate ? ` ${esc(p.issueDate)}` : line("42mm")}</div>
   </div>
 
+  <div class="cert-behalf">For and on behalf of ${esc(p._devupLegalName ?? SIGNING_ORG)}</div>
   <div class="cert-sign">
-    <div class="cert-sign-col">
-      <div style="height:11mm"></div>
+    ${(Array.isArray(p.signatories) && p.signatories.length
+      ? p.signatories
+      : [
+          {
+            name: p.signatoryName ?? "Authorized Signatory",
+            title: p.signatoryTitle ?? "Authorized Signatory",
+          },
+        ]
+    )
+      .map(
+        (s: { name: string; title: string }) => `<div class="cert-sign-col">
+      <div style="height:8mm"></div>
       <div class="cert-sign-line">
-        <div class="cert-sign-name">${esc(p.signatoryName ?? "Authorized Signatory")}</div>
-        <div class="sig-role">${esc(p.signatoryTitle ?? "Authorized Signatory")}</div>
-        <div class="sig-role">${esc(p._devupLegalName ?? SIGNING_ORG)}</div>
+        <div class="cert-sign-name">${esc(s.name)}</div>
+        <div class="sig-role">${esc(s.title)}</div>
       </div>
-    </div>
+    </div>`,
+      )
+      .join("")}
     <div class="cert-seal">Official<br>Seal</div>
   </div>
 
@@ -503,7 +547,12 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
       ["Position", p.designation],
       ["Department", p.department],
       ["Engagement Type", String(p.employmentType ?? "").replace(/_/g, " ")],
-      ["Duration", p.durationMonths ? `${p.durationMonths} month${p.durationMonths === 1 ? "" : "s"}` : null],
+      [
+        "Duration",
+        p.durationMonths
+          ? `${p.durationMonths} month${p.durationMonths === 1 ? "" : "s"}`
+          : null,
+      ],
       ["Annual Compensation", p.ctc],
       ["Monthly Stipend", p.stipend],
       ["Work Mode", String(p.workMode ?? "").replace(/_/g, " ")],
@@ -564,7 +613,7 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
       ${signatures(p, true)}
     `,
       false,
-      true
+      true,
     );
   },
 
@@ -617,14 +666,14 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
       <p>${esc(
         p.body ??
           `In this capacity they hold responsibility for the direction and operation of ${sentence(org)}, ` +
-            `and are authorised to represent it in the ordinary course of its business.`
+            `and are authorised to represent it in the ordinary course of its business.`,
       )}</p>
 
       <p>This letter is issued on request for the purpose of verification, and remains valid
         so long as the association continues.</p>
 
       ${ecosystemSignatures(p)}
-    `
+    `,
     );
   },
 
@@ -653,7 +702,7 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
         contribution and wish them success in their future endeavours.</p>
 
       ${signatures(p, false)}
-    `
+    `,
     ),
 
   LOR: (p) =>
@@ -669,14 +718,14 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
 
       <p>${esc(
         p.body ??
-          "Throughout their time with us they consistently demonstrated strong ownership, technical ability and a collaborative approach to problem solving. They took feedback well, worked effectively with colleagues, and delivered what they committed to."
+          "Throughout their time with us they consistently demonstrated strong ownership, technical ability and a collaborative approach to problem solving. They took feedback well, worked effectively with colleagues, and delivered what they committed to.",
       )}</p>
 
       <p>I recommend them without reservation and would be glad to answer any further questions
         regarding their work with us.</p>
 
       ${signatures(p, false)}
-    `
+    `,
     ),
 
   CERTIFICATE: (p) =>
@@ -700,7 +749,7 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
 
       ${signatures(p, false)}
     `,
-      true
+      true,
     ),
 
   RELIEVING: (p) =>
@@ -719,7 +768,7 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
         We thank you for your service and wish you well in your future endeavours.</p>
 
       ${signatures(p, false)}
-    `
+    `,
     ),
 
   /* ID cards are a physical object at card stock size, not a letter. */
@@ -762,7 +811,10 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
   },
 };
 
-export function renderDocument(key: TemplateKey, payload: Record<string, unknown>) {
+export function renderDocument(
+  key: TemplateKey,
+  payload: Record<string, unknown>,
+) {
   const tpl = TEMPLATES[key];
   if (!tpl) throw new Error(`Unknown template: ${key}`);
   return tpl(payload);

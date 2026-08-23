@@ -984,6 +984,8 @@ model Intern {
   onboardingDocs OnboardingDocument[]
   attendance     Attendance[]
   payouts        StipendPayout[]
+  workLogs       WorkLog[]
+  daySummaries   DaySummary[]
 
   @@unique([startupId, email])
   @@index([startupId, status])
@@ -1099,6 +1101,9 @@ model Attendance {
   note       String?
   createdAt  DateTime  @default(now())
 
+  workLogs   WorkLog[]
+  daySummary DaySummary?
+
   @@unique([employeeId, date])
   @@unique([internId, date])
   @@index([startupId, date])
@@ -1122,8 +1127,76 @@ model AttendancePolicy {
   minRemoteMinutes  Int      @default(240)
   /// Leave days per calendar month that still earn a full day's stipend.
   paidLeavesPerMonth Int     @default(1)
+
+  // ── Work updates ────────────────────────────────────────────────
+  /// Length of a reporting slot. 90 means four slots on a 10:00-16:00 day.
+  slotMinutes        Int     @default(90)
+  /// A slot can be filed from this far into it...
+  fileAfterMinutes   Int     @default(45)
+  /// ...until this long after it ends. Later is LATE, never is MISSED.
+  fileGraceMinutes   Int     @default(15)
+  /// Below this share of slots filed, the whole day is INCOMPLETE.
+  minSlotCompliance  Float   @default(0.6)
+  /// A day with no end-of-day summary is capped at this share of its value.
+  noSummaryFactor    Float   @default(0.75)
+  /// Whether pay scales with the share of slots actually filed.
+  proRataByCompliance Boolean @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+}
+
+/// One reporting slot: what the intern was doing in a 90-minute window.
+///
+/// Kept separate from Attendance because presence and work are different
+/// claims — someone can be checked in all day and have accounted for none of
+/// it, which is the entire reason this table exists.
+model WorkLog {
+  id           String   @id @default(uuid())
+  startupId    String
+  internId     String
+  intern       Intern   @relation(fields: [internId], references: [id], onDelete: Cascade)
+  attendanceId String
+  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+
+  /// Clock-aligned so a founder scanning several interns sees aligned rows.
+  slotStart    DateTime
+  slotEnd      DateTime
+  /// WORK | MEETING | BREAK | BLOCKED | TRAVEL
+  kind         String   @default("WORK")
+  summary      String
+  /// A commit, PR, document or design. Worth more than word count.
+  evidenceUrl  String?
+  /// When they actually typed it — not when the slot was due.
+  submittedAt  DateTime @default(now())
+  /// ON_TIME | LATE | EXCUSED
+  status       String   @default("ON_TIME")
+  /// Set when a founder excuses a late or missing entry.
+  excusedBy    String?
+  excuseReason String?
+  createdAt    DateTime @default(now())
+
+  @@unique([internId, slotStart])
+  @@index([startupId, slotStart])
+  @@index([attendanceId])
+}
+
+/// The end-of-day conclusion. One per day, required to close it out.
+model DaySummary {
+  id           String     @id @default(uuid())
+  startupId    String
+  internId     String
+  intern       Intern     @relation(fields: [internId], references: [id], onDelete: Cascade)
+  attendanceId String     @unique
+  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+
+  done         String
+  blocked      String?
+  tomorrow     String?
+  submittedAt  DateTime   @default(now())
+  seenAt       DateTime?
+  seenBy       String?
+
+  @@index([startupId, submittedAt])
 }
 
 /// A month's stipend for one intern. Values are frozen when approved: if

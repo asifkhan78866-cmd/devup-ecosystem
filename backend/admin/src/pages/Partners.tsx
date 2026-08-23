@@ -4,7 +4,7 @@ import api from '@/config/api'
 import { TopBar } from '@/components/Layout/TopBar'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
-import { Handshake, Plus, Ticket, Pause, Play, Users } from 'lucide-react'
+import { Handshake, Plus, Ticket, Pause, Play, Users, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 /**
@@ -62,6 +62,30 @@ export default function Partners() {
   const [showPartner, setShowPartner] = useState(false)
   const [perkFor, setPerkFor] = useState<Partner | null>(null)
   const [awardFor, setAwardFor] = useState<Perk | null>(null)
+
+
+  /**
+   * Opens the ticket exactly as it will print. Fetched through the API client
+   * so the admin token travels with it, then written into a blank tab —
+   * pointing the tab straight at the URL would arrive unauthenticated.
+   */
+  const previewPerk = async (perk: Perk) => {
+    const w = window.open('', '_blank')
+    if (!w) {
+      toast.error('Allow pop-ups to preview')
+      return
+    }
+    w.document.write('<p style="font:14px system-ui;padding:24px">Building preview…</p>')
+    try {
+      const res = await api.get(`/api/admin/partners/perks/${perk.id}/preview`, { responseType: 'text' })
+      w.document.open()
+      w.document.write(res.data as string)
+      w.document.close()
+    } catch {
+      w.close()
+      toast.error('Could not build the preview')
+    }
+  }
 
   const partners = useQuery<Partner[]>({
     queryKey: ['partners'],
@@ -173,6 +197,14 @@ export default function Partners() {
                           >
                             {perk.status}
                           </span>
+
+                          <button
+                            title="Preview the printed ticket"
+                            onClick={() => previewPerk(perk)}
+                            className="text-white/35 transition hover:text-white"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
 
                           {perk.status === 'LIVE' ? (
                             <>

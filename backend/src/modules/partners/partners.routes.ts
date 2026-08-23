@@ -199,6 +199,15 @@ router.patch("/perks/:id", ...adminOnly, async (req, res) => {
  * The approval gate. A perk only becomes awardable when DevUp says so, and
  * status is the one field the edit route above refuses to touch.
  */
+/**
+ * What a ticket for this perk will look like, before anyone is awarded one.
+ * Returns HTML so it opens instantly — no Chromium, no stored file.
+ */
+router.get("/perks/:id/preview", ...adminOnly, async (req, res) => {
+  const html = await perks.renderPerkPreview(req.params.id as string);
+  res.type("html").send(html);
+});
+
 router.post("/perks/:id/status", ...adminOnly, async (req, res) => {
   const next = String(req.body?.status ?? "").toUpperCase();
   if (!["DRAFT", "LIVE", "PAUSED", "EXPIRED"].includes(next)) {

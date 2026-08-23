@@ -13,6 +13,7 @@ import * as issuance from "../hrms/documents/issuance.service";
 import * as founderLetters from "../hrms/documents/founderLetter.service";
 import * as attendance from "../hrms/attendance/attendance.service";
 import * as internAttendance from "../hrms/attendance/intern.service";
+import * as worklog from "../hrms/attendance/worklog.service";
 import * as stipend from "../hrms/finance/stipend.service";
 import * as performance from "../hrms/performance/performance.service";
 import * as analytics from "../analytics/analytics.service";
@@ -700,6 +701,65 @@ router.put(
         startupId: req.startupId!,
         internId: req.params.internId as string,
         officeDays: req.body.officeDays,
+        actorId: req.user!.id,
+      })
+    );
+  }
+);
+
+/**
+ * ── Work updates ─────────────────────────────────────
+ * Founder-level, matching how the founders asked to see it: the whole
+ * ecosystem's day on one screen, then drill into a person, then into a day.
+ */
+router.get("/:code/worklog/today", requireTenantRank("FOUNDER"), async (req, res) => {
+  ok(res, await worklog.todayAcross(req.startupId!, req.query.date as string | undefined));
+});
+
+router.get("/:code/worklog/:internId/month", requireTenantRank("FOUNDER"), async (req, res) => {
+  const now = new Date();
+  ok(
+    res,
+    await worklog.monthView({
+      internId: req.params.internId as string,
+      year: Number(req.query.year ?? now.getUTCFullYear()),
+      month: Number(req.query.month ?? now.getUTCMonth() + 1),
+    })
+  );
+});
+
+router.get("/:code/worklog/:internId/day", requireTenantRank("FOUNDER"), async (req, res) => {
+  ok(
+    res,
+    await worklog.dayView({
+      internId: req.params.internId as string,
+      date: (req.query.date as string) ?? new Date(),
+    })
+  );
+});
+
+/** Excuse a missed slot — a power cut, a dead phone, a genuine reason. */
+router.post(
+  "/:code/worklog/:internId/excuse",
+  requireTenantRank("FOUNDER"),
+  validate(
+    z.object({
+      body: z.object({
+        slotStart: z.string(),
+        reason: z.string().min(3).max(500),
+        summary: z.string().max(2000).optional(),
+      }),
+    })
+  ),
+  async (req, res) => {
+    ok(
+      res,
+      await worklog.excuseSlot({
+        startupId: req.startupId!,
+        internId: req.params.internId as string,
+        slotStart: req.body.slotStart,
+        reason: req.body.reason,
+        summary: req.body.summary,
         actorId: req.user!.id,
       })
     );

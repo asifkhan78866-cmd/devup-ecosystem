@@ -214,3 +214,157 @@ export const DEFAULT_POLICY: Policy = {
   minRemoteMinutes: 240,
   paidLeavesPerMonth: 1,
 };
+
+/* ─────────────────────────────────────────────────────────
+   Work updates.
+
+   Attendance answers "were they here". These answer "what did they do" — a
+   different claim, and the one that actually matters. Everything below is
+   pure, so the same functions grade a live slot, a back-dated correction and a
+   month-end payout run identically.
+   ───────────────────────────────────────────────────────── */
+
+export interface SlotPolicy extends Policy {
+  slotMinutes: number;
+  fileAfterMinutes: number;
+  fileGraceMinutes: number;
+  minSlotCompliance: number;
+  noSummaryFactor: number;
+  proRataByCompliance: boolean;
+}
+
+export const DEFAULT_SLOT_POLICY: SlotPolicy = {
+  ...DEFAULT_POLICY,
+  slotMinutes: 90,
+  fileAfterMinutes: 45,
+  fileGraceMinutes: 15,
+  minSlotCompliance: 0.6,
+  noSummaryFactor: 0.75,
+  proRataByCompliance: true,
+};
+
+export interface Slot {
+  start: Date;
+  end: Date;
+  index: number;
+}
+
+/**
+ * The reporting slots for one day.
+ *
+ * Office days run on the scheduled window, so every intern in the building is
+ * on the same rhythm. Remote days run from when they actually checked in —
+ * somebody working 8pm to midnight still owes the same account of their time,
+ * and forcing 10:00 slots on them would mark a full evening as missed.
+ *
+ * A trailing part-slot only counts if it is at least half a slot long; nobody
+ * owes a written update for the last eleven minutes of a day.
+ */
+export function slotsForDay(args: {
+  policy: SlotPolicy;
+  date: Date;
+  mode: AttendanceMode;
+  checkIn: Date | null;
+  checkOut: Date | null;
+}): Slot[] {
+  const { policy, date, mode, checkIn, checkOut } = args;
+  const len = policy.slotMinutes * 60_000;
+
+  const from =
+    mode === "OFFICE"
+      ? timeOnDay(date, policy.officeStart)
+      : checkIn ?? timeOnDay(date, policy.officeStart);
+
+  const scheduledEnd =
+    mode === "OFFICE"
+      ? timeOnDay(date, policy.officeEnd)
+      : new Date((checkIn ?? from).getTime() + policy.minRemoteMinutes * 60_000);
+
+  // Slots cover the *committed* window, not the attended one: an office day's
+  // schedule, or a remote day's minimum hours. Leaving after ninety minutes
+  // does not reduce what was owed — it just means most of it goes unreported,
+  // which is exactly what the compliance factor is there to price.
+  // Working past the end still has to be accounted for, so the window extends.
+  const to = checkOut
+    ? new Date(Math.max(checkOut.getTime(), from.getTime()))
+    : scheduledEnd;
+  const end = new Date(Math.max(to.getTime(), scheduledEnd.getTime()));
+
+  const slots: Slot[] = [];
+  let cursor = from.getTime();
+  let index = 0;
+  while (cursor < end.getTime()) {
+    const slotEnd = Math.min(cursor + len, end.getTime());
+    if (slotEnd - cursor >= len / 2) {
+      slots.push({ start: new Date(cursor), end: new Date(slotEnd), index });
+      index++;
+    }
+    cursor += len;
+  }
+  return slots;
+}
+
+export type SlotState = "PENDING" | "OPEN" | "ON_TIME" | "LATE" | "MISSED" | "EXCUSED";
+
+/** Whether a slot can be filed right now, and what filing it would count as. */
+export function slotWindow(policy: SlotPolicy, slot: Slot, now = new Date()) {
+  const opensAt = new Date(slot.start.getTime() + policy.fileAfterMinutes * 60_000);
+  const closesAt = new Date(slot.end.getTime() + policy.fileGraceMinutes * 60_000);
+  return {
+    opensAt,
+    closesAt,
+    isOpen: now >= opensAt && now <= closesAt,
+    hasPassed: now > closesAt,
+    notYet: now < opensAt,
+  };
+}
+
+/**
+ * Share of a day's slots that were accounted for.
+ *
+ * LATE counts — the account exists, it just arrived after the window, and the
+ * lateness is recorded on the entry itself. EXCUSED counts because a founder
+ * decided it should. Only silence counts against them.
+ */
+export function slotCompliance(required: number, filed: number) {
+  if (required <= 0) return 1;
+  return Math.min(1, filed / required);
+}
+
+/**
+ * What a day is worth once its updates are taken into account.
+ *
+ * Pro-rata by design: you are paid for the time you accounted for. On a
+ * four-slot day, one missing update costs a quarter of the day, and a day
+ * below the compliance floor is INCOMPLETE regardless of how present they
+ * were. Missing the end-of-day summary caps the day separately, because
+ * turning up and going home without saying what happened is its own failure.
+ */
+export function dayWorkFactor(args: {
+  policy: SlotPolicy;
+  requiredSlots: number;
+  filedSlots: number;
+  hasSummary: boolean;
+}): { factor: number; compliance: number; incomplete: boolean } {
+  const { policy, requiredSlots, filedSlots, hasSummary } = args;
+
+  // A day with nothing to report — leave, holiday, a non-working day — is not
+  // penalised for having no updates.
+  if (requiredSlots === 0) return { factor: 1, compliance: 1, incomplete: false };
+
+  const compliance = slotCompliance(requiredSlots, filedSlots);
+  const incomplete = compliance < policy.minSlotCompliance || !hasSummary;
+
+  let factor = policy.proRataByCompliance ? compliance : compliance >= policy.minSlotCompliance ? 1 : 0.5;
+  if (!hasSummary) factor = Math.min(factor, policy.noSummaryFactor);
+
+  return { factor: Math.max(0, Math.min(1, factor)), compliance, incomplete };
+}
+
+export const WORK_KINDS = ["WORK", "MEETING", "BREAK", "BLOCKED", "TRAVEL"] as const;
+export type WorkKind = (typeof WORK_KINDS)[number];
+
+/** Breaks are not work, so they are neither required nor counted against pay. */
+export function countsTowardCompliance(kind: WorkKind) {
+  return kind !== "BREAK";
+}
