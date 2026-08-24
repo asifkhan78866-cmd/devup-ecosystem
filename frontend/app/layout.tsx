@@ -152,7 +152,7 @@ export default function RootLayout({
                     "@type": "Person",
                     "name": f.name,
                     "jobTitle": f.role,
-                    "sameAs": [f.linkedin],
+                    ...(f.linkedin ? { "sameAs": [f.linkedin] } : {}),
                   })),
                   "subOrganization": seoConfig.ventures.map(name => ({
                     "@type": "Organization",

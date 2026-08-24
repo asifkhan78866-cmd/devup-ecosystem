@@ -12,7 +12,7 @@ export default function SettingsPage() {
   const { code } = useParams<{ code: string }>();
   const [f, setF] = useState<any>({
     legalName: "", cin: "", addressLine1: "", addressLine2: "", city: "", state: "", pincode: "",
-    logoUrl: "", signatoryName: "Faizan Sk", signatoryTitle: "Founder & CEO", signatureImageUrl: "",
+    logoUrl: "", signatoryName: "", signatoryTitle: "", signatureImageUrl: "",
     signatoryOrg: "DevUp Ecosystem",
     cosignatoryName: "", cosignatoryTitle: "", cosignatoryOrg: "", cosignatureImageUrl: "",
     primaryColor: "#c8f135",

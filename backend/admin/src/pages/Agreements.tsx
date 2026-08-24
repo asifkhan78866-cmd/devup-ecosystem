@@ -203,6 +203,12 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
   const [form, setForm] = useState<any>(null)
   const [dirty, setDirty] = useState(false)
 
+  const { data: board } = useQuery<Array<{ name: string; title: string }>>({
+    queryKey: ['agreement-signatories'],
+    queryFn: async () => (await api.get('/api/admin/signatories')).data.data,
+    staleTime: Infinity,
+  })
+
   const { data } = useQuery<any>({
     queryKey: ['agreement', id],
     queryFn: async () => {
@@ -369,16 +375,27 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
             </Section>
 
             <Section title="Signing for DevUp">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className={label}>Name</label>
-                  <input value={form.signatoryName} onChange={(e) => set('signatoryName', e.target.value)} disabled={locked} className={field} />
-                </div>
-                <div>
-                  <label className={label}>Title</label>
-                  <input value={form.signatoryTitle} onChange={(e) => set('signatoryTitle', e.target.value)} disabled={locked} className={field} />
-                </div>
-              </div>
+              <label className={label}>Director</label>
+              <select
+                value={form.signatoryName}
+                onChange={(e) => {
+                  // Title follows the name: an office belongs to the person
+                  // holding it, and picking them apart invites a mismatch.
+                  const d = board?.find((x) => x.name === e.target.value)
+                  setForm((f: any) => ({ ...f, signatoryName: e.target.value, signatoryTitle: d?.title ?? f.signatoryTitle }))
+                  setDirty(true)
+                }}
+                disabled={locked}
+                className={field}
+              >
+                {board?.some((d) => d.name === form.signatoryName) === false && form.signatoryName && (
+                  <option value={form.signatoryName}>{form.signatoryName}</option>
+                )}
+                {board?.map((d) => (
+                  <option key={d.name} value={d.name}>{d.name}</option>
+                ))}
+              </select>
+              <p className="mt-1.5 text-[11px] text-white/35">{form.signatoryTitle}</p>
             </Section>
 
             <div className="space-y-2 rounded-2xl border border-white/[0.07] p-4">

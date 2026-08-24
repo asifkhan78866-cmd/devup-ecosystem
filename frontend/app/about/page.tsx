@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import { buildOgMetadata, buildTwitterMetadata, canonicalUrl, seoConfig } from "@/lib/seo";
 import ContentPage, { H2, P, UL, CTA } from "@/components/seo/ContentPage";
 
+/** "A, B and C" — the Oxford-comma-free form used in Indian English. */
+function formatList(items: readonly string[]): string {
+  if (items.length <= 1) return items[0] ?? "";
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+
+
 const title = "About DEVTHON & DevUp Ecosystem";
 const description =
   "DEVTHON is a national innovation hackathon by DevUp Ecosystem, based in Hyderabad, Telangana. Learn about our mission to build one of India's most ambitious innovation, entrepreneurship, and incubation ecosystems for students and startups.";
@@ -73,7 +80,7 @@ export default function AboutPage() {
 
       <H2>Leadership</H2>
       <P>
-        DevUp Ecosystem was founded by {seoConfig.founders.map((f) => `${f.name} (${f.role})`).join(" and ")}.
+        DevUp Ecosystem was founded by {formatList(seoConfig.founders.map((f) => `${f.name} (${f.role})`))}.
         The team combines engineering, product, and community-building experience with a deep
         commitment to India&apos;s student innovators.
       </P>

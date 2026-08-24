@@ -36,7 +36,7 @@ export default function HackathonSchema({ hackathon }: { hackathon: any }) {
     name: f.name,
     jobTitle: f.role,
     affiliation: { "@type": "Organization", name: seoConfig.organization.name },
-    sameAs: [f.linkedin],
+    ...(f.linkedin ? { sameAs: [f.linkedin] } : {}),
   }));
 
   const location =

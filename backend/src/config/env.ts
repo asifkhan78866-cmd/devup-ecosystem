@@ -93,13 +93,19 @@ const envSchema = z.object({
   DEVUP_CIN: z.string().default("U85500TS2026PTC216527"),
 
   /**
-   * Who signs a founder appointment letter, as "Name:Title" separated by "|".
-   * Appointing a founder is the ecosystem's own act, so its founders sign it
-   * together rather than one person signing alone.
+   * The company's directors, as "Name:Title" separated by "|".
+   *
+   * These are the authorised signatories for everything issued in DevUp's own
+   * name — founder appointments, selection certificates, MOUs — and the names
+   * printed on the letterhead. One list, so a change of title cannot leave two
+   * documents disagreeing about who holds which office.
+   *
+   * Order matters: the first entry is the default signatory where a document
+   * carries a single signature.
    */
   DEVUP_SIGNATORIES: z
     .string()
-    .default("Faizan Sk:Co-Founder & CEO|Asif Syed:Co-Founder & CBSO|Narsing:F&H Dept")
+    .default("Mohammed Faizan Ali:Co-Founder & CEO|Syed Asif:Co-Founder & CBSO|Narsing Yadav:Co-Founder & CFO")
     .transform((v) =>
       v
         .split("|")

@@ -61,6 +61,8 @@ export interface LetterheadOrg {
   email: string;
   phone?: string;
   site: string;
+  /** Board of directors, printed on every page. */
+  directors: string;
 }
 
 export function orgDetails(): LetterheadOrg {
@@ -70,6 +72,7 @@ export function orgDetails(): LetterheadOrg {
     address: "Hitech City, Hyderabad, Telangana 500081, India",
     email: env.RESEND_FROM_EMAIL,
     site: SITE_URL.replace(/^https?:\/\//, ""),
+    directors: env.DEVUP_SIGNATORIES.map((d) => d.name).join(" · "),
   };
 }
 
@@ -117,6 +120,9 @@ export function footerTemplate(org: LetterheadOrg) {
     <span style="white-space:nowrap;">
       Page <span class="pageNumber"></span> of <span class="totalPages"></span>
     </span>
+  </div>
+  <div style="margin-top:0.8mm;line-height:1.45;">
+    Directors: ${esc(org.directors)}
   </div>
 </div>`;
 }

@@ -84,7 +84,7 @@ export default function HackathonFAQ({ hackathon }: { hackathon: any }) {
     },
     {
       q: "Who organizes DEVTHON?",
-      a: "DEVTHON is organized by DevUp Ecosystem, India's student-driven innovation and startup ecosystem. DevUp Ecosystem was co-founded by Syed Asif (CEO) and Faizan Mohammed (CTO) with the mission of empowering the next generation of innovators and entrepreneurs through hackathons, co-founder matching, mentorship, and startup incubation.",
+      a: "DEVTHON is organized by DevUp Ecosystem, India's student-driven innovation and startup ecosystem. DevUp Ecosystem was co-founded by Mohammed Faizan Ali (CEO), Syed Asif (CBSO) and Narsing Yadav (CFO) with the mission of empowering the next generation of innovators and entrepreneurs through hackathons, co-founder matching, mentorship, and startup incubation.",
     },
     {
       q: "How can I become a sponsor, mentor, or judge at DEVTHON?",

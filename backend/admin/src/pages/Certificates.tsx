@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import api from '@/config/api'
 import { TopBar } from '@/components/Layout/TopBar'
 import { Button } from '@/components/ui/Button'
@@ -19,13 +19,10 @@ import toast from 'react-hot-toast'
  *
  * The names go on a printed certificate a student keeps, so they are picked
  * from a list rather than retyped each time — a typo in someone's title is not
- * something you notice until a hundred are already printed.
+ * something you notice until a hundred are already printed. The list comes from
+ * the server, which is the same list the MOUs and founder letters sign with.
  */
-const SIGNATORIES = [
-  { name: 'Faizan Sk', title: 'Co-Founder & CEO' },
-  { name: 'Asif Syed', title: 'Co-Founder & CBSO' },
-  { name: 'Narsing', title: 'F&H Dept' },
-] as const
+type Signatory = { name: string; title: string }
 
 export default function Certificates() {
   const [form, setForm] = useState<{
@@ -40,9 +37,19 @@ export default function Certificates() {
     numbered: true,
   })
 
-  // All three by default: a selection certificate carries the ecosystem's
+  const { data: board } = useQuery<Signatory[]>({
+    queryKey: ['signatories'],
+    queryFn: async () => (await api.get('/api/admin/signatories')).data.data,
+    staleTime: Infinity,
+  })
+  const SIGNATORIES: Signatory[] = board ?? []
+
+  // Everyone by default: a selection certificate carries the ecosystem's
   // leadership, not one person's authority.
-  const [signing, setSigning] = useState<string[]>(SIGNATORIES.map((s) => s.name))
+  const [signing, setSigning] = useState<string[]>([])
+  useEffect(() => {
+    if (board) setSigning(board.map((s) => s.name))
+  }, [board])
 
   const toggleSigner = (name: string) =>
     setSigning((prev) => {

@@ -33,6 +33,7 @@ import platformAnalyticsRoutes from "./modules/analytics/platform.routes";
 import founderLetterRoutes from "./modules/hrms/documents/founderLetter.routes";
 import selectionCertificateRoutes from "./modules/hrms/documents/selectionCertificate.routes";
 import agreementRoutes from "./modules/legal/agreements.routes";
+import signatoryRoutes from "./modules/legal/signatories.routes";
 import profileRoutes from "./modules/profile/profile.routes";
 import partnerAdminRoutes from "./modules/partners/partners.routes";
 import partnerPortalRoutes from "./modules/partners/portal.routes";
@@ -209,6 +210,7 @@ app.use("/api/admin/analytics", platformAnalyticsRoutes);
 app.use("/api/admin/founders", founderLetterRoutes);
 app.use("/api/admin/certificates", selectionCertificateRoutes);
 app.use("/api/admin/agreements", agreementRoutes);
+app.use("/api/admin/signatories", signatoryRoutes);
 app.use("/api/profile", profileRoutes);
 
 // Partner perks. Administration is platform-admin only; the portal routes

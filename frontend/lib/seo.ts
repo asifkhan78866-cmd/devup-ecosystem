@@ -36,16 +36,27 @@ export const seoConfig = {
     "CineShot AI",
     "CourtAI",
   ],
+  /**
+   * The board, in the order it is named on our documents. Kept in step with
+   * DEVUP_SIGNATORIES on the backend — these are the same three people, and a
+   * title that disagrees between a signed MOU and our own structured data is
+   * the kind of thing that gets noticed exactly once, publicly.
+   */
   founders: [
     {
-      name: "Syed Asif",
+      name: "Mohammed Faizan Ali",
       role: "Co-Founder & CEO",
+      linkedin: "https://www.linkedin.com/in/faizanmohammed07tech",
+    },
+    {
+      name: "Syed Asif",
+      role: "Co-Founder & CBSO",
       linkedin: "https://www.linkedin.com/in/syed-asif20",
     },
     {
-      name: "Faizan Mohammed",
-      role: "Co-Founder & CTO",
-      linkedin: "https://www.linkedin.com/in/faizanmohammed07tech",
+      name: "Narsing Yadav",
+      role: "Co-Founder & CFO",
+      linkedin: "",
     },
   ],
 } as const;

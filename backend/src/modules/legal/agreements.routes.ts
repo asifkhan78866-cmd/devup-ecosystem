@@ -52,6 +52,7 @@ router.get("/templates", (_req, res) => {
   );
 });
 
+
 router.get("/", async (_req, res) => ok(res, await agreements.listAgreements()));
 router.get("/:id", async (req, res) => ok(res, await agreements.getAgreement(req.params.id as string)));
 
