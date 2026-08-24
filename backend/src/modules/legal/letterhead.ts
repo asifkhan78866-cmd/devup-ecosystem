@@ -54,6 +54,15 @@ export async function letterheadLogo(): Promise<string | null> {
   return logoDataUri;
 }
 
+/**
+ * "Name — Office", separated by a middot. Written out in full rather than
+ * as bare names: a document that lists three directors without saying which of
+ * them holds which office answers half the question a reader is asking.
+ */
+export function directorsLine() {
+  return env.DEVUP_SIGNATORIES.map((d) => `${d.name} — ${d.title}`).join(" · ");
+}
+
 export interface LetterheadOrg {
   legalName: string;
   cin: string;
@@ -72,7 +81,7 @@ export function orgDetails(): LetterheadOrg {
     address: "Hitech City, Hyderabad, Telangana 500081, India",
     email: env.RESEND_FROM_EMAIL,
     site: SITE_URL.replace(/^https?:\/\//, ""),
-    directors: env.DEVUP_SIGNATORIES.map((d) => d.name).join(" · "),
+    directors: directorsLine(),
   };
 }
 

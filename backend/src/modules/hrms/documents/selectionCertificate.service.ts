@@ -86,6 +86,8 @@ function onePage(input: BatchInput, index: number) {
     college: input.college?.trim() || undefined,
     issueDate: input.issueDate?.trim() || undefined,
     signatories: signatoriesFor(input),
+    // The full board goes in the foot regardless of who signs this batch.
+    _devupSignatories: env.DEVUP_SIGNATORIES,
     serial: input.numbered === false ? undefined : serialFor(index),
   });
 }

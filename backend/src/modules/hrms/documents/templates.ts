@@ -162,6 +162,8 @@ function styles() {
           font-family: Arial, Helvetica, sans-serif; font-size: 7pt; color: ${FAINT}; }
   .foot-row { display: flex; justify-content: space-between; gap: 6mm; }
   .foot-issuer { margin-top: 1mm; text-align: center; color: ${MUTED}; }
+  .foot-board { margin-top: 0.8mm; text-align: center; color: ${FAINT};
+                font-size: 6.4pt; line-height: 1.4; }
   .foot b { color: ${MUTED}; font-weight: normal; }
 
   /* Certificates read better centred — horizontally and on the page. */
@@ -331,9 +333,24 @@ function sheet(
         ? `<div class="foot-issuer">Issued by ${esc(p._devupLegalName)} · CIN: ${esc(p._devupCin)}</div>`
         : ""
     }
+    ${directorsFoot(p)}
   </div>
 </div>
 </body></html>`;
+}
+
+/**
+ * The board, with offices, for the foot of every document.
+ *
+ * Printed on partner letters too: those are issued under DevUp's authority and
+ * carry its CIN a line above, so naming the directors behind that authority is
+ * the same statement, finished.
+ */
+function directorsFoot(p: any) {
+  const board = Array.isArray(p._devupSignatories) ? p._devupSignatories : [];
+  if (!board.length) return "";
+  const line = board.map((d: any) => `${esc(d.name)} &mdash; ${esc(d.title)}`).join(" &middot; ");
+  return `<div class="foot-board">Directors: ${line}</div>`;
 }
 
 const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
@@ -400,13 +417,19 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
      turns the foot of the certificate into a wall of the same words. */
   .cert-behalf { width: 100%; margin-top: 12mm; text-align: left; font-size: 8.5pt;
                  font-style: italic; color: ${MUTED}; }
-  .cert-sign { display: flex; align-items: flex-end; justify-content: space-between;
+  /* Aligned at the top, not the bottom: the rule is what a person signs on,
+     so the three rules must sit on one line. Bottom-alignment let a name long
+     enough to wrap lift its own rule above the others. */
+  .cert-sign { display: flex; align-items: flex-start; justify-content: space-between;
                width: 100%; margin-top: 2mm; padding-top: 0; gap: 6mm; flex-wrap: wrap; }
   /* Signatories share the width evenly, so one name or three both sit
      balanced against the seal rather than stranded at the left edge. */
   .cert-sign-col { flex: 1; min-width: 0; max-width: 62mm; text-align: left; }
   .cert-sign-line { border-top: 1px solid ${INK}; padding-top: 1.8mm; }
-  .cert-sign-name { font-size: 10pt; font-weight: bold; }
+  /* Sized to hold the longest name on the board on one line. A wrapped name
+     under a signature rule reads as though it did not fit, which on a document
+     someone frames is worth two points of type to avoid. */
+  .cert-sign-name { font-size: 9pt; font-weight: bold; line-height: 1.35; }
   .cert-seal { width: 30mm; height: 30mm; border: 1px dashed ${RULE}; border-radius: 2mm;
                display: flex; align-items: center; justify-content: center;
                font-family: Arial, Helvetica, sans-serif; font-size: 6.5pt;
@@ -452,6 +475,8 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
                 letter-spacing: 1.4px; text-transform: uppercase; color: #3C4248;
                 white-space: nowrap; }
 
+  .cert-board { margin-top: 1.2mm; font-family: Arial, Helvetica, sans-serif;
+                font-size: 6.2pt; color: ${FAINT}; line-height: 1.4; }
   .cert-foot { margin-top: 2.6mm; font-family: Arial, Helvetica, sans-serif;
                font-size: 6pt; color: ${FAINT}; letter-spacing: 0.4px; }
 
@@ -533,6 +558,7 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
       p._devupCin ? ` &middot; CIN: ${esc(p._devupCin)}` : ""
     }
   </div>
+  <div class="cert-board">${directorsFoot(p).replace(/^<div class="foot-board">|<\/div>$/g, "")}</div>
 
 </div></div></div>
 </body></html>`;
