@@ -1145,6 +1145,60 @@ model AttendancePolicy {
   updatedAt         DateTime @updatedAt
 }
 
+/// The kinds of agreement DevUp signs. Each carries its own starter clauses
+/// and its own numbering series, so an MOU and a support letter never share
+/// a reference number.
+enum AgreementType {
+  B2B
+  COLLABORATOR
+  PARTNER
+  INCUBATION
+  SUPPORT
+}
+
+enum AgreementStatus {
+  DRAFT
+  ISSUED
+  SIGNED
+  CANCELLED
+}
+
+/// An MOU or letter issued on DevUp letterhead to an outside party.
+///
+/// Deliberately not an HrDocument: those hang off an employee, intern or
+/// application inside one startup, whereas this is DevUp itself contracting
+/// with somebody external. The body is authored in the admin panel, so it is
+/// stored as sanitised HTML rather than a merge payload.
+model Agreement {
+  id             String          @id @default(uuid())
+  type           AgreementType
+  /// DEVUP/MOU/2026-27/0001 — allocated when it is issued, never reused.
+  documentNo     String?         @unique
+  title          String
+  /// Who it is with.
+  partyName      String
+  partyAddress   String?
+  partySignatory String?
+  partyTitle     String?
+  partyEmail     String?
+  /// Sanitised HTML from the editor. Never rendered without sanitising again.
+  contentHtml    String
+  effectiveDate  DateTime?
+  expiryDate     DateTime?
+  /// Who signs for DevUp. Defaults to the ecosystem signatories.
+  signatoryName  String?
+  signatoryTitle String?
+  status         AgreementStatus @default(DRAFT)
+  pdfUrl         String?
+  issuedAt       DateTime?
+  createdBy      String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([status, createdAt])
+  @@index([type])
+}
+
 /// One reporting slot: what the intern was doing in a 90-minute window.
 ///
 /// Kept separate from Attendance because presence and work are different

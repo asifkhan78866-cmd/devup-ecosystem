@@ -20,3 +20,23 @@ body {
 input, textarea, select {
   font-family: inherit;
 }
+
+
+/* The agreement editor. Mirrors the printed hierarchy closely enough that what
+   you type is what you get, without pretending the dark screen is paper. */
+.agreement-body h2 { font-size: 15px; font-weight: 700; margin: 18px 0 7px; color: #fff; }
+.agreement-body h3 { font-size: 13.5px; font-weight: 700; margin: 14px 0 5px; color: #f0f0f0; }
+.agreement-body h1 { font-size: 16px; font-weight: 700; margin: 20px 0 8px; color: #fff; }
+.agreement-body p { margin: 0 0 10px; }
+.agreement-body ul { list-style: disc; margin: 0 0 10px; padding-left: 22px; }
+.agreement-body ol { list-style: decimal; margin: 0 0 10px; padding-left: 22px; }
+.agreement-body li { margin-bottom: 4px; }
+.agreement-body blockquote { margin: 0 0 10px 12px; padding-left: 12px;
+  border-left: 2px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); }
+.agreement-body a { color: #c8f135; text-decoration: underline; }
+.agreement-body table { width: 100%; border-collapse: collapse; margin: 0 0 12px; font-size: 12.5px; }
+.agreement-body th, .agreement-body td {
+  border: 1px solid rgba(255,255,255,0.12); padding: 6px 8px; text-align: left; }
+.agreement-body th { background: rgba(255,255,255,0.04); font-weight: 600; }
+.agreement-body hr { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 16px 0; }
+.agreement-body:focus { outline: none; }

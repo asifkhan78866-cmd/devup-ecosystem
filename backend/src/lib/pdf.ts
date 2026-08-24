@@ -84,6 +84,18 @@ export interface PdfOptions {
   width?: string;
   height?: string;
   landscape?: boolean;
+  /**
+   * Letterhead that repeats on every page.
+   *
+   * Chrome renders these outside the page body, which is the only way to get a
+   * header on page four of a document nobody has written yet. They are plain
+   * HTML with their own inline styles — no stylesheet from the document
+   * reaches them — and images must be data URIs, since a relative or
+   * unreachable URL simply renders as blank space.
+   */
+  headerHtml?: string;
+  footerHtml?: string;
+  margin?: { top?: string; bottom?: string; left?: string; right?: string };
 }
 
 export async function htmlToPdf(
@@ -101,14 +113,32 @@ export async function htmlToPdf(
     // before the snapshot; without it letters can render with missing branding.
     await page.setContent(html, { waitUntil: "networkidle0", timeout: 20000 });
 
+    const running = Boolean(opts.headerHtml || opts.footerHtml);
+
     const pdf = await page.pdf({
       ...(opts.width && opts.height
         ? { width: opts.width, height: opts.height }
         : { format: "A4" }),
       landscape: opts.landscape ?? false,
       printBackground: true,
-      preferCSSPageSize: true,
-      margin: { top: "0mm", bottom: "0mm", left: "0mm", right: "0mm" },
+      // A running header needs Chrome's own margin box; honouring the page's
+      // @page size instead would leave nowhere to draw it.
+      preferCSSPageSize: !running,
+      ...(running
+        ? {
+            displayHeaderFooter: true,
+            headerTemplate: opts.headerHtml ?? "<span></span>",
+            footerTemplate: opts.footerHtml ?? "<span></span>",
+          }
+        : {}),
+      margin: running
+        ? {
+            top: opts.margin?.top ?? "38mm",
+            bottom: opts.margin?.bottom ?? "26mm",
+            left: opts.margin?.left ?? "18mm",
+            right: opts.margin?.right ?? "18mm",
+          }
+        : { top: "0mm", bottom: "0mm", left: "0mm", right: "0mm" },
     });
 
     return Buffer.from(pdf);
