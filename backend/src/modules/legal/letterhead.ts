@@ -54,15 +54,6 @@ export async function letterheadLogo(): Promise<string | null> {
   return logoDataUri;
 }
 
-/**
- * "Name — Office", separated by a middot. Written out in full rather than
- * as bare names: a document that lists three directors without saying which of
- * them holds which office answers half the question a reader is asking.
- */
-export function directorsLine() {
-  return env.DEVUP_SIGNATORIES.map((d) => `${d.name} — ${d.title}`).join(" · ");
-}
-
 export interface LetterheadOrg {
   legalName: string;
   cin: string;
@@ -70,8 +61,6 @@ export interface LetterheadOrg {
   email: string;
   phone?: string;
   site: string;
-  /** Board of directors, printed on every page. */
-  directors: string;
 }
 
 export function orgDetails(): LetterheadOrg {
@@ -81,7 +70,6 @@ export function orgDetails(): LetterheadOrg {
     address: "Hitech City, Hyderabad, Telangana 500081, India",
     email: env.RESEND_FROM_EMAIL,
     site: SITE_URL.replace(/^https?:\/\//, ""),
-    directors: directorsLine(),
   };
 }
 
@@ -129,9 +117,6 @@ export function footerTemplate(org: LetterheadOrg) {
     <span style="white-space:nowrap;">
       Page <span class="pageNumber"></span> of <span class="totalPages"></span>
     </span>
-  </div>
-  <div style="margin-top:0.8mm;line-height:1.45;">
-    Directors: ${esc(org.directors)}
   </div>
 </div>`;
 }

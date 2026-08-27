@@ -231,8 +231,7 @@ export async function renderAgreement(a: Agreement) {
     <div class="sig-grid">
       <div class="sig-col">
         <div class="sig-line">
-          <div class="sig-name">${esc(a.signatoryName ?? env.DEVUP_SIGNATORIES[0]?.name ?? "")}</div>
-          <div class="sig-role">${esc(a.signatoryTitle ?? env.DEVUP_SIGNATORIES[0]?.title ?? "")}</div>
+          <div class="sig-role">Authorised Signatory</div>
           <div class="sig-role">${esc(org.legalName)}</div>
           <div class="sig-meta">Date: <span class="sig-fill"></span></div>
         </div>

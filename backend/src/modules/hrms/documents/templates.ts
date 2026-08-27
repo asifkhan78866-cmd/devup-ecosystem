@@ -1,3 +1,9 @@
+import {
+  DEVUP_AUTHORISED_SIGN_STAMP,
+  DEVUP_WAX_SEAL,
+  DEVUP_OFFICIAL_SEAL,
+} from "./sealAsset";
+
 export type TemplateKey =
   | "SELECTION_CERTIFICATE"
   | "FOUNDER_LETTER"
@@ -135,16 +141,19 @@ function styles() {
   .sig-name { font-size: 10pt; font-weight: bold; }
   .sig-role { font-size: 8.5pt; color: ${MUTED}; }
 
-  /* Empty box the physical company seal is stamped into. */
-  .stamp { width: 28mm; height: 28mm; border: 1px dashed ${RULE}; border-radius: 2mm;
+  /* Official seal stamp */
+  .stamp { width: 25mm; height: 25mm; border: none; border-radius: 50%;
            display: flex; align-items: center; justify-content: center; text-align: center;
-           font-family: Arial, Helvetica, sans-serif; font-size: 6.5pt; color: #B5B5B5;
-           letter-spacing: 0.6px; text-transform: uppercase; flex-shrink: 0;
-           margin-left: auto; }
+           flex-shrink: 0; margin-left: auto; }
+  .stamp img { width: 100%; height: 100%; object-fit: contain;
+               mix-blend-mode: multiply; }
 
   /* Founder letters: several signatures across one row. */
   .sign-row { display: flex; align-items: flex-end; gap: 8mm; margin-top: 8mm; }
-  .sign-cell { flex: 1; min-width: 0; }
+  /* Capped: with three named signatories the row filled the width naturally,
+     but a single signature stretched its rule across the whole page, which
+     reads as a form field rather than somewhere to sign. */
+  .sign-cell { flex: 1; min-width: 0; max-width: 68mm; }
   .sign-line { border-top: 1px solid ${INK}; padding-top: 1.5mm; }
 
   /* Acceptance sits on its own rule beneath the signatures, like a contract. */
@@ -230,7 +239,7 @@ function signatures(p: any, withAcceptance: boolean) {
           )
         : ""
     }
-    <div class="stamp">Company<br>Seal</div>
+    <div class="stamp"><img src="${DEVUP_WAX_SEAL}" alt="Seal"></div>
   </div>
   ${
     withAcceptance
@@ -245,33 +254,20 @@ function signatures(p: any, withAcceptance: boolean) {
 }
 
 /**
- * Signature strip for founder letters.
+ * Signature strip for letters issued in DevUp's own name.
  *
- * Appointing a founder is the ecosystem's own act, so DevUp's founders sign it
- * together. Laid out as an even row of ruled lines rather than the two tall
- * columns used elsewhere: three signatures side by side stay readable, and the
- * letter keeps to a single page.
+ * Signed by the company rather than by named individuals: the authority is the
+ * Company's, the seal carries it, and printing three officers' names on every
+ * letter dates the document the moment anyone changes role.
  */
 function ecosystemSignatures(p: any) {
-  const signers: Array<{ name: string; title: string }> = Array.isArray(
-    p._devupSignatories,
-  )
-    ? p._devupSignatories
-    : [];
-  if (signers.length === 0) return signatures(p, false);
-
   return `<div class="behalf">For and on behalf of ${esc(p._devupLegalName ?? SIGNING_ORG)}</div>
   <div class="sign-row">
-    ${signers
-      .map(
-        (s) => `<div class="sign-cell">
-        <div class="sign-line"></div>
-        <div class="sig-name">${esc(s.name)}</div>
-        <div class="sig-role">${esc(s.title)}</div>
-      </div>`,
-      )
-      .join("")}
-    <div class="stamp">Company<br>Seal</div>
+    <div class="sign-cell">
+      <div class="sign-line"></div>
+      <div class="sig-role">Authorised Signatory</div>
+    </div>
+    <div class="stamp"><img src="${DEVUP_WAX_SEAL}" alt="Seal"></div>
   </div>`;
 }
 
@@ -333,24 +329,9 @@ function sheet(
         ? `<div class="foot-issuer">Issued by ${esc(p._devupLegalName)} · CIN: ${esc(p._devupCin)}</div>`
         : ""
     }
-    ${directorsFoot(p)}
   </div>
 </div>
 </body></html>`;
-}
-
-/**
- * The board, with offices, for the foot of every document.
- *
- * Printed on partner letters too: those are issued under DevUp's authority and
- * carry its CIN a line above, so naming the directors behind that authority is
- * the same statement, finished.
- */
-function directorsFoot(p: any) {
-  const board = Array.isArray(p._devupSignatories) ? p._devupSignatories : [];
-  if (!board.length) return "";
-  const line = board.map((d: any) => `${esc(d.name)} &mdash; ${esc(d.title)}`).join(" &middot; ");
-  return `<div class="foot-board">Directors: ${line}</div>`;
 }
 
 const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
@@ -362,11 +343,7 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
    * normally be merged are left as ruled space. It also carries DevUp Ecosystem
    * branding alone — which startup a student joins is decided afterwards, and
    * putting one company's logo on it now would promise something specific.
-   *
-   * Presentation is deliberately different from the letters: this is pinned to
-   * a noticeboard or shown to parents, so it is framed and centred rather than
-   * laid out like correspondence. Still monochrome — a printed certificate that
-   * relies on colour looks worse, not better, on an office printer.
+   * Presentation is framed and refined for events.
    */
   SELECTION_CERTIFICATE: (p) => {
     const line = (w: string) => `<span class="fill" style="width:${w}"></span>`;
@@ -375,114 +352,85 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
 <html><head><meta charset="utf-8">
 <title>Internship Selection Certificate</title>
 <style>${styles()}
-    .cert { width: 210mm; height: 297mm; padding: 10mm; display: flex;
-      page-break-after: always; page-break-inside: avoid; box-sizing: border-box; }
-  /* Without this the final page is followed by a blank one. */
+  .cert { width: 210mm; height: 297mm; padding: 10mm; display: flex;
+    page-break-after: always; page-break-inside: avoid; box-sizing: border-box; }
   .cert:last-child { page-break-after: auto; }
-  /* Double rule: the outer frame reads as a certificate at a glance, and the
-     inner hairline stops the page looking like a boxed-in form. */
   .frame { flex: 1; border: 1.4px solid ${INK}; padding: 2.2mm; display: flex; }
-  .inner { flex: 1; border: 0.5px solid ${RULE}; padding: 10mm 12mm 8mm; box-sizing: border-box;
+  .inner { flex: 1; border: 0.5px solid ${RULE}; padding: 9mm 12mm 6mm; box-sizing: border-box;
            display: flex; flex-direction: column; align-items: center;
-           text-align: center; overflow: hidden; justify-content: space-between; }
+           text-align: center; overflow: hidden; justify-content: space-between; position: relative; }
 
-  .crest { height: 18mm; width: auto; object-fit: contain; margin-bottom: 4mm; }
-  .issuer { font-size: 16pt; font-weight: bold; letter-spacing: 3.0px;
-            text-transform: uppercase; line-height: 1.1; }
-  .issuer-rule { width: 34mm; height: 1.2px; background: ${INK}; margin: 3.5mm 0 5mm; }
+  .crest { height: 16mm; width: auto; object-fit: contain; margin-bottom: 3mm; }
+  .issuer { font-size: 15pt; font-weight: bold; letter-spacing: 3.2px;
+            text-transform: uppercase; line-height: 1.1; color: ${INK}; }
+  .issuer-rule { width: 32mm; height: 1px; background: ${INK}; margin: 3mm 0 4.5mm; }
 
-  .cert-title { font-size: 14pt; font-weight: bold; letter-spacing: 3px;
-                text-transform: uppercase; margin-bottom: 7mm; }
-  .certify { font-family: Arial, Helvetica, sans-serif; font-size: 8pt;
-             letter-spacing: 2.6px; text-transform: uppercase; color: ${MUTED}; }
+  .cert-title { font-size: 13.5pt; font-weight: bold; letter-spacing: 2.6px;
+                text-transform: uppercase; margin-bottom: 5mm; color: ${INK}; }
+  .certify { font-family: Arial, Helvetica, sans-serif; font-size: 7.5pt;
+             letter-spacing: 2.4px; text-transform: uppercase; color: ${MUTED}; }
 
-  /* The name rule is the whole point of the page — generous enough to write
-     across in pen without crowding the caption underneath. */
-  .name-rule { width: 100%; border-bottom: 1px solid ${INK}; height: 11mm; margin-top: 4mm; }
-  .name-cap { font-size: 8.5pt; font-style: italic; color: ${MUTED}; margin-top: 1.8mm; }
+  .name-rule { width: 100%; border-bottom: 1px solid ${INK}; height: 9mm; margin-top: 2.5mm; }
+  .name-cap { font-size: 8pt; font-style: italic; color: ${MUTED}; margin-top: 1.5mm; }
 
-  .cert-body { margin-top: 8mm; font-size: 9.6pt; line-height: 1.6;
+  .cert-body { margin-top: 6mm; font-size: 9.2pt; line-height: 1.55;
                display: flex; flex-direction: column; justify-content: center; }
-  .cert-body p { margin: 0 0 4.2mm; text-align: center; }
+  .cert-body p { margin: 0 0 3mm; text-align: center; }
 
-  .fields { display: flex; gap: 12mm; width: 100%; margin-top: 9mm;
-            font-size: 9.5pt; text-align: left; }
-  /* Label and rule share one line: a fixed-width rule wraps underneath the
-     label as soon as the label is long enough, which looks like a mistake. */
+  .fields { display: flex; gap: 10mm; width: 100%; margin-top: 6mm;
+            font-size: 9pt; text-align: left; }
   .field { flex: 1; display: flex; align-items: baseline; gap: 2mm; }
-  .field b { font-weight: bold; white-space: nowrap; }
-  .fill { flex: 1; border-bottom: 0.8px solid ${INK}; height: 4.6mm; }
+  .field b { font-weight: bold; white-space: nowrap; color: ${INK}; }
+  .fill { flex: 1; border-bottom: 0.8px solid ${INK}; height: 4.2mm; }
 
-  /* Said once above the row: repeating the organisation under three names
-     turns the foot of the certificate into a wall of the same words. */
-  .cert-behalf { width: 100%; margin-top: 12mm; text-align: left; font-size: 8.5pt;
+  .cert-behalf { width: 100%; margin-top: 7mm; text-align: left; font-size: 7.8pt;
                  font-style: italic; color: ${MUTED}; }
-  /* Aligned at the top, not the bottom: the rule is what a person signs on,
-     so the three rules must sit on one line. Bottom-alignment let a name long
-     enough to wrap lift its own rule above the others. */
-  .cert-sign { display: flex; align-items: flex-start; justify-content: space-between;
-               width: 100%; margin-top: 2mm; padding-top: 0; gap: 6mm; flex-wrap: wrap; }
-  /* Signatories share the width evenly, so one name or three both sit
-     balanced against the seal rather than stranded at the left edge. */
-  .cert-sign-col { flex: 1; min-width: 0; max-width: 62mm; text-align: left; }
-  .cert-sign-line { border-top: 1px solid ${INK}; padding-top: 1.8mm; }
-  /* Sized to hold the longest name on the board on one line. A wrapped name
-     under a signature rule reads as though it did not fit, which on a document
-     someone frames is worth two points of type to avoid. */
-  .cert-sign-name { font-size: 9pt; font-weight: bold; line-height: 1.35; }
-  .cert-seal { width: 30mm; height: 30mm; border: 1px dashed ${RULE}; border-radius: 2mm;
-               display: flex; align-items: center; justify-content: center;
-               font-family: Arial, Helvetica, sans-serif; font-size: 6.5pt;
-               color: #B5B5B5; letter-spacing: 0.8px; text-transform: uppercase; }
+  
+  .cert-sign-strip { display: flex; align-items: flex-end; justify-content: space-between;
+                     width: 100%; margin-top: 2mm; gap: 6mm; }
+  .cert-sign-group { display: flex; align-items: flex-end; gap: 7mm; flex: 1; min-width: 0; }
+  .cert-auth-stamp-img { height: 22mm; width: auto; object-fit: contain;
+                         mix-blend-mode: multiply; }
 
-  .tagline { margin-top: auto; padding-top: 6mm; font-size: 9pt; font-style: italic;
-             color: ${MUTED}; letter-spacing: 0.4px; }
+  .cert-seal-wrap { flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-left: auto; }
+  .cert-stamp-img { width: 28mm; height: 28mm; object-fit: contain;
+                    mix-blend-mode: multiply;
+                    transform: rotate(-1.5deg); }
 
-  /* Hairlines meeting a small lozenge. An old engraver's device, and it stops
-     the foil band arriving abruptly under the tagline. */
+  .cert-footer-section { width: 100%; margin-top: auto; padding-top: 4mm; }
+  .tagline { font-size: 8pt; font-style: italic; color: ${MUTED}; letter-spacing: 0.4px; text-align: center; }
+
   .brand-divider { display: flex; align-items: center; justify-content: center;
-                   gap: 3mm; width: 62mm; margin: 4mm 0 0; }
+                   gap: 2.5mm; width: 50mm; margin: 2mm auto 0; }
   .brand-divider i { flex: 1; height: 0.5px; background: ${RULE}; }
-  .brand-divider b { width: 2.4mm; height: 2.4mm; background: ${INK};
-                     transform: rotate(45deg); }
+  .brand-divider b { width: 2mm; height: 2mm; background: ${INK}; transform: rotate(45deg); }
 
-  /* ── Brand band ──────────────────────────────────────────
-     A foil strip across the foot of the certificate.
-
-     Printed on bond paper, a flat grey bar reads as a mistake; what sells
-     "foil" is the sweep — light catching along the strip and falling away.
-     Hence a multi-stop gradient rather than one tone, kept in the pale half of
-     the range so the ink over it stays legible under office lighting, with a
-     darker hairline top and bottom for the edge of the tape.
-
-     Bleeds past the inner padding so it meets the frame like real tape. */
-  .brand-band { width: calc(100% + 28mm); margin: 4.5mm -14mm 0;
-                padding: 1.6mm 12mm; box-sizing: border-box; height: auto;
+  .brand-band { width: calc(100% + 24mm); margin: 3mm -12mm 0;
+                padding: 1.6mm 10mm; box-sizing: border-box; height: auto;
                 border-top: 0.5px solid #8E949A; border-bottom: 0.5px solid #8E949A;
                 background: linear-gradient(100deg,
-                  #B4BABF 0%, #EEF1F3 12%, #FFFFFF 24%, #D2D7DC 38%,
-                  #AEB4B9 50%, #E4E8EB 64%, #FFFFFF 78%, #CDD2D7 90%, #AFB5BA 100%);
-                display: flex; align-items: center; justify-content: center; gap: 5mm; }
-  .brand-crest { width: 9mm; height: 9mm; border-radius: 50%; background: #FFFFFF;
+                  #B0B6BC 0%, #EAEEF1 14%, #FFFFFF 26%, #CFD4D9 40%,
+                  #ABB1B6 52%, #E2E6E9 66%, #FFFFFF 78%, #CCD1D6 90%, #ABB1B6 100%);
+                display: flex; align-items: center; justify-content: center; gap: 4.5mm; }
+  .brand-crest { width: 7.5mm; height: 7.5mm; border-radius: 50%; background: #FFFFFF;
                  border: 0.5px solid #9AA0A6; display: flex; align-items: center;
                  justify-content: center; flex-shrink: 0; }
-  .brand-mark { height: 5.6mm; width: auto; object-fit: contain; }
-  .brand-name { font-family: Arial, Helvetica, sans-serif; font-size: 8.5pt;
-                font-weight: bold; letter-spacing: 4.5px; text-transform: uppercase;
+  .brand-mark { height: 4.6mm; width: auto; object-fit: contain; }
+  .brand-name { font-family: Arial, Helvetica, sans-serif; font-size: 7.5pt;
+                font-weight: bold; letter-spacing: 3.6px; text-transform: uppercase;
                 color: #14181C; white-space: nowrap; }
-  .brand-dot { width: 2.6px; height: 2.6px; border-radius: 50%; background: #6E747A; }
-  .brand-site { font-family: Arial, Helvetica, sans-serif; font-size: 6.8pt;
-                letter-spacing: 1.4px; text-transform: uppercase; color: #3C4248;
+  .brand-dot { width: 2.2px; height: 2.2px; border-radius: 50%; background: #6E747A; }
+  .brand-site { font-family: Arial, Helvetica, sans-serif; font-size: 6.2pt;
+                letter-spacing: 1.2px; text-transform: uppercase; color: #3C4248;
                 white-space: nowrap; }
 
-  .cert-board { margin-top: 1.2mm; font-family: Arial, Helvetica, sans-serif;
-                font-size: 6.2pt; color: ${FAINT}; line-height: 1.4; }
-  .cert-foot { margin-top: 2.6mm; font-family: Arial, Helvetica, sans-serif;
-               font-size: 6pt; color: ${FAINT}; letter-spacing: 0.4px; }
-
-  /* Force footer to stay in the bottom band for single-page A4 output */
-  .foot { position: absolute; left: 16mm; right: 16mm; bottom: 6mm; margin: 0; padding: 2mm 0 0; border-top: 0.6px solid ${RULE}; font-family: Arial, Helvetica, sans-serif; font-size: 7pt; color: ${FAINT}; }
-  .foot-row { display: flex; justify-content: space-between; gap: 6mm; }
+  .cert-foot-meta { margin-top: 2.2mm; font-family: Arial, Helvetica, sans-serif;
+                    font-size: 5.8pt; color: ${FAINT}; letter-spacing: 0.4px;
+                    text-align: center; text-transform: uppercase; }
+  .cert-foot-meta b { color: ${MUTED}; font-weight: normal; }
+  .cert-foot-board { margin-top: 0.8mm; font-family: Arial, Helvetica, sans-serif;
+                     font-size: 5.4pt; color: ${FAINT}; letter-spacing: 0.3px;
+                     text-align: center; line-height: 1.35; }
 </style></head><body>
 <div class="cert"><div class="frame"><div class="inner">
 
@@ -519,46 +467,34 @@ const TEMPLATES: Record<TemplateKey, (p: any) => string> = {
   </div>
 
   <div class="cert-behalf">For and on behalf of ${esc(p._devupLegalName ?? SIGNING_ORG)}</div>
-  <div class="cert-sign">
-    ${(Array.isArray(p.signatories) && p.signatories.length
-      ? p.signatories
-      : [
-          {
-            name: p.signatoryName ?? "Authorized Signatory",
-            title: p.signatoryTitle ?? "Authorized Signatory",
-          },
-        ]
-    )
-      .map(
-        (s: { name: string; title: string }) => `<div class="cert-sign-col">
-      <div style="height:8mm"></div>
-      <div class="cert-sign-line">
-        <div class="cert-sign-name">${esc(s.name)}</div>
-        <div class="sig-role">${esc(s.title)}</div>
-      </div>
-    </div>`,
-      )
-      .join("")}
-    <div class="cert-seal">Official<br>Seal</div>
+  <div class="cert-sign-strip">
+    <div class="cert-sign-group">
+      <img class="cert-auth-stamp-img" src="${DEVUP_AUTHORISED_SIGN_STAMP}" alt="Authorised Signatory Stamp">
+    </div>
+    <div class="cert-seal-wrap">
+      <img class="cert-stamp-img" src="${DEVUP_WAX_SEAL}" alt="Official Wax Seal">
+    </div>
   </div>
 
-  <div class="tagline">Building People. Products. Possibilities.</div>
+  <div class="cert-footer-section">
+    <div class="tagline">Building People. Products. Possibilities.</div>
 
-  <div class="brand-divider"><i></i><b></b><i></i></div>
+    <div class="brand-divider"><i></i><b></b><i></i></div>
 
-  <div class="brand-band">
-    ${p._devupLogo ? `<span class="brand-crest"><img class="brand-mark" src="${esc(p._devupLogo)}" alt=""></span>` : ""}
-    <span class="brand-name">DevUp Community</span>
-    <span class="brand-dot"></span>
-    <span class="brand-site">${esc(p._siteUrl ?? "devupecosystem.com")}</span>
+    <div class="brand-band">
+      ${p._devupLogo ? `<span class="brand-crest"><img class="brand-mark" src="${esc(p._devupLogo)}" alt=""></span>` : ""}
+      <span class="brand-name">DevUp Ecosystem</span>
+      <span class="brand-dot"></span>
+      <span class="brand-site">${esc(p._siteUrl ?? "devupecosystem.com")}</span>
+    </div>
+
+    <div class="cert-foot-meta">
+      ${p.serial ? `<span>REF: <b>${esc(p.serial)}</b></span> &middot; ` : ""}
+      <span>${esc(p._devupLegalName ?? SIGNING_ORG)}</span>
+      ${p._devupCin ? ` &middot; <span>CIN: <b>${esc(p._devupCin)}</b></span>` : ""}
+      &middot; <span>Official Ecosystem Record</span>
+    </div>
   </div>
-
-  <div class="cert-foot">
-    ${p.serial ? `${esc(p.serial)} &middot; ` : ""}${esc(p._devupLegalName ?? SIGNING_ORG)}${
-      p._devupCin ? ` &middot; CIN: ${esc(p._devupCin)}` : ""
-    }
-  </div>
-  <div class="cert-board">${directorsFoot(p).replace(/^<div class="foot-board">|<\/div>$/g, "")}</div>
 
 </div></div></div>
 </body></html>`;

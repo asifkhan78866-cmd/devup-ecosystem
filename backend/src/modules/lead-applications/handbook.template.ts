@@ -260,7 +260,7 @@ export function renderHandbook(p: AppointmentPayload): string {
       </p>
       <div class="signoff-who">
         Issued for <b>${esc(org.legalName)}</b><br>
-        ${p.directors.map((d) => `${esc(d.name)} &mdash; ${esc(d.title)}`).join("<br>")}
+        Authorised Signatory
       </div>
     </div>
     ${p.stamps.inkStamp ? `<img class="ink" src="${p.stamps.inkStamp}" alt="">` : ""}

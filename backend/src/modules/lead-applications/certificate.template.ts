@@ -150,24 +150,19 @@ export function renderCertificate(p: AppointmentPayload): string {
     <div class="motto">${esc(t.motto)}</div>
 
     <div class="under-seal">
-      Given under the Common Seal of ${esc(org.legalName)} and the hands of its Directors,
-      in recognition of the trust reposed in the Appointee and the office hereby conferred.
+      Given under the Common Seal of ${esc(org.legalName)}, in recognition of the trust reposed
+      in the Appointee and the office hereby conferred.
     </div>
 
     <div class="foot">
       <div class="signs-wrap">
         ${p.stamps.authorisedSign ? `<img class="stamp-over" src="${p.stamps.authorisedSign}" alt="">` : ""}
         <div class="signs">
-          ${p.directors
-            .map(
-              (d) => `<div class="sign">
+          <div class="sign" style="max-width:68mm">
             <div class="sign-line">
-              <div class="sign-name">${esc(d.name)}</div>
-              <div class="sign-role">${esc(d.title)}</div>
+              <div class="sign-role">Authorised Signatory</div>
             </div>
-          </div>`
-            )
-            .join("")}
+          </div>
         </div>
       </div>
       <div class="seal-wrap">

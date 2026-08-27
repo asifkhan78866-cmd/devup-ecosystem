@@ -588,8 +588,9 @@ export function renderDeed(p: AppointmentPayload): string {
 
   <div class="execution">
     <div class="in-witness">
-      In witness whereof the Company has caused this deed to be executed by its Directors, and the
-      Appointee has set their hand hereunder in acceptance of the office and of every covenant above.
+      In witness whereof the Company has caused this deed to be executed by its authorised
+      signatory, and the Appointee has set their hand hereunder in acceptance of the office and of
+      every covenant above.
     </div>
 
     <div class="exec-grid">
@@ -597,16 +598,11 @@ export function renderDeed(p: AppointmentPayload): string {
         <div class="exec-cap${p.stamps.authorisedSign ? "" : " blank"}">For and on behalf of ${esc(org.legalName)}</div>
         ${p.stamps.authorisedSign ? `<img class="sign-stamp" src="${p.stamps.authorisedSign}" alt="">` : ""}
         <div class="sign-row">
-          ${p.directors
-            .map(
-              (d) => `<div class="sign-cell">
+          <div class="sign-cell" style="max-width:62mm">
             <div class="sign-line">
-              <div class="sign-name">${esc(d.name)}</div>
-              <div class="sign-role">${esc(d.title)}</div>
+              <div class="sign-role">Authorised Signatory</div>
             </div>
-          </div>`
-            )
-            .join("")}
+          </div>
         </div>
 
         <div class="exec-cap blank" style="margin-top:9mm">Accepted by the Appointee</div>
@@ -629,7 +625,6 @@ export function renderDeed(p: AppointmentPayload): string {
 
   <div class="foot">
     ${esc(org.legalName)} &middot; CIN ${esc(org.cin)} &middot; ${esc(org.address)}<br>
-    Directors: ${p.directors.map((d) => `${esc(d.name)} &mdash; ${esc(d.title)}`).join(" &middot; ")}<br>
     Verify this instrument at <b>${esc(org.site)}</b> quoting <b>${esc(p.documentNo)}</b>
     <div class="microtext">${`DEVUPECOSYSTEM&middot;${esc(p.documentNo)}&middot;`.repeat(14)}</div>
   </div>
