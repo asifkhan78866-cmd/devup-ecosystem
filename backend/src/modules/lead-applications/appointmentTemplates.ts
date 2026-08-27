@@ -282,6 +282,10 @@ export interface AppointmentPayload {
   directors: Array<{ name: string; title: string }>;
   /** Seals and signature stamps, as data URIs. */
   stamps: Stamps;
+  /** Unique serial printed on the revenue stamp. */
+  revenueSerial?: string;
+  /** QR pointing at the stored original, as a data URI. */
+  verifyQr?: string | null;
 }
 
 /** Kept as the old name so existing callers still compile. */
@@ -506,17 +510,39 @@ export function renderDeed(p: AppointmentPayload): string {
 
   /* Seal and revenue stamp sit together: on a real instrument they always do. */
   .marks { display: flex; flex-direction: column; align-items: center; gap: 3mm;
-           width: 42mm; flex-shrink: 0; }
+           width: 64mm; flex-shrink: 0; }
   .seal-img { width: 32mm; height: auto; }
   /* Anchored to the signature line so it lands on it. Laid out as a block
      above the row it drifted a centimetre clear of the rule, which reads as
      two unrelated marks rather than a signed line. */
   .sign-stamp { position: absolute; left: 2mm; bottom: 0; width: 48mm; height: auto;
                 transform: rotate(-3.5deg); opacity: 0.94; z-index: 2; }
-  .revenue { width: 30mm; height: 20mm; border: 0.5px dashed ${FAINT};
-             display: flex; align-items: center; justify-content: center; text-align: center;
-             font-family: Arial, Helvetica, sans-serif; font-size: 5.4pt; color: ${FAINT};
-             letter-spacing: 1.1px; text-transform: uppercase; line-height: 1.6; }
+  /* The revenue stamp, affixed.
+     Its serial and QR are drawn over the artwork rather than baked into it:
+     the scan carried a fixed number, and a stamp that says the same thing on
+     every deed is decoration, not a serial. Percentages, so the overlay
+     tracks the image at whatever width it is printed. */
+  .revenue { position: relative; width: 100%; }
+  .revenue-img { width: 100%; height: auto; display: block; }
+  .revenue-serial { position: absolute; left: 88.7%; top: 54.6%; width: 29.8%; height: 5.4%;
+                    display: flex; align-items: center; justify-content: center;
+                    transform: rotate(90deg); transform-origin: 9.05% 50%;
+                    font-family: Arial, Helvetica, sans-serif; font-size: 4.6pt;
+                    font-weight: bold; letter-spacing: 0.6px; color: #12233F;
+                    white-space: nowrap; }
+  /* Placed on the largest genuinely blank square the stamp has — measured off
+     the artwork, not guessed. At 28% it overran the border and printed across
+     the "NOT TRANSFERABLE" banner.
+     21.7% of a 64mm stamp is 13.9mm; at 33 modules that is 0.42mm each, which
+     a phone can resolve off paper. Shrinking either number is how a QR becomes
+     decoration. */
+  .revenue-qr { position: absolute; left: 65.8%; top: 53.3%; width: 21.7%; height: auto; }
+  /* Where no stamp asset is available the deed still needs somewhere to put a
+     physical one. */
+  .revenue-blank { width: 30mm; height: 20mm; border: 0.5px dashed ${FAINT};
+                   display: flex; align-items: center; justify-content: center; text-align: center;
+                   font-family: Arial, Helvetica, sans-serif; font-size: 5.4pt; color: ${FAINT};
+                   letter-spacing: 1.1px; text-transform: uppercase; line-height: 1.6; }
 
   /* ── Foot ────────────────────────────────────────────────────────────── */
   .foot { margin-top: auto; padding-top: 2.4mm; border-top: 0.6px solid ${RULE};
@@ -620,7 +646,15 @@ export function renderDeed(p: AppointmentPayload): string {
 
       <div class="marks">
         ${p.stamps.officialSeal ? `<img class="seal-img" src="${p.stamps.officialSeal}" alt="Common Seal">` : ""}
-        <div class="revenue">Affix<br>Revenue<br>Stamp</div>
+        ${
+          p.stamps.revenueStamp
+            ? `<div class="revenue">
+                 <img class="revenue-img" src="${p.stamps.revenueStamp}" alt="Revenue Stamp">
+                 ${p.verifyQr ? `<img class="revenue-qr" src="${p.verifyQr}" alt="">` : ""}
+                 <div class="revenue-serial">${esc(p.revenueSerial ?? "")}</div>
+               </div>`
+            : `<div class="revenue-blank">Affix<br>Revenue<br>Stamp</div>`
+        }
       </div>
     </div>
   </div>

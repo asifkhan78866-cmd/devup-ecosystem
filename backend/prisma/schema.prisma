@@ -325,6 +325,10 @@ model LeadAppointment {
   effectiveFrom  DateTime
   effectiveTo    DateTime
   payload        Json
+  /// The serial printed on the revenue stamp, and the code the public QR
+  /// resolves. Stored rather than recomputed because the derivation is a
+  /// one-way hash: given a serial there is no way back to the instrument.
+  revenueSerial  String?               @unique
   /// The three documents an appointment produces. `pdfUrl` is the deed, kept
   /// under its original name so existing rows and links still resolve.
   pdfUrl         String?

@@ -7,6 +7,7 @@ import { htmlToPdf } from "../../lib/pdf";
 import { uploadFile } from "../../lib/storage";
 import { logger } from "../../middleware/logger";
 import { letterheadLogo, orgDetails } from "../legal/letterhead";
+import { SITE_URL } from "../../lib/email/layout";
 import { notify } from "../shared/notification.service";
 import { audit, AuditAction } from "../shared/audit.service";
 import { Emails } from "../../lib/email/templates";
@@ -14,6 +15,8 @@ import { TIERS, renderDeed, AppointmentPayload } from "./appointmentTemplates";
 import { renderCertificate } from "./certificate.template";
 import { renderHandbook } from "./handbook.template";
 import { loadStamps } from "./stamps";
+import { createHash, randomUUID } from "crypto";
+import QRCode from "qrcode";
 
 /**
  * Issuing deeds of appointment for the Lead DevUp directorate.
@@ -23,6 +26,51 @@ import { loadStamps } from "./stamps";
  * startup over an employee, so there is no tenant branding to resolve and no
  * employment record to attach to.
  */
+
+/**
+ * The serial printed on the revenue stamp.
+ *
+ * Derived from the instrument number, so it is unique by construction — two
+ * documents can only share a serial if they share an instrument number, and
+ * that column is unique. Deterministic too, so regenerating a document
+ * reprints the same stamp rather than minting a second one for the same deed.
+ */
+export function revenueSerialFor(documentNo: string) {
+  const digest = createHash("sha256").update(`revenue:${documentNo}`).digest("hex");
+  return `DU${digest.slice(0, 10).toUpperCase()}`;
+}
+
+/**
+ * Where a scan should land.
+ *
+ * The public verification page, not the file itself. Someone scanning a printed
+ * deed is usually checking whether the person in front of them really holds the
+ * office — a 400KB PDF download answers that badly, and hands out the whole
+ * instrument to anyone who photographs the stamp.
+ */
+export function verifyUrl(serial: string) {
+  return `${SITE_URL.replace(/\/$/, "")}/verify/appointment/${serial}`;
+}
+
+/**
+ * QR as a data URI.
+ *
+ * Medium error correction: the stamp is small, and a printed deed picks up
+ * creases and thumbprints exactly where a low-correction code would fail.
+ */
+async function qrDataUri(text: string) {
+  try {
+    return await QRCode.toDataURL(text, {
+      errorCorrectionLevel: "M",
+      margin: 1,
+      scale: 8,
+      color: { dark: "#12233F", light: "#00000000" },
+    });
+  } catch (err) {
+    logger.warn(`QR generation failed: ${(err as Error).message}`);
+    return null;
+  }
+}
 
 let devupAnchorId: string | null = null;
 
@@ -159,9 +207,12 @@ async function buildPayload(row: {
   role: LeadershipRole; fullName: string; email: string; phone: string | null;
   state: string; city: string | null; college: string | null; jurisdiction: string;
   documentNo: string; effectiveFrom: Date; effectiveTo: Date; termMonths: number; issuedAt: Date;
+  id?: string;
 }): Promise<AppointmentPayload> {
   return {
     ...row,
+    revenueSerial: revenueSerialFor(row.documentNo),
+    verifyQr: await qrDataUri(verifyUrl(revenueSerialFor(row.documentNo))),
     logo: await letterheadLogo(),
     org: orgDetails(),
     stamps: await loadStamps(),
@@ -203,7 +254,7 @@ const FILE_LABEL: Record<DocumentKind, string> = {
 
 export async function renderAppointment(id: string, kind: DocumentKind = "deed") {
   const a = await getAppointment(id);
-  return RENDERERS[kind](await payloadFor(a));
+  return RENDERERS[kind](await payloadFor(a, a.id));
 }
 
 /**
@@ -211,7 +262,7 @@ export async function renderAppointment(id: string, kind: DocumentKind = "deed")
  * of an old appointment shows what was actually sent rather than what today's
  * configuration would produce.
  */
-async function payloadFor(a: { payload: Prisma.JsonValue }): Promise<AppointmentPayload> {
+async function payloadFor(a: { payload: Prisma.JsonValue }, id?: string): Promise<AppointmentPayload> {
   const stored = a.payload as Prisma.JsonObject | null;
   if (stored && typeof stored === "object" && "org" in stored) {
     const p = stored as unknown as AppointmentPayload;
@@ -224,6 +275,9 @@ async function payloadFor(a: { payload: Prisma.JsonValue }): Promise<Appointment
       // appointment is not something a database column should carry.
       logo: await letterheadLogo(),
       stamps: await loadStamps(),
+      // Filled in for rows frozen before the stamp carried either.
+      revenueSerial: p.revenueSerial ?? revenueSerialFor(p.documentNo),
+      verifyQr: p.verifyQr ?? (await qrDataUri(verifyUrl(revenueSerialFor(p.documentNo)))),
     };
   }
   return buildPayload(a as never);
@@ -384,7 +438,10 @@ export async function issueAppointment(input: IssueInput) {
   const issuedAt = new Date();
   const documentNo = await nextInstrumentNo(src.role);
 
+  const id = randomUUID();
+
   const payload = await buildPayload({
+    id,
     role: src.role, fullName: src.fullName, email: src.email, phone: src.phone,
     state: src.state, city: src.city, college: src.college, jurisdiction,
     documentNo, effectiveFrom, effectiveTo, termMonths, issuedAt,
@@ -392,10 +449,12 @@ export async function issueAppointment(input: IssueInput) {
 
   const appointment = await prisma.leadAppointment.create({
     data: {
+      id,
       documentNo, applicationId: src.applicationId, role: src.role,
       fullName: src.fullName, email: src.email, phone: src.phone,
       jurisdiction, state: src.state, city: src.city, college: src.college,
       termMonths, effectiveFrom, effectiveTo, issuedAt,
+      revenueSerial: revenueSerialFor(documentNo),
       issuedBy: input.actorId,
       // The crest is stripped before freezing: a 96KB data URI in every row
       // would bloat the table for something that is regenerated on read anyway.
@@ -450,7 +509,7 @@ export async function resendAppointment(id: string) {
   if (a.status === "REVOKED") {
     throw new AppError(409, "This appointment has been revoked", "REVOKED");
   }
-  const files = await attachFiles(a.id, a.documentNo, await payloadFor(a));
+  const files = await attachFiles(a.id, a.documentNo, await payloadFor(a, a.id));
   await sendDeed(a, files.buffers);
   return {
     ...files.urls,
@@ -499,6 +558,69 @@ export async function revokeAppointment(id: string, reason: string, actorId: str
   });
 
   return updated;
+}
+
+/**
+ * Public verification of an appointment, by the serial on its revenue stamp.
+ *
+ * Answers one question for a stranger holding a printed deed: does this person
+ * hold this office, right now. Everything that is not needed to answer it stays
+ * out — no email, no phone, no application, no file link. The reader is
+ * typically a college office or an event desk who has never seen DevUp before,
+ * and handing them a contact detail they did not ask for is a leak, not a
+ * feature.
+ *
+ * Never says why a serial is unknown. A lookup that distinguishes "no such
+ * serial" from "revoked" lets someone probe the format.
+ */
+export async function verifyBySerial(serial: string) {
+  const clean = String(serial ?? "").trim().toUpperCase();
+  if (!/^DU[0-9A-F]{10}$/.test(clean)) return { found: false as const };
+
+  const a = await prisma.leadAppointment.findUnique({
+    where: { revenueSerial: clean },
+    select: {
+      documentNo: true, role: true, fullName: true, jurisdiction: true,
+      state: true, city: true, college: true,
+      effectiveFrom: true, effectiveTo: true, status: true, issuedAt: true,
+    },
+  });
+  if (!a) return { found: false as const };
+
+  const now = new Date();
+  const expired = a.effectiveTo < now;
+  const notYet = a.effectiveFrom > now;
+
+  return {
+    found: true as const,
+    serial: clean,
+    documentNo: a.documentNo,
+    holder: a.fullName,
+    office: TIERS[a.role].label,
+    territory: a.jurisdiction,
+    state: a.state,
+    city: a.city,
+    institution: a.college,
+    effectiveFrom: a.effectiveFrom,
+    effectiveTo: a.effectiveTo,
+    issuedAt: a.issuedAt,
+    status: a.status === "REVOKED" ? "REVOKED" : expired ? "EXPIRED" : notYet ? "PENDING" : "ACTIVE",
+    // The one thing the reader actually needs, stated plainly.
+    valid: a.status === "ISSUED" && !expired && !notYet,
+    /** What this office may and may not do, so a scan settles the real question. */
+    authority: {
+      may: [
+        `Represent DevUp Ecosystem within ${a.jurisdiction}`,
+        "Run and promote DevUp programmes, events and hackathons there",
+        "Invite students and institutions into those programmes",
+      ],
+      mayNot: [
+        "Sign contracts or bind the company in any way",
+        "Accept or promise money, payment or funding",
+        "Guarantee an internship, placement or admission",
+      ],
+    },
+  };
 }
 
 /** The tiers, for the admin picker. */

@@ -15,7 +15,7 @@ import { logger } from "../../middleware/logger";
  * rectangle.
  */
 
-export type StampName = "officialSeal" | "waxSeal" | "authorisedSign" | "inkStamp";
+export type StampName = "officialSeal" | "waxSeal" | "authorisedSign" | "inkStamp" | "revenueStamp";
 
 const FILES: Record<StampName, string> = {
   /** Flat blue ink roundel. The seal of office on the deed. */
@@ -26,6 +26,14 @@ const FILES: Record<StampName, string> = {
   authorisedSign: "authorised-sign.png",
   /** Ink roundel with the DevUp flourish. Used on the handbook. */
   inkStamp: "ink-stamp.png",
+  /**
+   * The ₹100 revenue stamp, affixed to the deed.
+   *
+   * The scan carried a serial printed into the artwork, which would have put
+   * the same number on every document ever issued. It is painted out in the
+   * asset; the real one is drawn per document at render time.
+   */
+  revenueStamp: "revenue-stamp.png",
 };
 
 // __dirname is dist/modules/... once built, and the assets are not compiled,
@@ -58,14 +66,16 @@ export interface Stamps {
   waxSeal: string | null;
   authorisedSign: string | null;
   inkStamp: string | null;
+  revenueStamp: string | null;
 }
 
 export async function loadStamps(): Promise<Stamps> {
-  const [officialSeal, waxSeal, authorisedSign, inkStamp] = await Promise.all([
+  const [officialSeal, waxSeal, authorisedSign, inkStamp, revenueStamp] = await Promise.all([
     load("officialSeal"),
     load("waxSeal"),
     load("authorisedSign"),
     load("inkStamp"),
+    load("revenueStamp"),
   ]);
-  return { officialSeal, waxSeal, authorisedSign, inkStamp };
+  return { officialSeal, waxSeal, authorisedSign, inkStamp, revenueStamp };
 }
