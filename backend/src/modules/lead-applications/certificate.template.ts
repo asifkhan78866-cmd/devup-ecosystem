@@ -94,16 +94,20 @@ export function renderCertificate(p: AppointmentPayload): string {
   /* ── Foot: signatures on the left, seal on the right ──────────────── */
   .foot { margin-top: auto; width: 100%; display: flex; align-items: flex-end;
           justify-content: space-between; gap: 12mm; }
-  .signs { display: flex; gap: 9mm; flex: 1; text-align: left; }
-  .sign { flex: 1; min-width: 0; }
+  .signs { display: flex; gap: 9mm; text-align: left; }
+  .sign { position: relative; width: 68mm; }
   .sign-line { border-top: 0.9px solid ${INK}; padding-top: 1.6mm; }
   .sign-name { font-size: 8.4pt; font-weight: bold; line-height: 1.3; }
   .sign-role { font-size: 7.2pt; color: ${MUTED}; }
-  /* Inked across the signature block the way a real stamp lands: centred over
-     the rules, off-square, and slightly over them rather than tidily above. */
-  .signs-wrap { position: relative; flex: 1; }
-  .stamp-over { position: absolute; left: 50%; bottom: 7mm; width: 52mm; height: auto;
-                transform: translateX(-52%) rotate(-4deg); opacity: 0.94; z-index: 2; }
+
+  /* Anchored to the signature line, not to the row.
+     Centred on the row it sat over the middle of three names; with one name
+     left it floated off to the right of a rule it was supposed to be inked
+     across. Positioned from the cell it now lands on the line wherever the
+     line is, and crosses it rather than hovering above. */
+  .signs-wrap { flex: 1; }
+  .stamp-over { position: absolute; left: 2mm; bottom: 0; width: 50mm; height: auto;
+                transform: rotate(-3.5deg); opacity: 0.94; z-index: 2; }
 
   .seal-wrap { width: 44mm; flex-shrink: 0; text-align: center; }
   .wax { width: 33mm; height: auto; }
@@ -156,11 +160,13 @@ export function renderCertificate(p: AppointmentPayload): string {
 
     <div class="foot">
       <div class="signs-wrap">
-        ${p.stamps.authorisedSign ? `<img class="stamp-over" src="${p.stamps.authorisedSign}" alt="">` : ""}
         <div class="signs">
-          <div class="sign" style="max-width:68mm">
+          <div class="sign">
+            ${p.stamps.authorisedSign ? `<img class="stamp-over" src="${p.stamps.authorisedSign}" alt="">` : ""}
             <div class="sign-line">
-              <div class="sign-role">Authorised Signatory</div>
+              ${/* The stamp already reads "Authorised Signatory"; captioning it
+                    again just prints the same words twice. */ ""}
+              ${p.stamps.authorisedSign ? "" : `<div class="sign-role">Authorised Signatory</div>`}
             </div>
           </div>
         </div>

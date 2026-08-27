@@ -495,11 +495,11 @@ export function renderDeed(p: AppointmentPayload): string {
   .exec-grid { display: flex; gap: 8mm; margin-top: 7mm; align-items: flex-start; }
   .exec-col { flex: 1; }
   .exec-cap { font-family: Arial, Helvetica, sans-serif; font-size: 6.8pt; color: ${MUTED};
-              letter-spacing: 1.6px; text-transform: uppercase; margin-bottom: 3mm; }
-  /* Where no stamp is inked, the space for a wet signature has to stay. */
+              letter-spacing: 1.6px; text-transform: uppercase; margin-bottom: 34mm; }
+  /* Where no stamp is inked, only a wet signature needs clearing. */
   .exec-cap.blank { margin-bottom: 12mm; }
   .sign-row { display: flex; gap: 5mm; }
-  .sign-cell { flex: 1; min-width: 0; }
+  .sign-cell { position: relative; flex: 1; min-width: 0; }
   .sign-line { border-top: 0.9px solid ${INK}; padding-top: 1.6mm; }
   .sign-name { font-size: 8.4pt; font-weight: bold; line-height: 1.35; }
   .sign-role { font-size: 7.4pt; color: ${MUTED}; }
@@ -508,9 +508,11 @@ export function renderDeed(p: AppointmentPayload): string {
   .marks { display: flex; flex-direction: column; align-items: center; gap: 3mm;
            width: 42mm; flex-shrink: 0; }
   .seal-img { width: 32mm; height: auto; }
-  /* The signature stamp is inked over the rule the way a real one is — pulled
-     up so it sits across the line rather than politely beneath it. */
-  .sign-stamp { width: 46mm; height: auto; margin: -3mm 0 0 -2mm; }
+  /* Anchored to the signature line so it lands on it. Laid out as a block
+     above the row it drifted a centimetre clear of the rule, which reads as
+     two unrelated marks rather than a signed line. */
+  .sign-stamp { position: absolute; left: 2mm; bottom: 0; width: 48mm; height: auto;
+                transform: rotate(-3.5deg); opacity: 0.94; z-index: 2; }
   .revenue { width: 30mm; height: 20mm; border: 0.5px dashed ${FAINT};
              display: flex; align-items: center; justify-content: center; text-align: center;
              font-family: Arial, Helvetica, sans-serif; font-size: 5.4pt; color: ${FAINT};
@@ -596,11 +598,11 @@ export function renderDeed(p: AppointmentPayload): string {
     <div class="exec-grid">
       <div class="exec-col">
         <div class="exec-cap${p.stamps.authorisedSign ? "" : " blank"}">For and on behalf of ${esc(org.legalName)}</div>
-        ${p.stamps.authorisedSign ? `<img class="sign-stamp" src="${p.stamps.authorisedSign}" alt="">` : ""}
         <div class="sign-row">
           <div class="sign-cell" style="max-width:62mm">
+            ${p.stamps.authorisedSign ? `<img class="sign-stamp" src="${p.stamps.authorisedSign}" alt="">` : ""}
             <div class="sign-line">
-              <div class="sign-role">Authorised Signatory</div>
+              ${p.stamps.authorisedSign ? "" : `<div class="sign-role">Authorised Signatory</div>`}
             </div>
           </div>
         </div>
