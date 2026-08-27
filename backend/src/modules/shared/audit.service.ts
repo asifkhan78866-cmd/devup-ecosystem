@@ -50,6 +50,7 @@ export const AuditAction = {
   OFFER_REVOKED: "offer.revoked",
   CANDIDATE_ONBOARDED: "candidate.onboarded",
   DOCUMENT_ISSUED: "document.issued",
+  DOCUMENT_REVOKED: "document.revoked",
   BRANDING_UPDATED: "branding.updated",
   MEMBER_ROLE_CHANGED: "member.role_changed",
 } as const;

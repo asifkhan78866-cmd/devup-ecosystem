@@ -17,6 +17,7 @@ import Partners from '@/pages/Partners'
 import PerkTickets from '@/pages/PerkTickets'
 import Certificates from '@/pages/Certificates'
 import Agreements from '@/pages/Agreements'
+import LeadAppointments from '@/pages/LeadAppointments'
 import Cofounders from '@/pages/Cofounders'
 import ServiceRequests from '@/pages/ServiceRequests'
 import SettingsPage from '@/pages/Settings'
@@ -69,6 +70,7 @@ export default function App() {
             <Route path="perk-tickets" element={<PerkTickets />} />
             <Route path="certificates" element={<Certificates />} />
             <Route path="agreements" element={<Agreements />} />
+            <Route path="lead-appointments" element={<LeadAppointments />} />
             <Route path="cofounders" element={<Cofounders />} />
             <Route path="services" element={<ServiceRequests />} />
             <Route path="settings" element={<SettingsPage />} />

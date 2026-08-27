@@ -15,6 +15,7 @@ import {
   ScrollText,
   Ticket,
   FileSignature,
+  Stamp,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -22,6 +23,7 @@ const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/applications', icon: FileText, label: 'Applications' },
   { to: '/lead-applications', icon: GraduationCap, label: 'Lead Applications' },
+  { to: '/lead-appointments', icon: Stamp, label: 'Lead Appointments' },
   { to: '/startups', icon: Building2, label: 'Startups' },
   { to: '/users', icon: Users, label: 'Users' },
   { to: '/jobs', icon: Briefcase, label: 'Jobs' },

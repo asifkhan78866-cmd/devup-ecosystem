@@ -194,17 +194,17 @@ model Startup {
 
   // Short immutable tenant code used in every generated number (e.g. "ZAP").
   // Nullable only for backfill of pre-existing rows; treated as required in app logic.
-  code           String?                 @unique
-  branding       StartupBranding?
-  employees      Employee[]
-  interns        Intern[]
-  sequences      NumberSequence[]
-  hrDocuments    HrDocument[]
-  offerLetters   OfferLetter[]
-  stageEvents    ApplicationStageEvent[]
-  interviews     Interview[]
-  onboardingDocs OnboardingDocument[]
-  onboardingReqs OnboardingRequirement[]
+  code             String?                 @unique
+  branding         StartupBranding?
+  employees        Employee[]
+  interns          Intern[]
+  sequences        NumberSequence[]
+  hrDocuments      HrDocument[]
+  offerLetters     OfferLetter[]
+  stageEvents      ApplicationStageEvent[]
+  interviews       Interview[]
+  onboardingDocs   OnboardingDocument[]
+  onboardingReqs   OnboardingRequirement[]
   attendancePolicy AttendancePolicy?
   stipendPayouts   StipendPayout[]
   partner          Partner?
@@ -246,7 +246,7 @@ model StartupMember {
   joinedAt    DateTime?
   createdAt   DateTime            @default(now())
 
-  documents   HrDocument[]
+  documents HrDocument[]
 
   @@unique([startupId, email])
   @@index([userId, startupId])
@@ -290,6 +290,59 @@ enum LeadershipRole {
   CAMPUS_DIRECTOR
 }
 
+enum LeadAppointmentStatus {
+  ISSUED
+  REVOKED
+}
+
+/**
+ * A Lead DevUp appointment — the instrument that actually puts someone in post
+ * as a State, Regional, City or Campus Director.
+ * Ecosystem-level, not per-startup: these people represent DevUp itself across
+ * a territory, so the document carries DevUp's own seal rather than a member
+ * startup's branding, and it lives here instead of on HrDocument.
+ * Every field the deed asserts is copied onto the row and frozen into
+ * `payload`. The applicant's record can be corrected afterwards; a deed that
+ * has already been signed and sent cannot.
+ */
+model LeadAppointment {
+  id             String                @id @default(uuid())
+  documentNo     String                @unique
+  /// The application this came from, kept nullable so a director appointed
+  /// outside the normal intake still gets a proper instrument.
+  applicationId  String?
+  application    LeadApplication?      @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  role           LeadershipRole
+  fullName       String
+  email          String
+  phone          String?
+  /// The territory held: a state, a region, a city, or a campus.
+  jurisdiction   String
+  state          String
+  city           String?
+  college        String?
+  termMonths     Int                   @default(12)
+  effectiveFrom  DateTime
+  effectiveTo    DateTime
+  payload        Json
+  /// The three documents an appointment produces. `pdfUrl` is the deed, kept
+  /// under its original name so existing rows and links still resolve.
+  pdfUrl         String?
+  certificateUrl String?
+  handbookUrl    String?
+  status         LeadAppointmentStatus @default(ISSUED)
+  issuedAt       DateTime              @default(now())
+  issuedBy       String
+  revokedAt      DateTime?
+  revokeReason   String?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([role, status])
+  @@index([email])
+  @@index([applicationId])
+}
+
 enum LeadershipAppStatus {
   PENDING
   REVIEWING
@@ -323,6 +376,8 @@ model LeadApplication {
   reviewedBy      String?
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
+
+  appointments LeadAppointment[]
 
   @@index([role, status])
   @@index([state, city])
@@ -873,35 +928,35 @@ model Message {
 // ─────────────────────────────────────────────────────────
 
 model StartupBranding {
-  id                String   @id @default(uuid())
-  startupId         String   @unique
-  startup           Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
-  legalName         String
-  addressLine1      String
-  addressLine2      String?
-  city              String
-  state             String
-  pincode           String
-  logoUrl           String?
+  id                  String   @id @default(uuid())
+  startupId           String   @unique
+  startup             Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  legalName           String
+  addressLine1        String
+  addressLine2        String?
+  city                String
+  state               String
+  pincode             String
+  logoUrl             String?
   /// Corporate Identity Number, printed on issued documents. Per startup:
   /// an ecosystem partner is a separate legal entity with its own CIN.
-  cin               String?
-  signatoryName     String
-  signatoryTitle    String
-  signatureImageUrl String?
+  cin                 String?
+  signatoryName       String
+  signatoryTitle      String
+  signatureImageUrl   String?
   /// Which organisation the primary signatory signs for. Defaults to the
   /// ecosystem, because DevUp ventures are signed at ecosystem level.
-  signatoryOrg      String?
+  signatoryOrg        String?
   /// Optional second signatory. Ecosystem partners are independent companies,
   /// so their own executive countersigns alongside DevUp.
-  cosignatoryName   String?
-  cosignatoryTitle  String?
-  cosignatoryOrg    String?
+  cosignatoryName     String?
+  cosignatoryTitle    String?
+  cosignatoryOrg      String?
   cosignatureImageUrl String?
-  letterheadUrl     String?
-  primaryColor      String?  @default("#c8f135")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  letterheadUrl       String?
+  primaryColor        String?  @default("#c8f135")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 enum EmploymentStatus {
@@ -978,7 +1033,7 @@ model Intern {
   stipendAmount Int?
   /// Weekdays this intern is expected on site, 1=Mon..6=Sat. Days in the
   /// startup's working week that are not listed here are remote days.
-  officeDays    Int[]  @default([1, 3, 5])
+  officeDays    Int[] @default([1, 3, 5])
 
   documents      HrDocument[]
   onboardingDocs OnboardingDocument[]
@@ -1007,15 +1062,15 @@ enum HrDocType {
 /// `payload` freezes the merge fields at issue time so a reissued document
 /// can always be compared against the original.
 model HrDocument {
-  id            String    @id @default(uuid())
+  id            String         @id @default(uuid())
   startupId     String
-  startup       Startup   @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  startup       Startup        @relation(fields: [startupId], references: [id], onDelete: Cascade)
   docType       HrDocType
-  documentNo    String    @unique
+  documentNo    String         @unique
   employeeId    String?
-  employee      Employee? @relation(fields: [employeeId], references: [id])
+  employee      Employee?      @relation(fields: [employeeId], references: [id])
   internId      String?
-  intern        Intern?   @relation(fields: [internId], references: [id])
+  intern        Intern?        @relation(fields: [internId], references: [id])
   /// Founders hold a membership but no employee record, so their letters
   /// attach here. Same nullable-pair shape as the two above.
   memberId      String?
@@ -1024,7 +1079,7 @@ model HrDocument {
   templateKey   String
   payload       Json
   pdfUrl        String?
-  issuedAt      DateTime  @default(now())
+  issuedAt      DateTime       @default(now())
   issuedBy      String
   revokedAt     DateTime?
   revokeReason  String?
@@ -1081,25 +1136,25 @@ model OfferLetter {
 /// both — the same nullable-pair shape HrDocument and OnboardingDocument use.
 /// Postgres permits many NULLs in a unique index, so both uniques coexist.
 model Attendance {
-  id         String    @id @default(uuid())
-  startupId  String
-  employeeId String?
-  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  internId   String?
-  intern     Intern?   @relation(fields: [internId], references: [id], onDelete: Cascade)
-  date       DateTime  @db.Date
+  id            String    @id @default(uuid())
+  startupId     String
+  employeeId    String?
+  employee      Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  internId      String?
+  intern        Intern?   @relation(fields: [internId], references: [id], onDelete: Cascade)
+  date          DateTime  @db.Date
   /// What was expected of them that day: OFFICE | REMOTE.
-  mode       String    @default("OFFICE")
-  status     String
-  checkIn    DateTime?
-  checkOut   DateTime?
+  mode          String    @default("OFFICE")
+  status        String
+  checkIn       DateTime?
+  checkOut      DateTime?
   /// Derived on check-out. Stored rather than recomputed so a later policy
   /// change cannot silently re-grade a day that has already been paid.
-  workedMinutes Int    @default(0)
+  workedMinutes Int       @default(0)
   /// SELF (they marked it) | HR (marked for them) | AUTO (derived absent).
-  source     String    @default("HR")
-  note       String?
-  createdAt  DateTime  @default(now())
+  source        String    @default("HR")
+  note          String?
+  createdAt     DateTime  @default(now())
 
   workLogs   WorkLog[]
   daySummary DaySummary?
@@ -1111,38 +1166,38 @@ model Attendance {
 
 /// Attendance rules, per startup so each can differ.
 model AttendancePolicy {
-  id                String   @id @default(uuid())
-  startupId         String   @unique
-  startup           Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  id                 String  @id @default(uuid())
+  startupId          String  @unique
+  startup            Startup @relation(fields: [startupId], references: [id], onDelete: Cascade)
   /// ISO weekdays that count as working days. 1=Mon .. 7=Sun.
-  workingDays       Int[]    @default([1, 2, 3, 4, 5, 6])
-  officeDaysPerWeek Int      @default(3)
-  officeStart       String   @default("10:00")
-  officeEnd         String   @default("16:00")
+  workingDays        Int[]   @default([1, 2, 3, 4, 5, 6])
+  officeDaysPerWeek  Int     @default(3)
+  officeStart        String  @default("10:00")
+  officeEnd          String  @default("16:00")
   /// Minutes after officeStart before a check-in counts as late.
-  graceMinutes      Int      @default(15)
+  graceMinutes       Int     @default(15)
   /// Arriving after this is a half day regardless of hours worked.
-  lateHalfDayAfter  String   @default("11:00")
-  minOfficeMinutes  Int      @default(300)
-  minRemoteMinutes  Int      @default(240)
+  lateHalfDayAfter   String  @default("11:00")
+  minOfficeMinutes   Int     @default(300)
+  minRemoteMinutes   Int     @default(240)
   /// Leave days per calendar month that still earn a full day's stipend.
   paidLeavesPerMonth Int     @default(1)
 
   // ── Work updates ────────────────────────────────────────────────
   /// Length of a reporting slot. 90 means four slots on a 10:00-16:00 day.
-  slotMinutes        Int     @default(90)
+  slotMinutes         Int      @default(90)
   /// A slot can be filed from this far into it...
-  fileAfterMinutes   Int     @default(45)
+  fileAfterMinutes    Int      @default(45)
   /// ...until this long after it ends. Later is LATE, never is MISSED.
-  fileGraceMinutes   Int     @default(15)
+  fileGraceMinutes    Int      @default(15)
   /// Below this share of slots filed, the whole day is INCOMPLETE.
-  minSlotCompliance  Float   @default(0.6)
+  minSlotCompliance   Float    @default(0.6)
   /// A day with no end-of-day summary is capped at this share of its value.
-  noSummaryFactor    Float   @default(0.75)
+  noSummaryFactor     Float    @default(0.75)
   /// Whether pay scales with the share of slots actually filed.
-  proRataByCompliance Boolean @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  proRataByCompliance Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 /// The kinds of agreement DevUp signs. Each carries its own starter clauses
@@ -1205,10 +1260,10 @@ model Agreement {
 /// claims — someone can be checked in all day and have accounted for none of
 /// it, which is the entire reason this table exists.
 model WorkLog {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   startupId    String
   internId     String
-  intern       Intern   @relation(fields: [internId], references: [id], onDelete: Cascade)
+  intern       Intern     @relation(fields: [internId], references: [id], onDelete: Cascade)
   attendanceId String
   attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
 
@@ -1243,12 +1298,12 @@ model DaySummary {
   attendanceId String     @unique
   attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
 
-  done         String
-  blocked      String?
-  tomorrow     String?
-  submittedAt  DateTime   @default(now())
-  seenAt       DateTime?
-  seenBy       String?
+  done        String
+  blocked     String?
+  tomorrow    String?
+  submittedAt DateTime  @default(now())
+  seenAt      DateTime?
+  seenBy      String?
 
   @@index([startupId, submittedAt])
 }
@@ -1257,34 +1312,34 @@ model DaySummary {
 /// attendance is corrected after payment, the fix belongs in the next month's
 /// adjustment, never as a silent rewrite of a paid period.
 model StipendPayout {
-  id            String   @id @default(uuid())
-  startupId     String
-  startup       Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
-  internId      String
-  intern        Intern   @relation(fields: [internId], references: [id], onDelete: Cascade)
-  periodYear    Int
-  periodMonth   Int
-  stipendAmount Int
-  workingDays   Int
-  presentDays   Int
-  lateDays      Int
-  halfDays      Int
-  absentDays    Int
-  leaveDays     Int
-  paidLeaveDays Int
+  id               String    @id @default(uuid())
+  startupId        String
+  startup          Startup   @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  internId         String
+  intern           Intern    @relation(fields: [internId], references: [id], onDelete: Cascade)
+  periodYear       Int
+  periodMonth      Int
+  stipendAmount    Int
+  workingDays      Int
+  presentDays      Int
+  lateDays         Int
+  halfDays         Int
+  absentDays       Int
+  leaveDays        Int
+  paidLeaveDays    Int
   /// Stored as ×100 so half days need no floating point.
   payableCentidays Int
-  grossAmount   Int
-  adjustment    Int      @default(0)
-  adjustmentNote String?
-  netAmount     Int
-  status        String   @default("DRAFT")
-  approvedBy    String?
-  approvedAt    DateTime?
-  paidAt        DateTime?
-  paymentRef    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  grossAmount      Int
+  adjustment       Int       @default(0)
+  adjustmentNote   String?
+  netAmount        Int
+  status           String    @default("DRAFT")
+  approvedBy       String?
+  approvedAt       DateTime?
+  paidAt           DateTime?
+  paymentRef       String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@unique([internId, periodYear, periodMonth])
   @@index([startupId, periodYear, periodMonth])
@@ -1400,15 +1455,16 @@ model OnboardingRequirement {
   @@unique([startupId, docType])
 }
 
-/* ─────────────────────────────────────────────────────────
-   PARTNER PERKS
-
-   Organisations that give DevUp members a benefit — a discounted
-   coworking pass, a place on a programme, an introduction. DevUp awards
-   these to named people who earned them at an event; nobody claims one
-   for themselves. The printed ticket is the artefact, so a ticket must
-   be verifiable from the paper alone.
-   ───────────────────────────────────────────────────────── */
+/**
+ * ─────────────────────────────────────────────────────────
+ * PARTNER PERKS
+ * Organisations that give DevUp members a benefit — a discounted
+ * coworking pass, a place on a programme, an introduction. DevUp awards
+ * these to named people who earned them at an event; nobody claims one
+ * for themselves. The printed ticket is the artefact, so a ticket must
+ * be verifiable from the paper alone.
+ * ─────────────────────────────────────────────────────────
+ */
 
 enum PartnerCategory {
   WORKSPACE
@@ -1427,25 +1483,25 @@ enum PartnerStatus {
 /// a council, and neither has a founding year, a funding stage or a domain.
 /// `startupId` links the ones that happen to be both.
 model Partner {
-  id            String          @id @default(uuid())
-  name          String
-  slug          String          @unique
+  id             String          @id @default(uuid())
+  name           String
+  slug           String          @unique
   /// Short immutable code used in every ticket code, e.g. "D2PR".
-  code          String          @unique
-  logoUrl       String?
+  code           String          @unique
+  logoUrl        String?
   /// Drives the ticket's accent so one template serves every partner.
-  brandColor    String          @default("#1F7A4D")
-  category      PartnerCategory @default(OTHER)
-  status        PartnerStatus   @default(ACTIVE)
-  website       String?
-  contactName   String?
-  contactPhone  String?
-  contactEmail  String?
-  addressLine1  String?
-  addressLine2  String?
-  city          String?
-  state         String?
-  pincode       String?
+  brandColor     String          @default("#1F7A4D")
+  category       PartnerCategory @default(OTHER)
+  status         PartnerStatus   @default(ACTIVE)
+  website        String?
+  contactName    String?
+  contactPhone   String?
+  contactEmail   String?
+  addressLine1   String?
+  addressLine2   String?
+  city           String?
+  state          String?
+  pincode        String?
   agreementStart DateTime?
   agreementEnd   DateTime?
 
@@ -1477,27 +1533,27 @@ enum PerkStatus {
 }
 
 model Perk {
-  id            String     @id @default(uuid())
-  partnerId     String
-  partner       Partner    @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  title         String
-  subtitle      String?
-  description   String?
-  type          PerkType   @default(PERCENT_OFF)
-  percentOff    Int?
-  originalPrice Int?
-  finalPrice    Int?
-  priceUnit     String?
+  id                String    @id @default(uuid())
+  partnerId         String
+  partner           Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  title             String
+  subtitle          String?
+  description       String?
+  type              PerkType  @default(PERCENT_OFF)
+  percentOff        Int?
+  originalPrice     Int?
+  finalPrice        Int?
+  priceUnit         String?
   /// Bullet points shown on the ticket, e.g. the amenities strip.
-  highlights    String[]   @default([])
-  terms         String[]   @default([])
-  validFrom     DateTime?
-  validUntil    DateTime?
+  highlights        String[]  @default([])
+  terms             String[]  @default([])
+  validFrom         DateTime?
+  validUntil        DateTime?
   /// Total awards allowed. Null means uncapped.
-  totalCap      Int?
-  perPersonCap  Int        @default(1)
+  totalCap          Int?
+  perPersonCap      Int       @default(1)
   /// How long an awarded ticket stays usable.
-  awardValidityDays Int    @default(60)
+  awardValidityDays Int       @default(60)
 
   /// Only a platform admin moves this to LIVE.
   status     PerkStatus @default(DRAFT)
