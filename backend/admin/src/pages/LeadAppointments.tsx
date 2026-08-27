@@ -324,9 +324,40 @@ function Row({
     onError: () => toast.error('Could not resend it'),
   })
 
+  const STORED: Record<string, keyof Appointment> = {
+    certificate: 'certificateUrl',
+    deed: 'pdfUrl',
+    handbook: 'handbookUrl',
+  }
+
+  /**
+   * Opens a document.
+   *
+   * Download goes straight to the stored file when there is one. Rendering it
+   * again takes six to nine seconds of Chromium, and assigning a blob to a tab
+   * that has been sitting blank that long is the thing Chrome refuses — so the
+   * stored URL is both the faster path and the one that actually works.
+   *
+   * Preview always renders fresh, because that is what a preview is for: it
+   * shows the current template, not what was filed at issue.
+   */
   const open = async (as: 'preview' | 'pdf', kind: string) => {
+    if (as === 'pdf') {
+      const stored = a[STORED[kind]] as string | null
+      // Opened synchronously inside the click, so no pop-up blocker fires.
+      if (stored) { window.open(stored, '_blank', 'noopener'); return }
+    }
+
     const w = window.open('', '_blank')
     if (!w) { toast.error('Allow pop-ups'); return }
+    // Something in the tab immediately: a blank window for nine seconds reads
+    // as a broken link, and people close it before the document arrives.
+    w.document.write(
+      `<!doctype html><title>Generating…</title>` +
+      `<body style="margin:0;display:flex;align-items:center;justify-content:center;` +
+      `height:100vh;font:14px system-ui;background:#0d0d0d;color:#888">` +
+      `Generating the ${kind}… this takes a few seconds.</body>`
+    )
     try {
       // Fetched through the axios client so the admin token travels with it;
       // a plain link would hit the endpoint unauthenticated.
@@ -382,7 +413,7 @@ function Row({
             <span key={d.kind} className="flex items-center rounded-lg border border-white/[0.07]">
               <button
                 onClick={() => open('preview', d.kind)}
-                title={`Preview the ${d.label.toLowerCase()} — ${d.hint}`}
+                title={`Preview the ${d.label.toLowerCase()} (renders the current template) — ${d.hint}`}
                 className="flex items-center gap-1.5 rounded-l-lg px-2 py-1.5 text-[11px] text-white/55 transition hover:bg-white/[0.06] hover:text-white"
               >
                 <d.icon className="h-3.5 w-3.5" />
@@ -390,8 +421,14 @@ function Row({
               </button>
               <button
                 onClick={() => open('pdf', d.kind)}
-                title={`Download the ${d.label.toLowerCase()} as PDF`}
-                className="rounded-r-lg border-l border-white/[0.07] px-1.5 py-1.5 text-white/40 transition hover:bg-white/[0.06] hover:text-white"
+                title={
+                  a[STORED[d.kind]]
+                    ? `Open the issued ${d.label.toLowerCase()} PDF`
+                    : `No file stored yet — this will generate the ${d.label.toLowerCase()}`
+                }
+                className={`rounded-r-lg border-l border-white/[0.07] px-1.5 py-1.5 transition hover:bg-white/[0.06] hover:text-white ${
+                  a[STORED[d.kind]] ? 'text-white/40' : 'text-white/15'
+                }`}
               >
                 <Download className="h-3.5 w-3.5" />
               </button>
