@@ -361,6 +361,61 @@ export function dayWorkFactor(args: {
   return { factor: Math.max(0, Math.min(1, factor)), compliance, incomplete };
 }
 
+/**
+ * Folds the day's reporting into its attendance verdict.
+ *
+ * Presence used to be decided by the clock alone: check in, check out six hours
+ * later, and the register said PRESENT even if the intern filed nothing all day
+ * and nobody could say what they did. Pay already fell to zero in that case, so
+ * the money was right and the record was not — and the record is what gets read
+ * in a review, shown to a college, and used to argue about the money later.
+ *
+ * Being in the building is now the ceiling, not the verdict:
+ *   nothing filed at all      -> ABSENT. Time nobody can vouch for is not attendance.
+ *   below the compliance floor -> HALF_DAY at best, however long they stayed.
+ *
+ * Deliberately one-way. It can lower a day and never raise one, so a run of
+ * updates can never turn a short day into a full one.
+ *
+ * Days with nothing to report — leave, holiday, a day off — are untouched.
+ */
+export function applyAccountability(args: {
+  policy: SlotPolicy;
+  status: AttendanceStatus;
+  requiredSlots: number;
+  filedSlots: number;
+}): { status: AttendanceStatus; downgraded: boolean; reason: string | null } {
+  const { policy, status, requiredSlots, filedSlots } = args;
+  const untouched = { status, downgraded: false, reason: null };
+
+  // Nothing was owed, or the day already carries its own verdict.
+  if (requiredSlots <= 0) return untouched;
+  if (status === "LEAVE" || status === "HOLIDAY" || status === "ABSENT" || status === "OPEN") {
+    return untouched;
+  }
+
+  if (filedSlots <= 0) {
+    return {
+      status: "ABSENT",
+      downgraded: true,
+      reason: `Present but unaccounted — no updates filed against ${requiredSlots} required`,
+    };
+  }
+
+  const compliance = slotCompliance(requiredSlots, filedSlots);
+  if (compliance < policy.minSlotCompliance && status !== "HALF_DAY") {
+    return {
+      status: "HALF_DAY",
+      downgraded: true,
+      reason:
+        `Only ${filedSlots} of ${requiredSlots} updates filed ` +
+        `(${Math.round(compliance * 100)}%, floor is ${Math.round(policy.minSlotCompliance * 100)}%)`,
+    };
+  }
+
+  return untouched;
+}
+
 export const WORK_KINDS = ["WORK", "MEETING", "BREAK", "BLOCKED", "TRAVEL"] as const;
 export type WorkKind = (typeof WORK_KINDS)[number];
 

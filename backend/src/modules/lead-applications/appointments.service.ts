@@ -331,9 +331,11 @@ async function sendDeed(
   a: {
     id: string; documentNo: string; role: LeadershipRole; fullName: string;
     email: string; jurisdiction: string; effectiveFrom: Date; effectiveTo: Date;
+    revenueSerial?: string | null;
   },
   buffers: Partial<Record<DocumentKind, Buffer>>
 ) {
+  const serial = a.revenueSerial ?? revenueSerialFor(a.documentNo);
   const tier = TIERS[a.role];
   const user = await prisma.user.findUnique({ where: { email: a.email }, select: { id: true } });
   const fmt = (d: Date) => d.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
@@ -353,31 +355,14 @@ async function sendDeed(
     title: `You are appointed ${tier.label} — ${a.jurisdiction}`,
     message: `Your appointment (${a.documentNo}) has been issued. Three documents are attached.`,
     link: "/lead-devup",
-    html: Emails.generic({
-      title: `Your appointment as ${tier.label}`,
-      message:
-        `Hi ${a.fullName},
-
-` +
-        `It is our pleasure to appoint you ${tier.label} for ${a.jurisdiction} under the Lead DevUp ` +
-        `programme. The appointment runs from ${fmt(a.effectiveFrom)} to ${fmt(a.effectiveTo)} under ` +
-        `instrument ${a.documentNo}.
-
-` +
-        `Three documents are attached.
-
-` +
-        `1. Certificate of Appointment — sealed and signed. This is yours to keep and to share.
-` +
-        `2. Deed of Appointment — the terms of the office. Read it in full, sign where indicated, ` +
-        `and keep a copy; you will be asked for it.
-` +
-        `3. Directorate Handbook — how the office actually works: your first thirty days, the weekly ` +
-        `rhythm, what to report and to whom, and what a good quarter looks like. Read this one first.
-
-` +
-        `Welcome to the directorate.`,
-      link: "/lead-devup",
+    html: Emails.leadAppointment({
+      fullName: a.fullName,
+      office: tier.label,
+      territory: a.jurisdiction,
+      documentNo: a.documentNo,
+      from: fmt(a.effectiveFrom),
+      to: fmt(a.effectiveTo),
+      verifyUrl: serial ? verifyUrl(serial) : undefined,
     }),
     attachments: attachments.length ? attachments : undefined,
   });

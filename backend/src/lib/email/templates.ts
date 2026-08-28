@@ -7,6 +7,30 @@ import { renderEmail, p, strong, details, SITE_URL } from "./layout";
 
 const appUrl = (path: string) => `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
+/** A heading inside the body, for mail that has more than one section. */
+const sectionTitle = (text: string) =>
+  `<p style="margin:26px 0 12px;font-family:Arial,Helvetica,sans-serif;font-size:12px;
+     letter-spacing:1.6px;text-transform:uppercase;color:#c8f135;">${text}</p>`;
+
+/**
+ * One attachment, numbered. A table rather than a list: Outlook renders
+ * <ol> margins unpredictably, and this mail is mostly read on a phone.
+ */
+const docItem = (n: string, title: string, detail: string) => `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+         style="margin:0 0 12px;border-collapse:collapse;">
+    <tr>
+      <td width="30" valign="top"
+          style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#c8f135;padding-top:1px;">
+        ${n}
+      </td>
+      <td style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#ffffff;line-height:1.6;">
+        <strong style="color:#ffffff;">${title}</strong><br>
+        <span style="color:#8b8b8b;font-size:13px;">${detail}</span>
+      </td>
+    </tr>
+  </table>`;
+
 export const Emails = {
   welcome: (name: string) =>
     renderEmail({
@@ -277,6 +301,69 @@ export const Emails = {
       cta: { label: "Go to dashboard", url: appUrl("/dashboard") },
       fromOrg: args.startupName,
       orgLogoUrl: args.logoUrl,
+    }),
+
+  /**
+   * The welcome a new director actually receives.
+   *
+   * Bespoke rather than routed through `generic`, which folds everything into a
+   * single paragraph — this mail has to introduce three separate attachments
+   * and say what each is for, and that is a list, not a sentence.
+   *
+   * Ordered by what matters to the reader rather than to us: the handbook
+   * first, because it says what to do on Monday, and the deed last, because it
+   * is the one they will skim.
+   */
+  leadAppointment: (args: {
+    fullName: string;
+    office: string;
+    territory: string;
+    documentNo: string;
+    from: string;
+    to: string;
+    verifyUrl?: string;
+  }) =>
+    renderEmail({
+      heading: `Welcome to the directorate, ${args.fullName.split(" ")[0]}`,
+      preheader: `You are appointed ${args.office} for ${args.territory}.`,
+      body:
+        p(
+          `It is our pleasure to appoint you ${args.office} for ${args.territory} under the ` +
+            `Lead DevUp programme. You were chosen because we think you will do something with the ` +
+            `territory, not simply hold it.`
+        ) +
+        details([
+          ["Office", args.office],
+          ["Territory", args.territory],
+          ["Term", `${args.from} — ${args.to}`],
+          ["Instrument", args.documentNo],
+        ]) +
+        sectionTitle("Three documents are attached") +
+        docItem(
+          "1",
+          "Directorate Handbook",
+          "Read this one first. Your first thirty days, the weekly rhythm, what to report and to " +
+            "whom, and what a good quarter looks like."
+        ) +
+        docItem(
+          "2",
+          "Certificate of Appointment",
+          "Sealed and signed. This one is yours to keep and to share."
+        ) +
+        docItem(
+          "3",
+          "Deed of Appointment",
+          "The terms of the office. Read it in full, sign where indicated, and keep a copy — " +
+            "you will be asked for it."
+        ) +
+        p(
+          `Your deed carries a revenue stamp with a QR code. Anyone who needs to confirm you hold ` +
+            `this office can scan it and see the answer, so keep the stamp intact on any copy you print.`
+        ),
+      cta: args.verifyUrl ? { label: "See your public verification", url: args.verifyUrl } : undefined,
+      footnote:
+        "Keep this email. The attachments are the only copies sent, and the instrument number above " +
+        "identifies your appointment in any correspondence.",
     }),
 
   // ── Generic fallback for notifications without a bespoke template ──

@@ -50,6 +50,8 @@ export interface Computed {
   slotsRequired: number;
   slotsFiled: number;
   incompleteDays: number;
+  /** Days worked but downgraded because the updates were not filed. */
+  unaccountedDays: number;
   compliancePercent: number;
   perDayRate: number;
   grossAmount: number;
@@ -94,7 +96,7 @@ export async function computeFor(args: {
   const today = R.dayOf(new Date());
 
   const slotPolicy = await slotPolicyFor(args.startupId);
-  let slotsRequired = 0, slotsFiled = 0, incompleteDays = 0;
+  let slotsRequired = 0, slotsFiled = 0, incompleteDays = 0, unaccountedDays = 0;
   let presentDays = 0, lateDays = 0, halfDays = 0, absentDays = 0, leaveDays = 0;
   let paidLeaveDays = 0, payableCentidays = 0, countedDays = 0;
   let paidLeaveRemaining = policy.paidLeavesPerMonth;
@@ -107,11 +109,38 @@ export async function computeFor(args: {
     const rec = byDate.get(d.getTime());
     // Settle a forgotten check-out exactly as the month view shows it —
     // otherwise the dashboard says half day and the payout pays nothing.
-    const status = (
+    const clockStatus = (
       rec?.status === "OPEN" && rec.checkIn
         ? R.gradeUnclosedDay({ policy, mode: rec.mode as R.AttendanceMode, date: d, checkIn: rec.checkIn }).status
         : rec?.status ?? "ABSENT"
     ) as R.AttendanceStatus;
+
+    /**
+     * The clock sets the ceiling; the updates decide the day. Worked out before
+     * the register is counted so a day nobody accounted for is never tallied as
+     * present — the payout and the attendance record have to tell the same story.
+     */
+    const slots = rec?.checkIn
+      ? R.slotsForDay({
+          policy: slotPolicy,
+          date: d,
+          mode: (rec.mode as R.AttendanceMode) ?? "OFFICE",
+          checkIn: rec.checkIn,
+          checkOut: rec.checkOut,
+        })
+      : [];
+    const filed = (rec?.workLogs ?? []).filter((l: { kind: string }) =>
+      R.countsTowardCompliance(l.kind as R.WorkKind)
+    ).length;
+    const accounted = R.applyAccountability({
+      policy: slotPolicy,
+      status: clockStatus,
+      requiredSlots: slots.length,
+      filedSlots: filed,
+    });
+    const status = accounted.status;
+    if (accounted.downgraded) unaccountedDays++;
+
     switch (status) {
       case "PRESENT": presentDays++; break;
       case "LATE": lateDays++; break;
@@ -136,16 +165,6 @@ export async function computeFor(args: {
     let dayCentidays = base;
 
     if (rec?.checkIn && status !== "LEAVE" && status !== "HOLIDAY") {
-      const slots = R.slotsForDay({
-        policy: slotPolicy,
-        date: d,
-        mode: (rec.mode as R.AttendanceMode) ?? "OFFICE",
-        checkIn: rec.checkIn,
-        checkOut: rec.checkOut,
-      });
-      const filed = (rec.workLogs ?? []).filter((l: { kind: string }) =>
-        R.countsTowardCompliance(l.kind as R.WorkKind)
-      ).length;
       const work = R.dayWorkFactor({
         policy: slotPolicy,
         requiredSlots: slots.length,
@@ -187,6 +206,7 @@ export async function computeFor(args: {
     slotsRequired,
     slotsFiled,
     incompleteDays,
+    unaccountedDays,
     compliancePercent: slotsRequired === 0 ? 100 : Math.round((slotsFiled / slotsRequired) * 100),
     perDayRate: Math.round(perDayRate * 100) / 100,
     grossAmount: problem ? 0 : grossAmount,

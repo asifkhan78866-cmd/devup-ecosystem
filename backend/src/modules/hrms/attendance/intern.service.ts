@@ -2,6 +2,7 @@ import { prisma } from "../../../lib/prisma";
 import { AppError } from "../../../middleware/errorHandler";
 import { audit } from "../../shared/audit.service";
 import * as R from "./rules";
+import { slotPolicyFor } from "./worklog.service";
 
 /** The policy for a startup, falling back to the platform default. */
 export async function policyFor(startupId: string): Promise<R.Policy> {
@@ -183,9 +184,14 @@ export async function month(args: {
       internId: args.internId,
       date: { gte: days[0] ?? new Date(0), lte: days[days.length - 1] ?? new Date(0) },
     },
+    // The updates decide the day, so the month view has to read them too —
+    // otherwise the intern's own calendar says PRESENT for a day the payout
+    // counts as absent, and the first they hear of it is the money.
+    include: { workLogs: { select: { kind: true } }, daySummary: { select: { id: true } } },
   });
   const byDate = new Map(records.map((r) => [r.date.getTime(), r]));
   const today = R.dayOf(new Date());
+  const slotPolicy = await slotPolicyFor(intern.startupId);
 
   const entries = days.map((d) => {
     const rec = byDate.get(d.getTime());
@@ -198,15 +204,37 @@ export async function month(args: {
         ? R.gradeUnclosedDay({ policy, mode: rec.mode as R.AttendanceMode, date: d, checkIn: rec.checkIn! })
         : null;
 
+      const clockStatus = (settled ? settled.status : rec.status) as R.AttendanceStatus;
+      const slots = rec.checkIn
+        ? R.slotsForDay({
+            policy: slotPolicy,
+            date: d,
+            mode: rec.mode as R.AttendanceMode,
+            checkIn: rec.checkIn,
+            checkOut: rec.checkOut,
+          })
+        : [];
+      const filed = (rec.workLogs ?? []).filter((l) =>
+        R.countsTowardCompliance(l.kind as R.WorkKind)
+      ).length;
+      const accounted = R.applyAccountability({
+        policy: slotPolicy,
+        status: clockStatus,
+        requiredSlots: slots.length,
+        filedSlots: filed,
+      });
+
       return {
         date: d,
         mode: rec.mode,
-        status: settled ? settled.status : rec.status,
+        status: accounted.status,
         checkIn: rec.checkIn,
         checkOut: rec.checkOut,
         workedMinutes: settled ? settled.workedMinutes : rec.workedMinutes,
-        needsAttention: Boolean(settled),
-        note: settled ? settled.note : rec.note,
+        needsAttention: Boolean(settled) || accounted.downgraded,
+        note: accounted.reason ?? (settled ? settled.note : rec.note),
+        slotsRequired: slots.length,
+        slotsFiled: filed,
       };
     }
     // Today with no check-in yet is still pending, not yet an absence.
