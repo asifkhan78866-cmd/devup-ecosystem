@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 const variants = {
   primary: 'bg-indigo-600 hover:bg-indigo-500 text-white',
@@ -14,6 +14,13 @@ const sizes = {
   lg: 'px-6 py-3 text-base',
 }
 
+interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+  children: ReactNode
+  variant?: keyof typeof variants
+  size?: keyof typeof sizes
+  isLoading?: boolean
+}
+
 export function Button({
   children,
   variant = 'primary',
@@ -21,31 +28,23 @@ export function Button({
   className = '',
   disabled,
   isLoading = false,
-  onClick,
   type = 'button',
-}: {
-  children: ReactNode
-  variant?: keyof typeof variants
-  size?: keyof typeof sizes
-  className?: string
-  disabled?: boolean
-  isLoading?: boolean
-  onClick?: () => void
-  type?: 'button' | 'submit'
-}) {
+  ...rest
+}: ButtonProps) {
   return (
     <button
       type={type}
       disabled={disabled || isLoading}
-      onClick={onClick}
       className={`
         inline-flex items-center justify-center rounded-lg font-medium
         transition-all duration-200 cursor-pointer
         disabled:opacity-50 disabled:cursor-not-allowed
         ${variants[variant]} ${sizes[size]} ${className}
       `}
+      {...rest}
     >
       {isLoading ? 'Loading...' : children}
     </button>
   )
 }
+
