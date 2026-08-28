@@ -53,7 +53,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     h5: "h4",
     h6: "h4",
     // Google Docs wraps everything in spans carrying its own fonts.
-    span: (_tag, attribs) => ({ tagName: "span", attribs: {} as Record<string, string> }),
+    span: (_tag: string, attribs: Record<string, string>) => ({ tagName: "span", attribs: {} as Record<string, string> }),
     div: "p",
   },
 };
