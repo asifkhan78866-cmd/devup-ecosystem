@@ -1250,6 +1250,13 @@ model Agreement {
   status         AgreementStatus @default(DRAFT)
   pdfUrl         String?
   issuedAt       DateTime?
+  /// When the issued document was last emailed to the second party, and to
+  /// which address. Recorded rather than inferred: "did we actually send this"
+  /// is the question people ask three weeks later, and the mail log is not
+  /// somewhere the admin can look.
+  sentAt         DateTime?
+  sentTo         String?
+  sentCount      Int             @default(0)
   createdBy      String
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt

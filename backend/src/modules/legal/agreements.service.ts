@@ -13,6 +13,8 @@ import {
   PAGE_MARGIN, PAGE_NUMBER_SCRIPT, bodyStyles, esc, footerTemplate, headerTemplate, letterheadLogo, orgDetails, pageChromeCss,
 } from "./letterhead";
 import { loadStamps } from "../lead-applications/stamps";
+import { resend, MAIL_FROM } from "../../lib/resend";
+import { Emails } from "../../lib/email/templates";
 
 /**
  * MOUs and letters issued on DevUp letterhead.
@@ -90,6 +92,7 @@ export async function listAgreements() {
       id: true, type: true, documentNo: true, title: true, partyName: true,
       status: true, pdfUrl: true, effectiveDate: true, expiryDate: true,
       issuedAt: true, createdAt: true, updatedAt: true,
+      partyEmail: true, sentAt: true, sentTo: true, sentCount: true,
     },
   });
 }
@@ -373,6 +376,87 @@ export async function renderAgreementPdf(a: Agreement) {
  * same reference, because two pieces of paper bearing different numbers for
  * one agreement is how a dispute starts.
  */
+/**
+ * Emails an issued agreement to the second party, with the PDF attached.
+ *
+ * Only for documents that have actually been issued: a draft has no reference
+ * number, and sending one invites the other side to sign something that cannot
+ * be cited afterwards. Cancelled documents are refused for the same reason in
+ * reverse.
+ *
+ * The PDF is rendered fresh rather than pulled from storage, so what lands in
+ * their inbox is the document as it stands right now — the stored copy can lag
+ * an edit made after issue.
+ */
+export async function sendAgreement(id: string, actorId: string) {
+  const a = await getAgreement(id);
+
+  if (a.status === "DRAFT") {
+    throw new AppError(409, "Issue the agreement before sending it", "NOT_ISSUED");
+  }
+  if (a.status === "CANCELLED") {
+    throw new AppError(409, "This agreement has been cancelled", "CANCELLED");
+  }
+  const to = a.partyEmail?.trim();
+  if (!to) {
+    throw new AppError(
+      400,
+      "Add an email address for the second party before sending",
+      "NO_PARTY_EMAIL"
+    );
+  }
+
+  const pdf = await renderAgreementPdf(a);
+  const tpl = AGREEMENT_TEMPLATES[a.type];
+  const fmt = (d: Date | null) =>
+    d ? d.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" }) : null;
+
+  const { error } = await resend.emails.send({
+    from: MAIL_FROM,
+    to,
+    subject: `${a.title} — ${a.documentNo}`,
+    html: Emails.agreementIssued({
+      title: a.title,
+      kind: tpl.label,
+      documentNo: a.documentNo ?? "",
+      partyName: a.partyName,
+      recipientName: a.partySignatory,
+      effectiveDate: fmt(a.effectiveDate),
+      expiryDate: fmt(a.expiryDate),
+      // A letter of support asks nothing of the reader; an MOU does.
+      signatureRequired: a.type !== "SUPPORT",
+    }),
+    attachments: [
+      { filename: `${safeFile(a.title)}-${(a.documentNo ?? "").split("/").join("-")}.pdf`, content: pdf },
+    ],
+  });
+
+  if (error) {
+    logger.error(`agreement ${a.documentNo} email failed: ${error.message}`);
+    throw new AppError(502, `Could not send the email: ${error.message}`, "SEND_FAILED");
+  }
+
+  const updated = await prisma.agreement.update({
+    where: { id },
+    data: { sentAt: new Date(), sentTo: to, sentCount: { increment: 1 } },
+  });
+
+  await audit({
+    action: "agreement.sent",
+    entity: "Agreement",
+    entityId: id,
+    actorId,
+    metadata: { documentNo: a.documentNo, to },
+  });
+
+  return { sentTo: to, sentAt: updated.sentAt, sentCount: updated.sentCount };
+}
+
+/** Titles become filenames, and a filename cannot carry a slash or a colon. */
+function safeFile(title: string) {
+  return title.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "Agreement";
+}
+
 export async function issueAgreement(id: string, actorId: string) {
   const existing = await getAgreement(id);
 

@@ -86,6 +86,11 @@ router.get("/:id/pdf", async (req, res) => {
   res.send(pdf);
 });
 
+/** Emails the issued document to the second party, with the PDF attached. */
+router.post("/:id/send", async (req, res) =>
+  ok(res, await agreements.sendAgreement(req.params.id as string, (req as any).user.id))
+);
+
 router.post("/:id/issue", async (req, res) => {
   ok(res, await agreements.issueAgreement(req.params.id as string, req.user!.id));
 });

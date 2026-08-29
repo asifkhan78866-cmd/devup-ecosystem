@@ -366,6 +366,62 @@ export const Emails = {
         "identifies your appointment in any correspondence.",
     }),
 
+  /**
+   * The covering note that carries an issued agreement to the other party.
+   *
+   * Written to be read by someone outside DevUp — a college registrar, a
+   * partner's operations lead — who may have had no part in the conversation
+   * that produced the document. So it says plainly what the attachment is, what
+   * it commits them to, and what happens next, rather than assuming they have
+   * the context to work it out.
+   */
+  agreementIssued: (args: {
+    title: string;
+    kind: string;
+    documentNo: string;
+    partyName: string;
+    recipientName?: string | null;
+    effectiveDate?: string | null;
+    expiryDate?: string | null;
+    signatureRequired: boolean;
+  }) =>
+    renderEmail({
+      heading: args.title,
+      preheader: `${args.title} (${args.documentNo}) from DevUp Ecosystem Pvt Ltd.`,
+      body:
+        p(
+          `${args.recipientName ? `Dear ${args.recipientName},` : "Dear Sir/Madam,"}`
+        ) +
+        p(
+          `Please find attached the ${args.kind.toLowerCase()} between DevUp Ecosystem Pvt Ltd and ` +
+            `${args.partyName}, issued under reference ${args.documentNo}.`
+        ) +
+        details([
+          ["Document", args.title],
+          ["Reference", args.documentNo],
+          ["Effective from", args.effectiveDate ?? null],
+          ["Valid until", args.expiryDate ?? null],
+        ]) +
+        (args.signatureRequired
+          ? sectionTitle("What we need from you") +
+            p(
+              `The copy attached carries our seal and signature. Please review it, sign where ` +
+                `indicated, and return a scanned copy to this address. Once we have it the ` +
+                `document is complete on both sides and no further step is needed.`
+            )
+          : p(
+              `This letter is issued for your records. No signature or response is required.`
+            )) +
+        p(
+          `If anything in it does not match what was discussed, reply to this email before ` +
+            `signing and we will reissue it. It is easier to correct now than after both sides ` +
+            `have signed.`
+        ),
+      footnote:
+        `Sent by DevUp Ecosystem Pvt Ltd. Quote ${args.documentNo} in any correspondence about ` +
+        `this document.`,
+    }),
+
   // ── Generic fallback for notifications without a bespoke template ──
   generic: (args: { title: string; message: string; link?: string; fromOrg?: string; logoUrl?: string | null }) =>
     renderEmail({

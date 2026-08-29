@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { RichText } from '@/components/ui/RichText'
 import {
-  FileSignature, Plus, Eye, Download, Check, X, Trash2, ChevronLeft,
+  FileSignature, Plus, Eye, Download, Check, X, Trash2, ChevronLeft, Send,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -267,6 +267,21 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
   })
 
   /** Opened through the API client so the admin token travels with it. */
+  const send = useMutation({
+    mutationFn: async () => {
+      // Save first: an address typed but not saved is not the address the
+      // server would send to.
+      if (dirty) await save.mutateAsync()
+      return (await api.post(`/api/admin/agreements/${id}/send`)).data.data
+    },
+    onSuccess: (r: any) => {
+      qc.invalidateQueries({ queryKey: ['agreement', id] })
+      qc.invalidateQueries({ queryKey: ['agreements'] })
+      toast.success(`Sent to ${r.sentTo}`)
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Could not send it'),
+  })
+
   const openRendered = async (kind: 'preview' | 'pdf') => {
     if (dirty) await save.mutateAsync()
     const w = window.open('', '_blank')
@@ -418,9 +433,49 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
                 </>
               )}
 
+              {(data.status === 'ISSUED' || data.status === 'SIGNED') && (
+                <div className="space-y-2">
+                  {/*
+                    Only offered once a reference number exists. Sending a draft
+                    would invite the other side to sign something that cannot be
+                    cited afterwards.
+                  */}
+                  <Button
+                    variant={data.sentAt ? 'outline' : 'primary'}
+                    disabled={send.isPending || !form.partyEmail?.trim()}
+                    isLoading={send.isPending}
+                    onClick={() => {
+                      if (data.sentAt && !confirm(`Already sent to ${data.sentTo}. Send it again?`)) return
+                      send.mutate()
+                    }}
+                  >
+                    <Send className="h-4 w-4" />
+                    {data.sentAt ? 'Send again' : 'Send by email'}
+                  </Button>
+
+                  {!form.partyEmail?.trim() ? (
+                    <p className="text-[11px] leading-relaxed text-amber-200/60">
+                      Add an email under <span className="text-amber-100">Second party</span> to send
+                      this. Save first if you have just typed it.
+                    </p>
+                  ) : data.sentAt ? (
+                    <p className="text-[11px] leading-relaxed text-white/35">
+                      Sent to <span className="text-white/60">{data.sentTo}</span> on{' '}
+                      {format(new Date(data.sentAt), 'd MMM yyyy, h:mm a')}
+                      {data.sentCount > 1 ? ` · ${data.sentCount} times` : ''}.
+                    </p>
+                  ) : (
+                    <p className="text-[11px] leading-relaxed text-white/35">
+                      Emails <span className="text-white/60">{form.partyEmail}</span> a covering note
+                      with the signed PDF attached.
+                    </p>
+                  )}
+                </div>
+              )}
+
               {data.status === 'ISSUED' && (
-                <div className="flex gap-2">
-                  <Button disabled={status.isPending} onClick={() => status.mutate('SIGNED')}>
+                <div className="flex gap-2 border-t border-white/[0.07] pt-3">
+                  <Button variant="outline" disabled={status.isPending} onClick={() => status.mutate('SIGNED')}>
                     <Check className="h-3.5 w-3.5" /> Mark signed
                   </Button>
                   <Button variant="outline" disabled={status.isPending} onClick={() => status.mutate('CANCELLED')}>
