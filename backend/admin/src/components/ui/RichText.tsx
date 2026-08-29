@@ -24,21 +24,108 @@ const ALLOWED = new Set([
   'UL', 'OL', 'LI', 'BLOCKQUOTE', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TH', 'TD', 'A',
 ])
 
-/** Keeps the shape of pasted content, discards how it looked. */
+/**
+ * Removed outright rather than unwrapped.
+ *
+ * Everything else that is not allowed keeps its text and loses its tag, which
+ * is right for a <span> and wrong for a <script>: unwrapping one leaves its
+ * source sitting in the document as prose.
+ */
+const DROP = new Set([
+  'SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'IFRAME', 'OBJECT', 'EMBED',
+  'LINK', 'META', 'TITLE', 'HEAD', 'SVG', 'CANVAS', 'VIDEO', 'AUDIO',
+  'FORM', 'INPUT', 'BUTTON', 'SELECT', 'TEXTAREA', 'OPTION',
+])
+
+/**
+ * What an element's inline style claims about emphasis.
+ *
+ * `null` means the style says nothing either way, which is different from
+ * saying "not bold" — Google Docs relies on that difference.
+ */
+function emphasisOf(el: Element) {
+  const style = el.getAttribute('style') ?? ''
+  const weight = /font-weight\s*:\s*([a-z0-9]+)/i.exec(style)?.[1]?.toLowerCase()
+  const bold =
+    weight === undefined
+      ? null
+      : weight === 'bold' || weight === 'bolder' || Number(weight) >= 600
+
+  const fontStyle = /font-style\s*:\s*([a-z]+)/i.exec(style)?.[1]?.toLowerCase()
+  const italic = fontStyle === undefined ? null : fontStyle === 'italic' || fontStyle === 'oblique'
+
+  const underline = /text-decoration[^;]*underline/i.test(style) ? true : null
+
+  return { bold, italic, underline }
+}
+
+/**
+ * Keeps the shape of pasted content — including which parts were emphasised —
+ * and discards how it looked.
+ *
+ * Two things make this harder than dropping attributes.
+ *
+ * Google Docs wraps everything it copies in `<b style="font-weight:normal">`.
+ * Strip the style and keep the tag, as this did, and the entire paste turns
+ * bold. So a bold tag that explicitly declares itself *not* bold is unwrapped.
+ *
+ * And real emphasis usually arrives as style on a span rather than as a tag:
+ * `<span style="font-weight:700">`. Spans get unwrapped here, so that emphasis
+ * has to be converted into a real tag first or it is lost — which is how a
+ * mixed paste came out uniformly plain apart from the parts that were wrong.
+ */
 function cleanPasted(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html')
+
+  /** Wraps a node's children in tags, innermost first. */
+  const wrapChildren = (el: Element, tags: string[]) => {
+    if (tags.length === 0) return
+    let inner: Node[] = Array.from(el.childNodes)
+    for (const tag of tags) {
+      const wrapper = doc.createElement(tag)
+      inner.forEach((n) => wrapper.appendChild(n))
+      inner = [wrapper]
+    }
+    el.replaceChildren(...inner)
+  }
 
   const walk = (node: Element) => {
     for (const child of Array.from(node.children)) {
       walk(child)
-      if (!ALLOWED.has(child.tagName)) {
+
+      const tag = child.tagName
+      const { bold, italic, underline } = emphasisOf(child)
+
+      // Some elements hold code or markup rather than prose, and unwrapping
+      // them spills that into the document as text — a pasted <script> left
+      // its source visible in the body. They go entirely, contents included.
+      if (DROP.has(tag)) {
+        child.remove()
+        continue
+      }
+
+      // The Google Docs wrapper: bold by tag, explicitly not bold by style.
+      if ((tag === 'B' || tag === 'STRONG') && bold === false) {
+        child.replaceWith(...Array.from(child.childNodes))
+        continue
+      }
+
+      // Emphasis the tag does not already carry, so it survives the strip.
+      const add: string[] = []
+      if (bold && tag !== 'B' && tag !== 'STRONG') add.push('strong')
+      if (italic && tag !== 'I' && tag !== 'EM') add.push('em')
+      if (underline && tag !== 'U') add.push('u')
+      if (add.length) wrapChildren(child, add)
+
+      if (!ALLOWED.has(tag)) {
         // Unwrap rather than delete: a <span> wrapper is noise, its text is not.
         child.replaceWith(...Array.from(child.childNodes))
         continue
       }
+
       for (const attr of Array.from(child.attributes)) {
-        if (child.tagName === 'A' && attr.name === 'href') continue
-        if ((child.tagName === 'TD' || child.tagName === 'TH') &&
+        if (tag === 'A' && attr.name === 'href') continue
+        if ((tag === 'TD' || tag === 'TH') &&
             (attr.name === 'colspan' || attr.name === 'rowspan')) continue
         child.removeAttribute(attr.name)
       }
