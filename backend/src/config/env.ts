@@ -6,6 +6,11 @@ dotenv.config();
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.string().default("4000"),
+  /**
+   * Where the product lives — workspaces, dashboards, applications.
+   * devupcommunity.com in production. Every link in an email that takes someone
+   * *into the app* is built from this.
+   */
   FRONTEND_URL: z.string().default("http://localhost:3000"),
   ADMIN_URL: z.string().default("http://localhost:3001"),
   CORS_ORIGINS: z.string().default("http://localhost:3000,http://localhost:3001,http://localhost:3002"),
@@ -86,6 +91,11 @@ const envSchema = z.object({
 
   // Absolute public origin, used for logo and links inside emails — FRONTEND_URL
   // points at localhost in development, which would break images in an inbox.
+  /**
+   * Where the company lives — the letterhead site and public verification.
+   * devupecosystem.com, and it must stay that way: the QR on every deed already
+   * printed encodes this origin, and paper cannot be redeployed.
+   */
   PUBLIC_SITE_URL: z.string().default("https://www.devupecosystem.com"),
 
   /**

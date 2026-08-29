@@ -9,7 +9,18 @@ import { env } from "../../config/env";
  * consistently across Gmail, Outlook, Apple Mail and mobile clients.
  */
 
+/**
+ * The company: letterhead, seals, public verification of documents.
+ *
+ * Distinct from WORKSPACE_URL on purpose. Documents are issued by DevUp
+ * Ecosystem Pvt Ltd and verified against its site; the product people log into
+ * is a different address, and conflating the two put "go to your dashboard"
+ * links on the company domain.
+ */
 export const SITE_URL = env.PUBLIC_SITE_URL || "https://www.devupecosystem.com";
+
+/** The product: workspaces, dashboards, anything behind a login. */
+export const WORKSPACE_URL = env.FRONTEND_URL || SITE_URL;
 export const LOGO_URL = `${SITE_URL}/images/devup-logo.png`;
 
 const BRAND = "#c8f135";

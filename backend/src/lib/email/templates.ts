@@ -1,11 +1,19 @@
-import { renderEmail, p, strong, details, SITE_URL } from "./layout";
+import { renderEmail, p, strong, details, SITE_URL, WORKSPACE_URL } from "./layout";
 
 /**
  * Every outbound email in one place, all rendered through the shared branded
  * shell so the logo, spacing and footer stay consistent.
  */
 
-const appUrl = (path: string) => `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+/**
+ * A link into the product, not onto the company site.
+ *
+ * Built from WORKSPACE_URL: these are dashboards and applications, and they
+ * live wherever the app is deployed. Using the company origin sent people to
+ * devupecosystem.com looking for a workspace that was never there.
+ */
+const appUrl = (path: string) =>
+  `${WORKSPACE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
 /** A heading inside the body, for mail that has more than one section. */
 const sectionTitle = (text: string) =>
