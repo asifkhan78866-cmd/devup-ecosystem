@@ -122,6 +122,41 @@ export function footerTemplate(org: LetterheadOrg) {
 }
 
 /**
+ * Page furniture for documents that paginate themselves.
+ *
+ * The letterhead used to exist only inside Chrome's margin boxes, which meant
+ * it appeared in the PDF and nowhere else — so the on-screen preview was a bare
+ * page with no mark, no margins and no footer, and looked nothing like the
+ * document it was previewing. Drawing the same header and footer into real page
+ * elements makes the two identical, and the preview becomes worth looking at.
+ */
+export function pageChromeCss() {
+  return `
+  @page { size: A4; margin: 0; }
+  .page { position: relative; width: 210mm; height: 297mm; overflow: hidden;
+          background: #FFFFFF; page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  .sheet { height: 100%; padding: ${PAGE_MARGIN.top} ${PAGE_MARGIN.right} ${PAGE_MARGIN.bottom};
+           display: flex; flex-direction: column; }
+  .sheet > .flow-item { flex-shrink: 0; }
+  /* The header is drawn at the top of the padding box, the footer at the foot,
+     both outside the flowing content. */
+  .lh-head { position: absolute; top: 12mm; left: 0; right: 0; }
+  .lh-foot { position: absolute; bottom: 10mm; left: 0; right: 0; }
+  `;
+}
+
+/** Fills "Page N of M" once the content has been laid out. */
+export const PAGE_NUMBER_SCRIPT = `
+(function () {
+  var pages = document.querySelectorAll('.page');
+  pages.forEach(function (page, i) {
+    page.querySelectorAll('.pageNumber').forEach(function (el) { el.textContent = String(i + 1); });
+    page.querySelectorAll('.totalPages').forEach(function (el) { el.textContent = String(pages.length); });
+  });
+})();`;
+
+/**
  * Styles for the body between the margins.
  *
  * Every tag the editor can produce is given a size here, because content is

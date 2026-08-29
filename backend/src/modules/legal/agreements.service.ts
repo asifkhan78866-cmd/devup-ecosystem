@@ -10,9 +10,9 @@ import { logger } from "../../middleware/logger";
 import { fiscalYear, nextSequence } from "../../lib/numbering";
 import { AGREEMENT_TEMPLATES } from "./agreementTemplates";
 import {
-  PAGE_MARGIN, bodyStyles, esc, footerTemplate, headerTemplate,
-  letterheadLogo, orgDetails,
+  PAGE_MARGIN, PAGE_NUMBER_SCRIPT, bodyStyles, esc, footerTemplate, headerTemplate, letterheadLogo, orgDetails, pageChromeCss,
 } from "./letterhead";
+import { loadStamps } from "../lead-applications/stamps";
 
 /**
  * MOUs and letters issued on DevUp letterhead.
@@ -190,6 +190,21 @@ export async function deleteAgreement(id: string, actorId: string) {
 }
 
 /** The full document as HTML — used for the preview and for the PDF alike. */
+/**
+ * Splits the authored body into blocks the paginator can break between.
+ *
+ * Left as one <div class="content"> the whole body is a single node, so a
+ * document longer than a page has nowhere to break and simply overflows off
+ * the bottom. Each top-level element becomes its own flow item instead.
+ */
+function splitContent(bodyHtml: string) {
+  const parts = bodyHtml.match(/<(p|h1|h2|h3|h4|ul|ol|table|blockquote|hr)[\s\S]*?<\/>|<hr\s*\/?>/gi);
+  if (!parts || parts.length === 0) {
+    return `<div class="flow-item content">${bodyHtml}</div>`;
+  }
+  return parts.map((block) => `<div class="flow-item content">${block}</div>`).join("");
+}
+
 export async function renderAgreement(a: Agreement) {
   const org = orgDetails();
   const tpl = AGREEMENT_TEMPLATES[a.type];
@@ -203,42 +218,75 @@ export async function renderAgreement(a: Agreement) {
     ["Valid Until", fmtDate(a.expiryDate)],
   ];
 
+  const logo = await letterheadLogo();
+  const stamps = await loadStamps();
+
+  const head = headerTemplate(logo, org);
+  const foot = footerTemplate(org);
+
   return `<!doctype html>
 <html><head><meta charset="utf-8">
 <title>${esc(a.title)}</title>
-<style>${bodyStyles()}</style>
+<style>
+${bodyStyles()}
+${pageChromeCss()}
+
+  /* Signatures sit in a fixed two-column grid aligned at the top, so both
+     rules land on the same line. Aligned at the bottom they drifted apart the
+     moment one side carried an extra line of text. */
+  .sig-grid { display: flex; align-items: flex-start; gap: 14mm; }
+  .sig-col { flex: 1; min-width: 0; position: relative; }
+  /* The column reserves the height the marks need, and they are positioned
+     from its top so they land on the rule. Anchored with bottom:100% they sat
+     above the column entirely and printed across the witness line. */
+  .sig-col.stamped { padding-top: 28mm; }
+  .sig-stamp { position: absolute; left: 1mm; top: 4mm; width: 44mm; height: auto;
+               transform: rotate(-3.5deg); opacity: 0.94; }
+  .seal-mark { position: absolute; right: 2mm; top: 1mm; width: 25mm; height: auto;
+               opacity: 0.88; }
+</style>
 </head><body>
 
-  <div class="doc-title">${esc(a.title)}</div>
-  ${tpl.subtitle ? `<div class="doc-sub">${esc(tpl.subtitle)}</div>` : ""}
+<template id="chrome-tpl">
+  <div class="lh-head">${head}</div>
+  <div class="lh-foot">${foot}</div>
+</template>
 
-  <div class="meta">
+<div id="pages"></div>
+<div id="flow">
+
+  <div class="flow-item doc-title">${esc(a.title)}</div>
+  ${tpl.subtitle ? `<div class="flow-item doc-sub">${esc(tpl.subtitle)}</div>` : ""}
+
+  <div class="flow-item meta">
     <div>Ref: <b>${esc(a.documentNo ?? "DRAFT — not yet issued")}</b></div>
     <div>Date: <b>${fmtDate(a.issuedAt ?? new Date())}</b></div>
   </div>
 
-  <div class="parties">
+  <div class="flow-item parties">
     ${rows
       .filter(([, v]) => Boolean(v))
       .map(([k, v]) => `<div class="row"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`)
       .join("")}
   </div>
 
-  <div class="content">${body}</div>
+  ${splitContent(body)}
 
-  <div class="signatures">
+  <div class="flow-item signatures">
     <div class="sig-for">In witness whereof, the Parties have signed this document on the dates below.</div>
     <div class="sig-grid">
-      <div class="sig-col">
+      <div class="sig-col stamped">
+        ${stamps.authorisedSign ? `<img class="sig-stamp" src="${stamps.authorisedSign}" alt="">` : ""}
+        ${stamps.officialSeal ? `<img class="seal-mark" src="${stamps.officialSeal}" alt="">` : ""}
         <div class="sig-line">
           <div class="sig-role">Authorised Signatory</div>
           <div class="sig-role">${esc(org.legalName)}</div>
           <div class="sig-meta">Date: <span class="sig-fill"></span></div>
         </div>
       </div>
-      <div class="sig-col">
+      <div class="sig-col stamped">
         <div class="sig-line">
-          <div class="sig-name">${esc(a.partySignatory || " ")}</div>
+          <div class="sig-name">${esc(a.partySignatory || " ")}</div>
           <div class="sig-role">${esc(a.partyTitle || "Authorised Signatory")}</div>
           <div class="sig-role">${esc(a.partyName)}</div>
           <div class="sig-meta">Date: <span class="sig-fill"></span></div>
@@ -247,6 +295,48 @@ export async function renderAgreement(a: Agreement) {
     </div>
   </div>
 
+</div>
+
+<script>
+/**
+ * Lays the document into A4 pages, each carrying its own letterhead.
+ *
+ * Runs in the browser for the preview and inside Chromium for the PDF, so the
+ * two are the same document rather than two renderings that happen to agree.
+ */
+(function () {
+  var flow = document.getElementById('flow');
+  var host = document.getElementById('pages');
+  var tpl = document.getElementById('chrome-tpl');
+  if (!flow || !host || !tpl) return;
+
+  function newPage() {
+    var page = document.createElement('div');
+    page.className = 'page';
+    page.appendChild(tpl.content.cloneNode(true));
+    var sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    page.appendChild(sheet);
+    host.appendChild(page);
+    return sheet;
+  }
+
+  var sheet = newPage();
+  var blocks = Array.prototype.slice.call(flow.children);
+  for (var i = 0; i < blocks.length; i++) {
+    var block = blocks[i];
+    sheet.appendChild(block);
+    if (sheet.scrollHeight > sheet.clientHeight && sheet.childNodes.length > 1) {
+      sheet.removeChild(block);
+      sheet = newPage();
+      sheet.appendChild(block);
+    }
+  }
+  flow.parentNode.removeChild(flow);
+})();
+${PAGE_NUMBER_SCRIPT}
+</script>
+
 </body></html>`;
 }
 
@@ -254,11 +344,9 @@ export async function renderAgreement(a: Agreement) {
 export async function renderAgreementPdf(a: Agreement) {
   const org = orgDetails();
   const logo = await letterheadLogo();
-  const pdf = await htmlToPdf(await renderAgreement(a), {
-    headerHtml: headerTemplate(logo, org),
-    footerHtml: footerTemplate(org),
-    margin: PAGE_MARGIN,
-  });
+  // No margin templates: the letterhead is part of the document now, so the PDF
+  // is a straight print of the same pages the preview shows.
+  const pdf = await htmlToPdf(await renderAgreement(a), {});
 
   if (!pdf) {
     throw new AppError(
