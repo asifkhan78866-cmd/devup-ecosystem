@@ -281,8 +281,13 @@ ${pageChromeCss()}
   .sig-col.stamped { padding-top: 28mm; }
   .sig-stamp { position: absolute; left: 1mm; top: 4mm; width: 44mm; height: auto;
                transform: rotate(-3.5deg); opacity: 0.94; }
-  .seal-mark { position: absolute; right: 2mm; top: 1mm; width: 25mm; height: auto;
-               opacity: 0.88; }
+  /* Below the rule, in the flow.
+     Both marks used to be absolutely positioned in the same band above the
+     line, and they collided — the seal printed straight through the signature
+     stamp. In the flow it cannot overlap anything, whatever the column width
+     turns out to be once a third signatory is added. */
+  .seal-mark { display: block; width: 24mm; height: auto; margin: 3.5mm 0 0;
+               opacity: 0.9; }
 </style>
 </head><body>
 
@@ -316,11 +321,11 @@ ${pageChromeCss()}
     <div class="sig-grid">
       <div class="sig-col stamped">
         ${stamps.authorisedSign ? `<img class="sig-stamp" src="${stamps.authorisedSign}" alt="">` : ""}
-        ${stamps.officialSeal ? `<img class="seal-mark" src="${stamps.officialSeal}" alt="">` : ""}
         <div class="sig-line">
           <div class="sig-role">Authorised Signatory</div>
           <div class="sig-role">${esc(org.legalName)}</div>
           <div class="sig-meta">Date: <span class="sig-fill"></span></div>
+          ${stamps.officialSeal ? `<img class="seal-mark" src="${stamps.officialSeal}" alt="Common Seal">` : ""}
         </div>
       </div>
       <div class="sig-col stamped">
