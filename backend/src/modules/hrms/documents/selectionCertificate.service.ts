@@ -3,20 +3,7 @@ import { LOGO_URL, SITE_URL } from "../../../lib/email/layout";
 import { htmlToPdf } from "../../../lib/pdf";
 import { AppError } from "../../../middleware/errorHandler";
 import { renderDocument } from "./templates";
-
-/**
- * Blank internship selection certificates for events.
- *
- * Organisers print a stack, hand them to the students who performed best on the
- * day and write the names in by hand, so nothing here is merged from a record —
- * there is no recipient yet. It is also DevUp-branded alone: which startup a
- * student ends up joining is decided later, and printing one company's logo now
- * would promise something specific that has not been agreed.
- *
- * Because there is no recipient there is no HrDocument either. These are blank
- * forms, not issued documents; the register entry happens when a name goes on
- * one.
- */
+import { prisma } from "../../../lib/prisma";
 
 export interface BatchInput {
   count: number;
@@ -34,6 +21,8 @@ export interface BatchInput {
   signatoryTitle?: string;
   /** Suppresses the per-copy serial, for a plain unnumbered stack. */
   numbered?: boolean;
+  /** Starting serial offset for sequential batch numbering across runs. */
+  startOffset?: number;
 }
 
 const MAX_COPIES = 100;
@@ -42,9 +31,6 @@ const MAX_SIGNATORIES = 3;
 
 /**
  * Resolves the signature block, newest calling convention first.
- *
- * Falls back to the configured ecosystem signatories so a caller that sends
- * nothing still produces a signed certificate rather than a blank rule.
  */
 function signatoriesFor(input: BatchInput) {
   const list = (input.signatories ?? [])
@@ -60,13 +46,9 @@ function signatoriesFor(input: BatchInput) {
 
 /**
  * Serial for one copy, e.g. DEVUP/ISC/2026-27/060826-03.
- *
- * Date-stamped rather than drawn from a stored counter: these are blank forms
- * printed in batches, and a batch reprinted after a paper jam should not
- * consume numbers from the same run as real issued documents. Date plus index
- * is enough to tell one stack from another when reconciling who got what.
+ * Uses global startOffset to guarantee unique sequential serials across batches.
  */
-function serialFor(index: number, at = new Date()) {
+export function serialFor(index: number, startOffset = 1, at = new Date()) {
   const fy = at.getMonth() + 1 >= 4
     ? `${at.getFullYear()}-${String((at.getFullYear() + 1) % 100).padStart(2, "0")}`
     : `${at.getFullYear() - 1}-${String(at.getFullYear() % 100).padStart(2, "0")}`;
@@ -74,7 +56,60 @@ function serialFor(index: number, at = new Date()) {
     String(at.getDate()).padStart(2, "0") +
     String(at.getMonth() + 1).padStart(2, "0") +
     String(at.getFullYear() % 100).padStart(2, "0");
-  return `DEVUP/ISC/${fy}/${stamp}-${String(index).padStart(2, "0")}`;
+  const actualIndex = startOffset + index - 1;
+  return `DEVUP/ISC/${fy}/${stamp}-${String(actualIndex).padStart(2, "0")}`;
+}
+
+export async function getNextSerialOffset(): Promise<number> {
+  try {
+    const logs = await prisma.auditLog.findMany({
+      where: {
+        entity: "SelectionCertificate",
+        action: "certificate.batch_printed",
+      },
+      select: { metadata: true },
+    });
+
+    let total = 0;
+    for (const log of logs) {
+      const meta = log.metadata as Record<string, any>;
+      if (meta && typeof meta.count === "number") {
+        total += meta.count;
+      }
+    }
+    return total + 1;
+  } catch {
+    return 1;
+  }
+}
+
+export async function getBatchHistory() {
+  try {
+    const logs = await prisma.auditLog.findMany({
+      where: {
+        entity: "SelectionCertificate",
+        action: "certificate.batch_printed",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+
+    return logs.map((l) => {
+      const meta = (l.metadata ?? {}) as Record<string, any>;
+      return {
+        id: l.id,
+        createdAt: l.createdAt,
+        count: meta.count ?? 1,
+        college: meta.college || null,
+        issueDate: meta.issueDate || null,
+        startSerial: meta.startSerial || null,
+        endSerial: meta.endSerial || null,
+        serialRange: meta.serialRange || null,
+      };
+    });
+  } catch {
+    return [];
+  }
 }
 
 function onePage(input: BatchInput, index: number) {
@@ -86,9 +121,8 @@ function onePage(input: BatchInput, index: number) {
     college: input.college?.trim() || undefined,
     issueDate: input.issueDate?.trim() || undefined,
     signatories: signatoriesFor(input),
-    // The full board goes in the foot regardless of who signs this batch.
     _devupSignatories: env.DEVUP_SIGNATORIES,
-    serial: input.numbered === false ? undefined : serialFor(index),
+    serial: input.numbered === false ? undefined : serialFor(index, input.startOffset || 1),
   });
 }
 
@@ -102,8 +136,6 @@ export function buildBatchHtml(input: BatchInput) {
     throw new AppError(400, `Print at most ${MAX_COPIES} at a time`, "TOO_MANY");
   }
 
-  // One render carries the stylesheet; the rest contribute only their page, so
-  // the design stays defined in exactly one place.
   const first = onePage(input, 1);
   const style = first.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? "";
   const pageOf = (html: string) => html.match(/<body>([\s\S]*?)<\/body>/)?.[1] ?? "";

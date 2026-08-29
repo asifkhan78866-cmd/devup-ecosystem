@@ -2,7 +2,13 @@ import { Router } from "express";
 import { z } from "zod";
 import { requireAuth, requireRole } from "../../../middleware/auth";
 import { validate } from "../../../middleware/validate";
-import { buildBatchPdf, buildBatchHtml } from "./selectionCertificate.service";
+import {
+  buildBatchPdf,
+  buildBatchHtml,
+  getNextSerialOffset,
+  getBatchHistory,
+  serialFor,
+} from "./selectionCertificate.service";
 import { audit } from "../../shared/audit.service";
 
 /**
@@ -29,25 +35,44 @@ const batchBody = z.object({
   }),
 });
 
+/** Get history of all previously generated certificate batches */
+router.get("/history", async (req, res) => {
+  const history = await getBatchHistory();
+  res.json({ success: true, data: history });
+});
+
 /** Preview one copy in the browser without spending a PDF render. */
-router.post("/preview", validate(batchBody), (req, res) => {
-  res.type("html").send(buildBatchHtml({ ...req.body, count: 1 }));
+router.post("/preview", validate(batchBody), async (req, res) => {
+  const startOffset = await getNextSerialOffset();
+  res.type("html").send(buildBatchHtml({ ...req.body, count: 1, startOffset }));
 });
 
 router.post("/batch", validate(batchBody), async (req, res) => {
-  const pdf = await buildBatchPdf(req.body);
+  const startOffset = await getNextSerialOffset();
+  const pdf = await buildBatchPdf({ ...req.body, startOffset });
+
+  const count = Math.floor(req.body.count);
+  const startSerial = serialFor(1, startOffset);
+  const endSerial = serialFor(count, startOffset);
 
   await audit({
     action: "certificate.batch_printed",
     entity: "SelectionCertificate",
     actorId: req.user!.id,
-    metadata: { count: req.body.count, college: req.body.college ?? null },
+    metadata: {
+      count,
+      college: req.body.college ?? null,
+      issueDate: req.body.issueDate ?? null,
+      startSerial,
+      endSerial,
+      serialRange: count === 1 ? startSerial : `${startSerial} — ${endSerial}`,
+    },
   });
 
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
-    `attachment; filename="DevUp-Selection-Certificates-${req.body.count}.pdf"`
+    `attachment; filename="DevUp-Selection-Certificates-${count}.pdf"`
   );
   res.send(pdf);
 });
