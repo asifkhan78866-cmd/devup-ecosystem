@@ -17,6 +17,8 @@ const INK = "#111111";
 const MUTED = "#555555";
 const FAINT = "#8A8A8A";
 const RULE = "#D8D8D8";
+/** Struck gold. Used only as a hairline — colour would cheapen it. */
+const GOLD = "#9A7B2F";
 
 /** Reserved margins. The header and footer are drawn inside these. */
 export const PAGE_MARGIN = {
@@ -67,7 +69,7 @@ export function orgDetails(): LetterheadOrg {
   return {
     legalName: "DevUp Ecosystem Pvt Ltd",
     cin: env.DEVUP_CIN,
-    address: "Hitech City, Hyderabad, Telangana 500081, India",
+    address: "Hyderabad, Telangana 500081, India",
     email: env.RESEND_FROM_EMAIL,
     site: SITE_URL.replace(/^https?:\/\//, ""),
   };
@@ -83,39 +85,43 @@ export function orgDetails(): LetterheadOrg {
 export function headerTemplate(logo: string | null, org: LetterheadOrg) {
   return `
 <div style="width:100%;box-sizing:border-box;padding:0 20mm;font-family:Georgia,'Times New Roman',serif;color:${INK};">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:3mm;">
-    <div style="display:flex;align-items:center;gap:4mm;">
-      ${logo ? `<img src="${logo}" style="height:13mm;width:auto;object-fit:contain;">` : ""}
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:3.4mm;">
+    <div style="display:flex;align-items:center;gap:4.5mm;">
+      ${logo ? `<img src="${logo}" style="height:14mm;width:auto;object-fit:contain;">` : ""}
       <div>
-        <div style="font-size:12pt;font-weight:bold;letter-spacing:0.3px;line-height:1.15;">
+        <div style="font-size:12.5pt;font-weight:bold;letter-spacing:1.1px;line-height:1.1;">
           ${esc(org.legalName)}
         </div>
-        <div style="font-size:6.5pt;color:${MUTED};margin-top:0.6mm;letter-spacing:0.3px;">
-          Building People. Products. Possibilities.
+        <div style="font-size:6pt;color:${MUTED};margin-top:1.3mm;letter-spacing:2.2px;text-transform:uppercase;">
+          Building People &middot; Products &middot; Possibilities
         </div>
       </div>
     </div>
-    <div style="text-align:right;font-size:6.5pt;color:${FAINT};line-height:1.5;">
-      <div>CIN: ${esc(org.cin)}</div>
+    <div style="text-align:right;font-size:6pt;color:${FAINT};line-height:1.7;letter-spacing:0.6px;">
+      <div>CIN &nbsp;${esc(org.cin)}</div>
       <div>${esc(org.site)}</div>
     </div>
   </div>
-  <div style="height:1.2px;background:${INK};"></div>
-  <div style="height:0.5px;background:${RULE};margin-top:0.7mm;"></div>
+  <!-- Three rules, heaviest first, with the gold hairline last. A single line
+       reads as a divider; a graded set reads as a letterhead. -->
+  <div style="height:1.4px;background:${INK};"></div>
+  <div style="height:0.5px;background:${GOLD};margin-top:0.5mm;opacity:0.55;"></div>
+  <div style="height:0.4px;background:${RULE};margin-top:0.5mm;"></div>
 </div>`;
 }
 
 /** Drawn at the foot of every page, with the page count. */
 export function footerTemplate(org: LetterheadOrg) {
   return `
-<div style="width:100%;box-sizing:border-box;padding:0 20mm;font-family:Arial,Helvetica,sans-serif;color:${FAINT};font-size:6.5pt;">
-  <div style="height:0.5px;background:${RULE};margin-bottom:2mm;"></div>
+<div style="width:100%;box-sizing:border-box;padding:0 20mm;font-family:Arial,Helvetica,sans-serif;color:${FAINT};font-size:6pt;letter-spacing:0.7px;">
+  <div style="height:0.4px;background:${GOLD};opacity:0.4;"></div>
+  <div style="height:0.4px;background:${RULE};margin:0.5mm 0 2.2mm;"></div>
   <div style="display:flex;align-items:baseline;justify-content:space-between;gap:6mm;">
-    <span style="max-width:120mm;line-height:1.45;">
-      ${esc(org.address)} &middot; ${esc(org.email)}
+    <span style="max-width:120mm;line-height:1.5;">
+      ${esc(org.legalName)} &nbsp;&middot;&nbsp; ${esc(org.address)}
     </span>
     <span style="white-space:nowrap;">
-      Page <span class="pageNumber"></span> of <span class="totalPages"></span>
+      ${esc(org.email)} &nbsp;&middot;&nbsp; Page <span class="pageNumber"></span> of <span class="totalPages"></span>
     </span>
   </div>
 </div>`;
@@ -147,6 +153,10 @@ export function pageChromeCss() {
      both outside the flowing content. */
   .lh-head { position: absolute; top: 12mm; left: 0; right: 0; }
   .lh-foot { position: absolute; bottom: 10mm; left: 0; right: 0; }
+  /* No centred watermark. It was tried and removed: even at 1.4% opacity the
+     monogram read through the text and sat directly behind the seal on the
+     signature page. The weight here comes from the rules, the tinted
+     particulars panel and the typography, which do not compete with content. */
 
   /* On screen only. A sheet flush against the left edge of a browser window
      reads as a broken page rather than a document; on a grey ground with a
@@ -188,20 +198,35 @@ export function bodyStyles() {
          font-family: Georgia, "Times New Roman", serif;
          font-size: 10.5pt; line-height: 1.6; }
 
-  .doc-title { text-align: center; font-size: 13pt; font-weight: bold;
-               letter-spacing: 2.2px; text-transform: uppercase;
-               margin: 0 0 2mm; }
-  .doc-sub { text-align: center; font-size: 8.5pt; color: ${MUTED};
-             letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6mm; }
+  /* The title carries the page, so it is given the room and the ornament.
+     A centred rule with a lozenge beneath it is an old device and still the
+     cheapest way to make a heading look struck rather than typed. */
+  .doc-title { text-align: center; font-size: 15pt; font-weight: bold;
+               letter-spacing: 4.5px; text-transform: uppercase;
+               margin: 0 0 2.6mm; line-height: 1.2; }
+  .doc-title::after { content: ""; display: block; width: 26mm; height: 0.8px;
+                      background: ${GOLD}; opacity: 0.6; margin: 3mm auto 0; }
+  .doc-sub { text-align: center; font-size: 8pt; color: ${MUTED};
+             letter-spacing: 2.4px; text-transform: uppercase; margin-bottom: 7mm; }
 
-  .meta { display: flex; justify-content: space-between; font-size: 9pt;
-          color: ${MUTED}; padding-bottom: 2mm; margin-bottom: 5mm;
-          border-bottom: 0.5px solid ${RULE}; }
+  .meta { display: flex; justify-content: space-between; font-size: 8.4pt;
+          color: ${MUTED}; padding-bottom: 2.2mm; margin-bottom: 6mm;
+          border-bottom: 0.5px solid ${RULE};
+          font-family: Arial, Helvetica, sans-serif; letter-spacing: 0.5px; }
   .meta b { color: ${INK}; font-weight: bold; }
 
-  .parties { margin-bottom: 6mm; font-size: 10pt; }
-  .parties .row { display: flex; gap: 4mm; margin-bottom: 1.5mm; }
-  .parties .k { width: 26mm; color: ${MUTED}; flex-shrink: 0; }
+  /* The particulars sit in a tinted panel with a gold edge rather than loose on
+     the page. It separates what the document asserts from what it says, and it
+     is the detail that makes a letter read as an instrument. */
+  .parties { margin-bottom: 7mm; font-size: 9.6pt;
+             background: #FBFAF7; border: 0.4px solid ${RULE};
+             border-left: 1.6px solid ${GOLD};
+             padding: 4.5mm 5mm 3.4mm; }
+  .parties .row { display: flex; gap: 4mm; margin-bottom: 2mm; }
+  .parties .row:last-child { margin-bottom: 0; }
+  .parties .k { width: 30mm; color: ${MUTED}; flex-shrink: 0;
+                font-family: Arial, Helvetica, sans-serif; font-size: 7.2pt;
+                letter-spacing: 1.1px; text-transform: uppercase; padding-top: 0.5mm; }
   .parties .v { font-weight: bold; }
 
   /* Authored content. Kept modest so a pasted document cannot break the page. */
