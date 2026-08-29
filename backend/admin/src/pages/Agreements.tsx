@@ -247,6 +247,8 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
       setForm({
         title: a.title, partyName: a.partyName, partyAddress: a.partyAddress ?? '',
         partySignatory: a.partySignatory ?? '', partyTitle: a.partyTitle ?? '',
+        partySignOrg: a.partySignOrg ?? '',
+        extraSignatories: Array.isArray(a.extraSignatories) ? a.extraSignatories : [],
         partyEmail: a.partyEmail ?? '', contentHtml: a.contentHtml,
         effectiveDate: a.effectiveDate?.slice(0, 10) ?? '',
         expiryDate: a.expiryDate?.slice(0, 10) ?? '',
@@ -256,7 +258,8 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
     },
   })
 
-  const set = (k: string, v: string) => { setForm((f: any) => ({ ...f, [k]: v })); setDirty(true) }
+  // Values are not all strings — the extra signature block is an array.
+  const set = (k: string, v: unknown) => { setForm((f: any) => ({ ...f, [k]: v })); setDirty(true) }
 
   const save = useMutation({
     mutationFn: async () => (await api.patch(`/api/admin/agreements/${id}`, {
@@ -427,6 +430,21 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
                 agreement impossible to send at all.
               */}
               <div className="mt-2">
+                <label className={label}>Signs as — if not the name above</label>
+                <input
+                  value={form.partySignOrg}
+                  onChange={(e) => set('partySignOrg', e.target.value)}
+                  disabled={locked}
+                  placeholder={form.partyName}
+                  className={field}
+                />
+                <p className="mt-1 text-[10.5px] leading-relaxed text-white/30">
+                  Printed under their signature. Use it when the countersigning body is not the
+                  party named in the document — a club or cell inside the college, say.
+                </p>
+              </div>
+
+              <div className="mt-2">
                 <label className={label}>Email — where the document is sent</label>
                 <input
                   type="email"
@@ -436,6 +454,68 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
                   className={field}
                 />
               </div>
+            </Section>
+
+            <Section title="Additional signatory">
+              {/*
+                One extra column at most. A fourth block leaves every rule too
+                short to actually sign on at A4.
+              */}
+              {(form.extraSignatories?.length ?? 0) === 0 ? (
+                <button
+                  disabled={locked}
+                  onClick={() => set('extraSignatories', [{ name: '', title: 'Faculty Coordinator', org: '' }])}
+                  className="inline-flex items-center gap-1.5 text-[11px] text-white/40 transition hover:text-white disabled:opacity-30"
+                >
+                  <Plus className="h-3 w-3" /> Add a third signature block
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <div>
+                    <label className={label}>Their role</label>
+                    <input
+                      value={form.extraSignatories[0]?.title ?? ''}
+                      onChange={(e) =>
+                        set('extraSignatories', [{ ...form.extraSignatories[0], title: e.target.value }])
+                      }
+                      disabled={locked}
+                      placeholder="Faculty Coordinator"
+                      className={field}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className={label}>Name</label>
+                      <input
+                        value={form.extraSignatories[0]?.name ?? ''}
+                        onChange={(e) =>
+                          set('extraSignatories', [{ ...form.extraSignatories[0], name: e.target.value }])
+                        }
+                        disabled={locked}
+                        className={field}
+                      />
+                    </div>
+                    <div>
+                      <label className={label}>Organisation</label>
+                      <input
+                        value={form.extraSignatories[0]?.org ?? ''}
+                        onChange={(e) =>
+                          set('extraSignatories', [{ ...form.extraSignatories[0], org: e.target.value }])
+                        }
+                        disabled={locked}
+                        className={field}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    disabled={locked}
+                    onClick={() => set('extraSignatories', [])}
+                    className="inline-flex items-center gap-1 text-[11px] text-white/30 transition hover:text-red-300 disabled:opacity-30"
+                  >
+                    <Trash2 className="h-3 w-3" /> Remove
+                  </button>
+                </div>
+              )}
             </Section>
 
             <Section title="Signing for DevUp">

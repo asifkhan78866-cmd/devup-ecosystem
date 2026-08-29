@@ -111,6 +111,8 @@ export interface UpsertInput {
   partySignatory?: string;
   partyTitle?: string;
   partyEmail?: string;
+  partySignOrg?: string;
+  extraSignatories?: ExtraSignatory[];
   contentHtml?: string;
   effectiveDate?: string | null;
   expiryDate?: string | null;
@@ -178,6 +180,10 @@ export async function updateAgreement(id: string, input: Partial<UpsertInput>, a
       ...(input.partyAddress !== undefined ? { partyAddress: input.partyAddress.trim() || null } : {}),
       ...(input.partySignatory !== undefined ? { partySignatory: input.partySignatory.trim() || null } : {}),
       ...(input.partyTitle !== undefined ? { partyTitle: input.partyTitle.trim() || null } : {}),
+      ...(input.partySignOrg !== undefined ? { partySignOrg: input.partySignOrg.trim() || null } : {}),
+      ...(input.extraSignatories !== undefined
+        ? { extraSignatories: (input.extraSignatories ?? []) as never }
+        : {}),
       ...(input.partyEmail !== undefined ? { partyEmail: input.partyEmail.trim() || null } : {}),
       ...(input.contentHtml !== undefined ? { contentHtml: sanitizeBody(input.contentHtml) } : {}),
       ...(input.effectiveDate !== undefined
@@ -208,6 +214,36 @@ export async function deleteAgreement(id: string, actorId: string) {
 }
 
 /** The full document as HTML — used for the preview and for the PDF alike. */
+export interface ExtraSignatory {
+  name?: string;
+  title: string;
+  org?: string;
+}
+
+/**
+ * Further signature blocks beyond the two principals.
+ *
+ * Kept to three in total across the row: a fourth column leaves each rule too
+ * short to sign on at A4, which defeats the point of printing it.
+ */
+function extraSignatureColumns(raw: unknown) {
+  const list = Array.isArray(raw) ? (raw as ExtraSignatory[]) : [];
+  return list
+    .filter((x) => x && String(x.title ?? "").trim())
+    .slice(0, 1)
+    .map(
+      (x) => `<div class="sig-col stamped">
+        <div class="sig-line">
+          <div class="sig-name">${esc(x.name || " ")}</div>
+          <div class="sig-role">${esc(x.title)}</div>
+          ${x.org ? `<div class="sig-role">${esc(x.org)}</div>` : ""}
+          <div class="sig-meta">Date: <span class="sig-fill"></span></div>
+        </div>
+      </div>`
+    )
+    .join("");
+}
+
 export async function renderAgreement(a: Agreement) {
   const org = orgDetails();
   const tpl = AGREEMENT_TEMPLATES[a.type];
@@ -291,10 +327,11 @@ ${pageChromeCss()}
         <div class="sig-line">
           <div class="sig-name">${esc(a.partySignatory || " ")}</div>
           <div class="sig-role">${esc(a.partyTitle || "Authorised Signatory")}</div>
-          <div class="sig-role">${esc(a.partyName)}</div>
+          <div class="sig-role">${esc(a.partySignOrg || a.partyName)}</div>
           <div class="sig-meta">Date: <span class="sig-fill"></span></div>
         </div>
       </div>
+      ${extraSignatureColumns(a.extraSignatories)}
     </div>
   </div>
 
