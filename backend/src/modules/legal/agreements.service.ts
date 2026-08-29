@@ -151,8 +151,23 @@ export async function createAgreement(input: UpsertInput, actorId: string) {
 
 export async function updateAgreement(id: string, input: Partial<UpsertInput>, actorId: string) {
   const existing = await getAgreement(id);
+
+  /**
+   * A signed agreement's wording is frozen, but its delivery details are not.
+   *
+   * The recipient address never appears in the document — the rendered parties
+   * block carries the name and postal address only — so changing it alters
+   * nothing that was agreed. Locking it along with everything else made a
+   * signed document impossible to send: the panel asked for an address and the
+   * save that would have set it returned 409.
+   */
   if (existing.status === "SIGNED") {
-    throw new AppError(409, "A signed agreement cannot be edited", "ALREADY_SIGNED");
+    const touched = Object.keys(input).filter(
+      (k) => input[k as keyof UpsertInput] !== undefined && k !== "partyEmail"
+    );
+    if (touched.length > 0) {
+      throw new AppError(409, "A signed agreement cannot be edited", "ALREADY_SIGNED");
+    }
   }
 
   const updated = await prisma.agreement.update({

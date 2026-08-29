@@ -418,6 +418,23 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
                   <input value={form.partyTitle} onChange={(e) => set('partyTitle', e.target.value)} disabled={locked} className={field} />
                 </div>
               </div>
+
+              {/*
+                Never locked, even once signed. The address is where the
+                document is sent, not part of what was agreed — it appears
+                nowhere in the rendered document — and locking it made a signed
+                agreement impossible to send at all.
+              */}
+              <div className="mt-2">
+                <label className={label}>Email — where the document is sent</label>
+                <input
+                  type="email"
+                  value={form.partyEmail}
+                  onChange={(e) => set('partyEmail', e.target.value)}
+                  placeholder="registrar@college.edu"
+                  className={field}
+                />
+              </div>
             </Section>
 
             <Section title="Signing for DevUp">
