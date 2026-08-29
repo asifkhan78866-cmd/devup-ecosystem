@@ -518,10 +518,23 @@ export async function issueAgreement(id: string, actorId: string) {
   return { ...withNumber, pdfUrl };
 }
 
-export async function setStatus(id: string, status: "SIGNED" | "CANCELLED", actorId: string) {
+/**
+ * Moves an issued document between states.
+ *
+ * ISSUED is included as a destination so a mis-click on "Mark signed" can be
+ * undone. Marking signed locks the wording, and the button sat one slip away
+ * from a document nobody could edit or even send — an accident with no way back
+ * is a worse design than a reversible one, and the reversal is audited like
+ * everything else.
+ */
+export async function setStatus(
+  id: string,
+  status: "SIGNED" | "CANCELLED" | "ISSUED",
+  actorId: string
+) {
   const a = await getAgreement(id);
   if (!a.documentNo) {
-    throw new AppError(409, "Issue the agreement before marking it signed", "NOT_ISSUED");
+    throw new AppError(409, "Issue the agreement before changing its status", "NOT_ISSUED");
   }
   const updated = await prisma.agreement.update({ where: { id }, data: { status } });
   await audit({

@@ -97,7 +97,7 @@ router.post("/:id/issue", async (req, res) => {
 
 router.post(
   "/:id/status",
-  validate(z.object({ body: z.object({ status: z.enum(["SIGNED", "CANCELLED"]) }) })),
+  validate(z.object({ body: z.object({ status: z.enum(["SIGNED", "CANCELLED", "ISSUED"]) }) })),
   async (req, res) => {
     ok(res, await agreements.setStatus(req.params.id as string, req.body.status, req.user!.id));
   }

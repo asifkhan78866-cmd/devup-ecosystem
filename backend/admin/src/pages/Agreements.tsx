@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { RichText } from '@/components/ui/RichText'
 import {
-  FileSignature, Plus, Eye, Download, Check, X, Trash2, ChevronLeft, Send,
+  FileSignature, Plus, Eye, Download, Check, X, Trash2, ChevronLeft, Send, Undo2,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -285,7 +285,8 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
   })
 
   const status = useMutation({
-    mutationFn: async (s: 'SIGNED' | 'CANCELLED') =>
+    // ISSUED is a destination too, so a mis-click on "Mark signed" is undoable.
+    mutationFn: async (s: 'SIGNED' | 'CANCELLED' | 'ISSUED') =>
       (await api.post(`/api/admin/agreements/${id}/status`, { status: s })).data.data,
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['agreement', id] }); toast.success('Updated') },
     onError: (e: any) => toast.error(e.response?.data?.error ?? 'Could not update'),
@@ -521,12 +522,42 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
 
               {data.status === 'ISSUED' && (
                 <div className="flex gap-2 border-t border-white/[0.07] pt-3">
-                  <Button variant="outline" disabled={status.isPending} onClick={() => status.mutate('SIGNED')}>
+                  {/*
+                    Confirmed, because marking signed locks the wording and the
+                    button sits next to the one people actually came here to
+                    press. A slip used to leave a document nobody could edit.
+                  */}
+                  <Button
+                    variant="outline"
+                    disabled={status.isPending}
+                    onClick={() =>
+                      confirm(
+                        'Mark this as signed? The wording locks so the file always matches what was agreed. You can undo it if this was a mistake.'
+                      ) && status.mutate('SIGNED')
+                    }
+                  >
                     <Check className="h-3.5 w-3.5" /> Mark signed
                   </Button>
-                  <Button variant="outline" disabled={status.isPending} onClick={() => status.mutate('CANCELLED')}>
+                  <Button
+                    variant="outline"
+                    disabled={status.isPending}
+                    onClick={() => confirm('Cancel this agreement?') && status.mutate('CANCELLED')}
+                  >
                     <X className="h-3.5 w-3.5" /> Cancel
                   </Button>
+                </div>
+              )}
+
+              {data.status === 'SIGNED' && (
+                <div className="border-t border-white/[0.07] pt-3">
+                  <button
+                    onClick={() =>
+                      confirm('Unlock this agreement for editing again?') && status.mutate('ISSUED')
+                    }
+                    className="inline-flex items-center gap-1.5 text-[11px] text-white/35 transition hover:text-white/70"
+                  >
+                    <Undo2 className="h-3 w-3" /> Marked signed by mistake? Undo
+                  </button>
                 </div>
               )}
 
