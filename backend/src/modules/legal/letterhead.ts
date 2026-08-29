@@ -136,13 +136,30 @@ export function pageChromeCss() {
   .page { position: relative; width: 210mm; height: 297mm; overflow: hidden;
           background: #FFFFFF; page-break-after: always; }
   .page:last-child { page-break-after: auto; }
+  /* overflow:hidden is load-bearing, not cosmetic. Without it a flex column
+     reports scrollHeight equal to its clientHeight even while its children
+     spill past the padding box, so the paginator saw every page as fitting and
+     the last paragraph printed across the footer. */
   .sheet { height: 100%; padding: ${PAGE_MARGIN.top} ${PAGE_MARGIN.right} ${PAGE_MARGIN.bottom};
-           display: flex; flex-direction: column; }
+           display: flex; flex-direction: column; overflow: hidden; }
   .sheet > .flow-item { flex-shrink: 0; }
   /* The header is drawn at the top of the padding box, the footer at the foot,
      both outside the flowing content. */
   .lh-head { position: absolute; top: 12mm; left: 0; right: 0; }
   .lh-foot { position: absolute; bottom: 10mm; left: 0; right: 0; }
+
+  /* On screen only. A sheet flush against the left edge of a browser window
+     reads as a broken page rather than a document; on a grey ground with a
+     shadow it reads as paper, which is the whole point of a preview. Stripped
+     for print so the PDF is unaffected. */
+  @media screen {
+    body { background: #4a4a4f; padding: 24px 0; }
+    .page { margin: 0 auto 24px; box-shadow: 0 2px 18px rgba(0,0,0,0.45); }
+  }
+  @media print {
+    body { background: #FFFFFF; padding: 0; }
+    .page { margin: 0; box-shadow: none; }
+  }
   `;
 }
 

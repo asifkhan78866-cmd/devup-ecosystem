@@ -190,21 +190,6 @@ export async function deleteAgreement(id: string, actorId: string) {
 }
 
 /** The full document as HTML — used for the preview and for the PDF alike. */
-/**
- * Splits the authored body into blocks the paginator can break between.
- *
- * Left as one <div class="content"> the whole body is a single node, so a
- * document longer than a page has nowhere to break and simply overflows off
- * the bottom. Each top-level element becomes its own flow item instead.
- */
-function splitContent(bodyHtml: string) {
-  const parts = bodyHtml.match(/<(p|h1|h2|h3|h4|ul|ol|table|blockquote|hr)[\s\S]*?<\/>|<hr\s*\/?>/gi);
-  if (!parts || parts.length === 0) {
-    return `<div class="flow-item content">${bodyHtml}</div>`;
-  }
-  return parts.map((block) => `<div class="flow-item content">${block}</div>`).join("");
-}
-
 export async function renderAgreement(a: Agreement) {
   const org = orgDetails();
   const tpl = AGREEMENT_TEMPLATES[a.type];
@@ -270,7 +255,7 @@ ${pageChromeCss()}
       .join("")}
   </div>
 
-  ${splitContent(body)}
+  <div class="flow-item content" data-split>${body}</div>
 
   <div class="flow-item signatures">
     <div class="sig-for">In witness whereof, the Parties have signed this document on the dates below.</div>
@@ -319,6 +304,28 @@ ${pageChromeCss()}
     page.appendChild(sheet);
     host.appendChild(page);
     return sheet;
+  }
+
+  /**
+   * Flatten the authored body into its own top-level blocks first.
+   *
+   * Left whole it is a single node, so a letter longer than a page has nowhere
+   * to break and runs off the bottom. Done here on the parsed DOM rather than
+   * by pattern-matching the HTML upstream, because a regex over markup drops
+   * whatever it fails to match — and losing a clause out of an agreement is not
+   * a failure anyone would notice until it mattered.
+   */
+  var authored = flow.querySelector('[data-split]');
+  if (authored) {
+    var frag = document.createDocumentFragment();
+    Array.prototype.slice.call(authored.childNodes).forEach(function (node) {
+      if (node.nodeType === 3 && !node.textContent.trim()) return;
+      var item = document.createElement('div');
+      item.className = 'flow-item content';
+      item.appendChild(node);
+      frag.appendChild(item);
+    });
+    authored.parentNode.replaceChild(frag, authored);
   }
 
   var sheet = newPage();
