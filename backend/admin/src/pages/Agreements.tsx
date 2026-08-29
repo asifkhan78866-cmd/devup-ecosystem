@@ -127,6 +127,37 @@ export default function Agreements() {
   )
 }
 
+/**
+ * A rubber stamp, not a sentence.
+ *
+ * Once a document has gone out the only question anyone asks of this panel is
+ * whether it has — so the answer is a mark you read at a glance, in the same
+ * register as the seals on the document itself. The address is part of the
+ * stamp because "sent" without "to whom" is the half that gets misremembered.
+ */
+function SentStamp({ to, at, times }: { to: string | null; at: string; times: number }) {
+  return (
+    <div className="flex justify-center py-1">
+      <div
+        className="-rotate-[7deg] select-none rounded-md border-2 px-3.5 py-1.5 text-center"
+        style={{ borderColor: 'rgba(200,241,53,0.55)', background: 'rgba(200,241,53,0.06)' }}
+      >
+        <div
+          className="text-[13px] font-extrabold leading-none tracking-[3px]"
+          style={{ color: '#c8f135' }}
+        >
+          SENT
+        </div>
+        <div className="mt-1 text-[9.5px] leading-tight text-[#c8f135]/70">{to}</div>
+        <div className="mt-0.5 text-[8.5px] leading-tight text-[#c8f135]/45">
+          {format(new Date(at), 'd MMM yyyy, h:mm a')}
+          {times > 1 ? ` · ${times}×` : ''}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const label = 'block text-[11px] text-white/45 mb-1.5'
 const field =
   'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none transition focus:border-[#c8f135]/40'
@@ -453,23 +484,21 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
                     {data.sentAt ? 'Send again' : 'Send by email'}
                   </Button>
 
-                  {!form.partyEmail?.trim() ? (
+                  {/*
+                    Only the action, plus whatever the admin cannot proceed
+                    without. Once it has gone the panel says so as a stamp
+                    rather than a sentence — the question being asked at a
+                    glance is "has this gone out", and a mark answers that
+                    faster than a line of prose.
+                  */}
+                  {!form.partyEmail?.trim() && (
                     <p className="text-[11px] leading-relaxed text-amber-200/60">
                       Add an email under <span className="text-amber-100">Second party</span> to send
-                      this. Save first if you have just typed it.
-                    </p>
-                  ) : data.sentAt ? (
-                    <p className="text-[11px] leading-relaxed text-white/35">
-                      Sent to <span className="text-white/60">{data.sentTo}</span> on{' '}
-                      {format(new Date(data.sentAt), 'd MMM yyyy, h:mm a')}
-                      {data.sentCount > 1 ? ` · ${data.sentCount} times` : ''}.
-                    </p>
-                  ) : (
-                    <p className="text-[11px] leading-relaxed text-white/35">
-                      Emails <span className="text-white/60">{form.partyEmail}</span> a covering note
-                      with the signed PDF attached.
+                      this.
                     </p>
                   )}
+
+                  {data.sentAt && <SentStamp to={data.sentTo} at={data.sentAt} times={data.sentCount} />}
                 </div>
               )}
 
