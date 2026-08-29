@@ -1419,12 +1419,17 @@ model OnboardingDocument {
   internId   String?
   intern     Intern?   @relation(fields: [internId], references: [id], onDelete: Cascade)
 
-  docType  OnboardingDocType
-  label    String?
-  fileUrl  String?
-  fileName String?
-  fileSize Int?
-  mimeType String?
+  docType     OnboardingDocType
+  label       String?
+  /// Legacy public URL. Retained only so pre-migration rows still resolve;
+  /// new uploads set `storagePath` instead and this stays null.
+  fileUrl     String?
+  /// Object path in the private identity bucket. Signed on demand, never
+  /// served directly — an identity scan must not have a durable address.
+  storagePath String?
+  fileName    String?
+  fileSize    Int?
+  mimeType    String?
 
   status       OnboardingDocStatus @default(PENDING)
   /// Required documents block onboarding completion; optional ones do not.

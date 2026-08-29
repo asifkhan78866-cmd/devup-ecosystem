@@ -1,7 +1,7 @@
 import { OnboardingDocType, Prisma } from "@prisma/client";
 import { prisma } from "../../../lib/prisma";
 import { AppError } from "../../../middleware/errorHandler";
-import { uploadFile } from "../../../lib/storage";
+import { uploadPrivateFile, signedUrl } from "../../../lib/storage";
 import { env } from "../../../config/env";
 import { audit } from "../../shared/audit.service";
 import { notify } from "../../shared/notification.service";
@@ -112,21 +112,31 @@ export async function getChecklist(startupId: string, personId: string) {
 
   const byType = new Map(uploaded.map((d) => [d.docType, d]));
 
-  const items = requirements.map((r) => {
+  /**
+   * Signed per request, five minutes each. The old public URLs are still
+   * honoured for anything uploaded before the move, but nothing new gets one.
+   */
+  const linkFor = async (doc?: { storagePath: string | null; fileUrl: string | null }) => {
+    if (!doc) return null;
+    if (doc.storagePath) return signedUrl(env.STORAGE_BUCKET_IDENTITY, doc.storagePath, 300);
+    return doc.fileUrl ?? null;
+  };
+
+  const items = await Promise.all(requirements.map(async (r) => {
     const doc = byType.get(r.docType);
     return {
       docType: r.docType,
       label: r.label,
       isRequired: r.isRequired,
       status: doc?.status ?? "PENDING",
-      fileUrl: doc?.fileUrl ?? null,
+      fileUrl: await linkFor(doc),
       fileName: doc?.fileName ?? null,
       rejectReason: doc?.rejectReason ?? null,
       submittedAt: doc?.submittedAt ?? null,
       reviewedAt: doc?.reviewedAt ?? null,
       documentId: doc?.id ?? null,
     };
-  });
+  }));
 
   const required = items.filter((i) => i.isRequired);
   const approvedRequired = required.filter((i) => i.status === "APPROVED").length;
@@ -165,8 +175,16 @@ export async function uploadDocument(args: {
   const requirements = await getRequirements(args.startupId, kind);
   const requirement = requirements.find((r) => r.docType === args.docType);
 
-  const url = await uploadFile(
-    env.STORAGE_BUCKET_DOCUMENTS,
+  /**
+   * Private bucket, and the path is stored rather than a URL.
+   *
+   * These are Aadhaar cards, PAN cards and college IDs. They went to the
+   * documents bucket, which is public because generated letters are meant to be
+   * shared — so every scan uploaded here had a permanent address anyone could
+   * fetch without logging in. Reviewers now get a signed link that expires.
+   */
+  const storagePath = await uploadPrivateFile(
+    env.STORAGE_BUCKET_IDENTITY,
     `onboarding/${args.startupId}/${args.personId}/${args.docType}-${Date.now()}-${args.file.originalname}`,
     args.file.buffer,
     args.file.mimetype
@@ -189,7 +207,8 @@ export async function uploadDocument(args: {
     docType: args.docType,
     label: requirement?.label ?? DOC_LABELS[args.docType],
     isRequired: requirement?.isRequired ?? true,
-    fileUrl: url,
+    fileUrl: null,
+    storagePath,
     fileName: args.file.originalname,
     fileSize: args.file.size,
     mimeType: args.file.mimetype,

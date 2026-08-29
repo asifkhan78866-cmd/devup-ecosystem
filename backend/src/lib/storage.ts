@@ -69,3 +69,44 @@ export async function uploadStartupImage(
   const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(filename);
   return data.publicUrl;
 }
+
+/**
+ * Uploads to a private bucket and returns the object path, not a URL.
+ *
+ * Identity documents must never have a durable public address. Everything else
+ * here returns `getPublicUrl`, which is right for a logo and wrong for a scan
+ * of somebody's PAN card — so this deliberately hands back a path that is
+ * useless without a signature, and callers store that instead.
+ */
+export const uploadPrivateFile = async (
+  bucket: string,
+  path: string,
+  fileBuffer: Buffer,
+  contentType: string
+): Promise<string> => {
+  const { data, error } = await supabaseAdmin.storage
+    .from(bucket)
+    .upload(path, fileBuffer, { contentType, upsert: true });
+
+  if (error) throw new AppError(500, `Failed to upload to ${bucket}: ${error.message}`, "UPLOAD_FAILED");
+  return data.path;
+};
+
+/**
+ * A short-lived link to a private object.
+ *
+ * Minutes, not hours: the link is handed to one reviewer looking at one
+ * document, and a URL that outlives the review is a public URL with extra
+ * steps — it gets pasted into chat and forwarded.
+ */
+export const signedUrl = async (
+  bucket: string,
+  path: string,
+  expiresInSeconds = 300
+): Promise<string | null> => {
+  const { data, error } = await supabaseAdmin.storage
+    .from(bucket)
+    .createSignedUrl(path, expiresInSeconds);
+  if (error) return null;
+  return data.signedUrl;
+};

@@ -54,6 +54,11 @@ const envSchema = z.object({
   STORAGE_BUCKET_LOGOS: z.string().default("startup-logos"),
   STORAGE_BUCKET_BANNERS: z.string().default("startup-banners"),
   STORAGE_BUCKET_DOCUMENTS: z.string().default("legal-documents"),
+  /**
+   * Identity scans. A separate, private bucket — the documents bucket is public
+   * because generated letters are meant to be shared, and a PAN card is not.
+   */
+  STORAGE_BUCKET_IDENTITY: z.string().default("identity-documents"),
   STORAGE_BUCKET_RESUMES: z.string().default("candidate-resumes"),
   STORAGE_BUCKET_PITCHDECKS: z.string().default("pitch-decks"),
   MAX_FILE_SIZE_MB: z.string().default("10").transform((v) => Number.parseInt(v, 10)),
