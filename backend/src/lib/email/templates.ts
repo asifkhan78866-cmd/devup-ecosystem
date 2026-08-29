@@ -430,6 +430,64 @@ export const Emails = {
         `this document.`,
     }),
 
+  /**
+   * Asking a selected applicant for their documents.
+   *
+   * Framed as the last step before an appointment they have already been told
+   * they have, not as a fresh hurdle — people who think they are being screened
+   * again go quiet. It says what is wanted, why, and how long the link lasts,
+   * because the commonest reason this stalls is someone waiting to be told
+   * whether a phone photo is acceptable.
+   */
+  leadKycRequest: (args: {
+    fullName: string;
+    role: string;
+    uploadUrl: string;
+    expiresAt: string;
+    documents: Array<{ label: string; hint: string }>;
+  }) =>
+    renderEmail({
+      heading: `One step left, ${args.fullName.split(" ")[0]}`,
+      preheader: `A few documents before your appointment as ${args.role} is issued.`,
+      body:
+        p(
+          `You have been selected as ${args.role}. Before the appointment can be issued we need to ` +
+            `confirm who you are and that you are currently enrolled — every director represents ` +
+            `DevUp to colleges and companies, so this is checked for everyone without exception.`
+        ) +
+        sectionTitle("What to upload") +
+        args.documents.map((d, i) => docItem(String(i + 1), d.label, d.hint)).join("") +
+        p(
+          `A clear phone photograph is fine. JPG, PNG or PDF, up to 8MB each. Your files are stored ` +
+            `privately, are visible only to the people reviewing them, and are deleted when your ` +
+            `term ends.`
+        ) +
+        p(`The link works until ${args.expiresAt}. If it lapses, reply here and we will send another.`),
+      cta: { label: "Upload your documents", url: args.uploadUrl },
+      footnote:
+        "This link is personal to you. Please do not forward it — anyone holding it can upload " +
+        "documents against your name.",
+    }),
+
+  /** Something came back. Says exactly what, and nothing else. */
+  leadKycRejected: (args: {
+    fullName: string;
+    uploadUrl: string;
+    items: Array<{ label: string; reason: string }>;
+  }) =>
+    renderEmail({
+      heading: "One or two documents need another look",
+      preheader: "A quick fix and your appointment can go ahead.",
+      body:
+        p(`Hi ${args.fullName.split(" ")[0]}, almost there — these need replacing:`) +
+        args.items.map((it, i) => docItem(String(i + 1), it.label, it.reason)).join("") +
+        p(
+          `Everything else you sent is fine and does not need uploading again. Use the same link; ` +
+            `it still works.`
+        ),
+      cta: { label: "Upload the replacements", url: args.uploadUrl },
+    }),
+
   // ── Generic fallback for notifications without a bespoke template ──
   generic: (args: { title: string; message: string; link?: string; fromOrg?: string; logoUrl?: string | null }) =>
     renderEmail({

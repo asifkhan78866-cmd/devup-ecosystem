@@ -290,6 +290,99 @@ enum LeadershipRole {
   CAMPUS_DIRECTOR
 }
 
+enum LeadKycStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum LeadKycDocStatus {
+  MISSING
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+/// Which documents a Lead DevUp appointee must produce.
+///
+/// Aadhaar is deliberately absent. Under the Aadhaar Act a private company
+/// cannot demand it for authentication, and any of the accepted photo IDs
+/// proves the same thing without the legal exposure.
+enum LeadKycDocType {
+  /// One of PAN, Passport, Driving Licence or Voter ID.
+  GOVERNMENT_PHOTO_ID
+  COLLEGE_ID
+  /// Bonafide certificate, admission letter or fee receipt.
+  ENROLMENT_PROOF
+  PHOTOGRAPH
+}
+
+/// Document verification for someone selected to hold office.
+///
+/// One per application, reached by a tokenised link rather than a login: these
+/// people have no DevUp account and never will, and making them create one is
+/// how a mandatory step quietly stops happening.
+model LeadKyc {
+  id            String          @id @default(uuid())
+  applicationId String          @unique
+  application   LeadApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  status LeadKycStatus @default(PENDING)
+
+  /// The secret in the upload link. The link is the credential, so it expires.
+  token     String   @unique
+  expiresAt DateTime
+
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  /// Shown to the applicant when something is sent back.
+  reviewNote  String?
+
+  /// Reminders already sent, so a rerun cannot nudge somebody twice.
+  remindersSent Int       @default(0)
+  lastRemindAt  DateTime?
+
+  documents LeadKycDocument[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+model LeadKycDocument {
+  id      String         @id @default(uuid())
+  kycId   String
+  kyc     LeadKyc        @relation(fields: [kycId], references: [id], onDelete: Cascade)
+  docType LeadKycDocType
+
+  /// Object path in the private identity bucket. Never a URL — an identity scan
+  /// must not have a durable public address.
+  storagePath String?
+  fileName    String?
+  fileSize    Int?
+  mimeType    String?
+
+  /// Which photo ID it is, where the type allows a choice.
+  idKind       String?
+  /// Last four characters only. The full number is not needed to confirm
+  /// someone is who they say, and holding it is a liability with no benefit.
+  maskedNumber String?
+
+  status       LeadKycDocStatus @default(MISSING)
+  rejectReason String?
+  submittedAt  DateTime?
+  reviewedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([kycId, docType])
+}
+
 enum LeadAppointmentStatus {
   ISSUED
   REVOKED
@@ -382,6 +475,7 @@ model LeadApplication {
   updatedAt       DateTime            @updatedAt
 
   appointments LeadAppointment[]
+  kyc          LeadKyc?
 
   @@index([role, status])
   @@index([state, city])

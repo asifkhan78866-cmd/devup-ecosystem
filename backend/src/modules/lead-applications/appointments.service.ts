@@ -15,6 +15,7 @@ import { TIERS, renderDeed, AppointmentPayload } from "./appointmentTemplates";
 import { renderCertificate } from "./certificate.template";
 import { renderHandbook } from "./handbook.template";
 import { loadStamps } from "./stamps";
+import { assertKycApproved } from "./kyc.service";
 import { createHash, randomUUID } from "crypto";
 import QRCode from "qrcode";
 
@@ -384,6 +385,9 @@ export async function issueAppointment(input: IssueInput) {
         "NOT_SELECTED"
       );
     }
+    // The gate lives here rather than only in the screen, so verification stays
+    // mandatory however the appointment is reached.
+    await assertKycApproved(app.id);
     src = {
       role: app.role, fullName: app.fullName, email: app.email, phone: app.phone,
       state: app.state, city: app.city, college: app.college, applicationId: app.id,

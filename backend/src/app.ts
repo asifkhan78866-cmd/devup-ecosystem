@@ -40,6 +40,7 @@ import partnerPortalRoutes from "./modules/partners/portal.routes";
 import leadApplicationsRoutes from "./modules/lead-applications/lead-applications.routes";
 import leadAppointmentRoutes from "./modules/lead-applications/appointments.routes";
 import publicVerifyRoutes from "./modules/lead-applications/verify.routes";
+import { publicKycRouter, adminKycRouter } from "./modules/lead-applications/kyc.routes";
 
 export const app = express();
 
@@ -216,6 +217,9 @@ app.use("/api/admin/signatories", signatoryRoutes);
 app.use("/api/admin/lead-appointments", leadAppointmentRoutes);
 // Public: reached by scanning a printed document. No auth by design.
 app.use("/api/verify", publicVerifyRoutes);
+// Public: an applicant with an upload link and no account. Token-scoped.
+app.use("/api/kyc", publicKycRouter);
+app.use("/api/admin/lead-kyc", adminKycRouter);
 app.use("/api/profile", profileRoutes);
 
 // Partner perks. Administration is platform-admin only; the portal routes
