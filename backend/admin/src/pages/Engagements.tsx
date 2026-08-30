@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import {
   Briefcase, Plus, ChevronLeft, Lock, KeyRound, Eye, Trash2, Check, AlertTriangle,
-  IndianRupee, Users, ListChecks, PackageCheck, Wrench, Sparkles, Search,
+  IndianRupee, Users, ListChecks, PackageCheck, Wrench, Sparkles, Search, History,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -261,7 +261,11 @@ function Detail({ id, onClose }: { id: string; onClose: () => void }) {
     queryKey: ['engagement', id],
     queryFn: async () => (await api.get(`/api/admin/b2b/engagements/${id}`)).data.data,
   })
-  const refresh = () => qc.invalidateQueries({ queryKey: ['engagement', id] })
+  // Every write also moves the history, so both are invalidated together.
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ['engagement', id] })
+    qc.invalidateQueries({ queryKey: ['activity'] })
+  }
 
   const stage = useMutation({
     mutationFn: async (s: Stage) =>
@@ -356,8 +360,47 @@ function Detail({ id, onClose }: { id: string; onClose: () => void }) {
         {tab === 'handover' && <HandoverTab e={e} refresh={refresh} />}
         {tab === 'maintenance' && <MaintenanceTab e={e} refresh={refresh} />}
         {tab === 'showcase' && <ShowcaseTab e={e} refresh={refresh} />}
+
+        <Activity entity="Engagement" id={e.id} />
       </div>
     </>
+  )
+}
+
+/**
+ * Who changed what, and when.
+ *
+ * Sits under the record rather than behind a tab: the question it answers —
+ * "did that edit save, and what did it actually change" — is asked immediately
+ * after editing, not hunted for later.
+ */
+function Activity({ entity, id }: { entity: string; id: string }) {
+  const { data } = useQuery<any[]>({
+    queryKey: ['activity', entity, id],
+    queryFn: async () => (await api.get(`/api/admin/b2b/activity/${entity}/${id}`)).data.data,
+    refetchInterval: false,
+  })
+
+  if (!data?.length) return null
+
+  return (
+    <div className="rounded-2xl border border-white/[0.07]">
+      <div className="flex items-center gap-2 border-b border-white/[0.07] px-4 py-2.5">
+        <History className="h-3.5 w-3.5 text-white/35" />
+        <span className="text-[12px] text-white/60">History</span>
+        <span className="ml-auto text-[10px] text-white/25">{data.length} change{data.length > 1 ? 's' : ''}</span>
+      </div>
+      <div className="divide-y divide-white/[0.04]">
+        {data.map((a) => (
+          <div key={a.id} className="flex items-baseline gap-3 px-4 py-2">
+            <span className="text-[12px] text-white/75">{a.summary}</span>
+            <span className="ml-auto shrink-0 text-[10.5px] text-white/30">
+              {a.by ? `${a.by} · ` : ''}{format(new Date(a.at), 'd MMM, h:mm a')}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -522,8 +565,9 @@ function VaultTab({ e, refresh }: { e: any; refresh: () => void }) {
   })
 
   const remove = useMutation({
-    mutationFn: async (id: string) => (await api.delete(`/api/admin/b2b/credentials/${id}`)).data.data,
-    onSuccess: () => { refresh(); toast.success('Removed') },
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) =>
+      (await api.delete(`/api/admin/b2b/credentials/${id}`, { data: { reason } })).data.data,
+    onSuccess: () => { refresh(); toast.success('Removed — the record of it stays') },
   })
 
   return (
@@ -552,7 +596,10 @@ function VaultTab({ e, refresh }: { e: any; refresh: () => void }) {
                     </button>
                   )}
                   <button
-                    onClick={() => confirm(`Remove ${c.label}?`) && remove.mutate(c.id)}
+                    onClick={() => {
+                      const reason = prompt(`Remove ${c.label}? Say why — it stays on the record.`)
+                      if (reason !== null) remove.mutate({ id: c.id, reason })
+                    }}
                     className="rounded p-1.5 text-white/25 transition hover:bg-white/[0.06] hover:text-red-300"
                   >
                     <Trash2 className="h-3.5 w-3.5" />

@@ -6,6 +6,7 @@ import { requireAuth, requireRole } from "../../middleware/auth";
 import { validate } from "../../middleware/validate";
 import * as cat from "./catalogue.service";
 import * as eng from "./engagements.service";
+import { activityFor } from "../shared/changes";
 
 /**
  * B2B administration: catalogue, engagements, money, vault, delivery.
@@ -81,8 +82,12 @@ const serviceBody = z.object({
   }),
 });
 
-adminB2bRouter.get("/services", async (_req, res) =>
-  ok(res, await cat.listServices({ includeInactive: true }))
+adminB2bRouter.get("/services", async (req, res) =>
+  ok(res, await cat.listServices({
+    includeInactive: true,
+    // Removed rows are shown only on request, and arrive marked.
+    includeRemoved: req.query.includeRemoved === "true",
+  }))
 );
 adminB2bRouter.post("/services", validate(serviceBody), async (req, res) =>
   ok(res, await cat.createService(req.body, actor(req)), 201)
@@ -91,7 +96,11 @@ adminB2bRouter.patch("/services/:id", async (req, res) =>
   ok(res, await cat.updateService(req.params.id as string, req.body, actor(req)))
 );
 adminB2bRouter.delete("/services/:id", async (req, res) =>
-  ok(res, await cat.retireService(req.params.id as string, actor(req)))
+  ok(res, await cat.retireService(req.params.id as string, actor(req), req.body?.reason))
+);
+
+adminB2bRouter.post("/services/:id/restore", async (req, res) =>
+  ok(res, await cat.restoreService(req.params.id as string, actor(req)))
 );
 
 // Engagements
@@ -224,7 +233,17 @@ adminB2bRouter.post("/credentials/:id/reveal", async (req, res) =>
 );
 
 adminB2bRouter.delete("/credentials/:id", async (req, res) =>
-  ok(res, await eng.deleteCredential(req.params.id as string, actor(req)))
+  ok(res, await eng.deleteCredential(req.params.id as string, actor(req), req.body?.reason))
+);
+
+/**
+ * Who changed what, and when.
+ *
+ * Read straight off the audit log rather than kept as a second copy — a
+ * separate history table is one that can disagree with the record it describes.
+ */
+adminB2bRouter.get("/activity/:entity/:id", async (req, res) =>
+  ok(res, await activityFor(String(req.params.entity), String(req.params.id)))
 );
 
 // Delivery

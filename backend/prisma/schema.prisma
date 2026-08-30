@@ -977,6 +977,13 @@ model Service {
   priceFrom      Int?
 
   isActive  Boolean @default(true)
+
+  /// Soft delete. Rows are marked, never removed: a client's record of what
+  /// they bought, and the audit trail attached to it, has to survive the
+  /// tidying-up. Lists hide these unless asked for them.
+  deletedAt     DateTime?
+  deletedBy     String?
+  deleteReason  String?
   sortOrder Int     @default(0)
 
   engagements Engagement[]
@@ -1046,6 +1053,13 @@ model Engagement {
   warrantyDays Int       @default(30)
 
   ownerId String?
+
+  /// Soft delete. Rows are marked, never removed: a client's record of what
+  /// they bought, and the audit trail attached to it, has to survive the
+  /// tidying-up. Lists hide these unless asked for them.
+  deletedAt     DateTime?
+  deletedBy     String?
+  deleteReason  String?
 
   milestones   EngagementMilestone[]
   payments     Payment[]
@@ -1180,6 +1194,13 @@ model EngagementCredential {
 
   url           String?
   lastRotatedAt DateTime?
+
+  /// Soft delete. Rows are marked, never removed: a client's record of what
+  /// they bought, and the audit trail attached to it, has to survive the
+  /// tidying-up. Lists hide these unless asked for them.
+  deletedAt     DateTime?
+  deletedBy     String?
+  deleteReason  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

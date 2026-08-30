@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { audit } from "../shared/audit.service";
+import { changedFields } from "../shared/changes";
 
 /**
  * The service catalogue.
@@ -38,9 +39,12 @@ function slugify(name: string) {
     .slice(0, 60);
 }
 
-export async function listServices(opts?: { includeInactive?: boolean }) {
+export async function listServices(opts?: { includeInactive?: boolean; includeRemoved?: boolean }) {
   return prisma.service.findMany({
-    where: opts?.includeInactive ? {} : { isActive: true },
+    where: {
+      ...(opts?.includeRemoved ? {} : { deletedAt: null }),
+      ...(opts?.includeInactive ? {} : { isActive: true }),
+    },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
 }
@@ -85,6 +89,17 @@ export async function createService(input: ServiceInput, actorId: string) {
 }
 
 export async function updateService(id: string, input: Partial<ServiceInput>, actorId: string) {
+  /**
+   * What actually changed, not what was submitted.
+   *
+   * A form posts every field on every save, so auditing the payload would
+   * record "edited everything" each time somebody fixed a typo — which is the
+   * same as recording nothing. Comparing against the stored row leaves a trail
+   * that can be read.
+   */
+  const before = await prisma.service.findUnique({ where: { id } });
+  const changed = before ? changedFields(before as Record<string, unknown>, input) : [];
+
   const s = await prisma.service.update({
     where: { id },
     data: {
@@ -104,25 +119,54 @@ export async function updateService(id: string, input: Partial<ServiceInput>, ac
       ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
     },
   });
-  await audit({ action: "service.updated", entity: "Service", entityId: id, actorId });
+  await audit({
+    action: "service.updated",
+    entity: "Service",
+    entityId: id,
+    actorId,
+    metadata: { fields: changed, name: s.name },
+  });
   return s;
 }
 
 /**
- * Retires a service rather than deleting it.
+ * Marks a service removed. It is never deleted.
  *
  * Engagements point at services, and a client's record of what they bought
- * should not become a dangling reference because the offering was withdrawn.
- * Deletion is only allowed while nothing references it.
+ * should not become a dangling reference because the offering was withdrawn —
+ * nor should the audit trail attached to it lose the thing it describes. The
+ * row stays, flagged, and drops out of every list that does not ask for it.
  */
-export async function retireService(id: string, actorId: string) {
+export async function retireService(id: string, actorId: string, reason?: string) {
   const used = await prisma.engagement.count({ where: { serviceId: id } });
-  if (used > 0) {
-    const s = await prisma.service.update({ where: { id }, data: { isActive: false } });
-    await audit({ action: "service.retired", entity: "Service", entityId: id, actorId });
-    return { retired: true as const, service: s, engagements: used };
-  }
-  await prisma.service.delete({ where: { id } });
-  await audit({ action: "service.deleted", entity: "Service", entityId: id, actorId });
-  return { retired: false as const };
+  const s = await prisma.service.update({
+    where: { id },
+    data: {
+      isActive: false,
+      deletedAt: new Date(),
+      deletedBy: actorId,
+      deleteReason: reason?.trim() || null,
+    },
+  });
+  await audit({
+    action: "service.removed",
+    entity: "Service",
+    entityId: id,
+    actorId,
+    metadata: { name: s.name, engagements: used, reason: reason ?? null },
+  });
+  return { removed: true as const, service: s, engagements: used };
+}
+
+/** Puts a removed service back. */
+export async function restoreService(id: string, actorId: string) {
+  const s = await prisma.service.update({
+    where: { id },
+    data: { deletedAt: null, deletedBy: null, deleteReason: null, isActive: true },
+  });
+  await audit({
+    action: "service.restored", entity: "Service", entityId: id, actorId,
+    metadata: { name: s.name },
+  });
+  return s;
 }

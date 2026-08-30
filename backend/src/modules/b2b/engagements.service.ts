@@ -2,6 +2,7 @@ import { EngagementStage, Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { audit } from "../shared/audit.service";
+import { changedFields } from "../shared/changes";
 import { fiscalYear, nextSequence } from "../../lib/numbering";
 import { seal, open, hint, secretsAvailable } from "../../lib/secrets";
 import { logger } from "../../middleware/logger";
@@ -236,6 +237,7 @@ export async function getEngagement(id: string) {
       showcase: true,
       // Never the secret itself — only that one exists.
       credentials: {
+        where: { deletedAt: null },
         orderBy: { provider: "asc" },
         select: {
           id: true, provider: true, accountRef: true, label: true, purpose: true,
@@ -322,6 +324,9 @@ export async function updateEngagement(id: string, input: Partial<EngagementInpu
   agreementId?: string | null;
   lostReason?: string;
 }, actorId: string) {
+  const before = await prisma.engagement.findUnique({ where: { id } });
+  const changed = before ? changedFields(before as Record<string, unknown>, input) : [];
+
   const e = await prisma.engagement.update({
     where: { id },
     data: {
@@ -342,7 +347,13 @@ export async function updateEngagement(id: string, input: Partial<EngagementInpu
       ...(input.lostReason !== undefined ? { lostReason: input.lostReason.trim() || null } : {}),
     },
   });
-  await audit({ action: "engagement.updated", entity: "Engagement", entityId: id, actorId });
+  await audit({
+    action: "engagement.updated",
+    entity: "Engagement",
+    entityId: id,
+    actorId,
+    metadata: { fields: changed, code: e.code },
+  });
   return e;
 }
 
@@ -435,14 +446,32 @@ export async function revealCredential(id: string, actorId: string) {
   return { secret, hint: secret ? hint(secret) : null };
 }
 
-export async function deleteCredential(id: string, actorId: string) {
-  const row = await prisma.engagementCredential.delete({ where: { id } });
+/**
+ * Marks a credential removed, and keeps the row.
+ *
+ * The reveal history hangs off this id. Deleting it would erase who had access
+ * to a client's system at the exact moment that question matters most — after
+ * something has gone wrong. The secret itself is cleared, so a removed
+ * credential cannot be revealed; only the record of it remains.
+ */
+export async function deleteCredential(id: string, actorId: string, reason?: string) {
+  const row = await prisma.engagementCredential.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+      deletedBy: actorId,
+      deleteReason: reason?.trim() || null,
+      secretCipher: null,
+      secretIv: null,
+      secretTag: null,
+    },
+  });
   await audit({
-    action: "credential.deleted",
+    action: "credential.removed",
     entity: "EngagementCredential",
     entityId: id,
     actorId,
-    metadata: { provider: row.provider, label: row.label },
+    metadata: { provider: row.provider, label: row.label, reason: reason ?? null },
   });
   return { ok: true };
 }

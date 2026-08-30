@@ -4,7 +4,8 @@ import api from '@/config/api'
 import { TopBar } from '@/components/Layout/TopBar'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
-import { Plus, Package, EyeOff, Eye, Trash2, GripVertical } from 'lucide-react'
+import { Plus, Package, EyeOff, Eye, Trash2, GripVertical, Undo2 } from 'lucide-react'
+import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
 /**
@@ -30,6 +31,8 @@ interface Service {
   priceFrom: number | null
   isActive: boolean
   sortOrder: number
+  deletedAt: string | null
+  deleteReason: string | null
 }
 
 const label = 'block text-[11px] text-white/45 mb-1.5'
@@ -49,10 +52,12 @@ export default function Catalogue() {
   const qc = useQueryClient()
   const [editing, setEditing] = useState<Service | null>(null)
   const [creating, setCreating] = useState(false)
+  const [showRemoved, setShowRemoved] = useState(false)
 
   const { data: list, isLoading } = useQuery<Service[]>({
-    queryKey: ['catalogue'],
-    queryFn: async () => (await api.get('/api/admin/b2b/services')).data.data,
+    queryKey: ['catalogue', showRemoved],
+    queryFn: async () =>
+      (await api.get(`/api/admin/b2b/services?includeRemoved=${showRemoved}`)).data.data,
   })
 
   const toggle = useMutation({
@@ -63,21 +68,29 @@ export default function Catalogue() {
   })
 
   const remove = useMutation({
-    mutationFn: async (id: string) => (await api.delete(`/api/admin/b2b/services/${id}`)).data.data,
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) =>
+      (await api.delete(`/api/admin/b2b/services/${id}`, { data: { reason } })).data.data,
     onSuccess: (r: any) => {
       qc.invalidateQueries({ queryKey: ['catalogue'] })
-      // A service that has been sold is hidden rather than deleted, so a
-      // client's record of what they bought keeps pointing somewhere.
+      // Nothing is deleted. A service that has been sold must keep existing, or
+      // the client record of what they bought points at nothing.
       toast.success(
-        r.retired
-          ? `Hidden — ${r.engagements} engagement${r.engagements > 1 ? 's' : ''} still reference it`
-          : 'Deleted'
+        r.engagements > 0
+          ? `Marked removed — ${r.engagements} engagement${r.engagements > 1 ? 's' : ''} still reference it`
+          : 'Marked removed'
       )
     },
     onError: () => toast.error('Could not remove it'),
   })
 
-  const active = (list ?? []).filter((s) => s.isActive)
+  const restore = useMutation({
+    mutationFn: async (id: string) => (await api.post(`/api/admin/b2b/services/${id}/restore`)).data.data,
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['catalogue'] }); toast.success('Restored') },
+    onError: () => toast.error('Could not restore it'),
+  })
+
+  const active = (list ?? []).filter((s) => s.isActive && !s.deletedAt)
+  const removedCount = (list ?? []).filter((s) => s.deletedAt).length
 
   return (
     <>
@@ -89,9 +102,19 @@ export default function Catalogue() {
             What DevUp sells. These rows render on the public site and are what an engagement is
             created against — {active.length} live of {list?.length ?? 0}.
           </p>
-          <Button onClick={() => setCreating(true)}>
-            <Plus className="h-4 w-4" /> New service
-          </Button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowRemoved((v) => !v)}
+              className={`rounded-lg border border-white/[0.07] px-3 py-2 text-[11px] transition ${
+                showRemoved ? 'bg-white/[0.1] text-white' : 'text-white/40 hover:text-white/70'
+              }`}
+            >
+              {showRemoved ? `Showing removed${removedCount ? ` (${removedCount})` : ''}` : 'Show removed'}
+            </button>
+            <Button onClick={() => setCreating(true)}>
+              <Plus className="h-4 w-4" /> New service
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -107,13 +130,33 @@ export default function Catalogue() {
               <div
                 key={s.id}
                 className={`flex items-center gap-3 border-b border-white/5 px-4 py-3 last:border-0 ${
-                  s.isActive ? '' : 'opacity-45'
+                  s.deletedAt ? 'bg-red-500/[0.04]' : s.isActive ? '' : 'opacity-45'
                 }`}
               >
                 <GripVertical className="h-3.5 w-3.5 shrink-0 text-white/15" />
-                <button onClick={() => setEditing(s)} className="min-w-0 flex-1 text-left">
-                  <div className="truncate text-[13.5px] text-white/90">{s.name}</div>
-                  <div className="truncate text-[11px] text-white/40">{s.short}</div>
+                <button
+                  onClick={() => !s.deletedAt && setEditing(s)}
+                  disabled={Boolean(s.deletedAt)}
+                  className="min-w-0 flex-1 text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`truncate text-[13.5px] ${s.deletedAt ? 'text-white/40 line-through' : 'text-white/90'}`}>
+                      {s.name}
+                    </span>
+                    {/* Removed rows stay visible and marked rather than
+                        vanishing: a row that disappears takes its history with
+                        it as far as anyone looking can tell. */}
+                    {s.deletedAt && (
+                      <span className="shrink-0 rounded bg-red-400/15 px-1.5 py-0.5 text-[9.5px] uppercase tracking-wider text-red-300">
+                        Removed
+                      </span>
+                    )}
+                  </div>
+                  <div className="truncate text-[11px] text-white/40">
+                    {s.deletedAt
+                      ? `${format(new Date(s.deletedAt), 'd MMM yyyy')}${s.deleteReason ? ` — ${s.deleteReason}` : ''}`
+                      : s.short}
+                  </div>
                 </button>
                 <span className="hidden shrink-0 rounded bg-white/[0.06] px-2 py-0.5 text-[10px] text-white/45 sm:inline">
                   {s.categoryLabel}
@@ -121,19 +164,34 @@ export default function Catalogue() {
                 <span className="hidden w-24 shrink-0 text-right text-[11px] text-white/30 lg:inline">
                   {s.priceFrom ? `from ₹${(s.priceFrom / 100).toLocaleString('en-IN')}` : '—'}
                 </span>
-                <button
-                  onClick={() => toggle.mutate(s)}
-                  title={s.isActive ? 'Hide from the site' : 'Show on the site'}
-                  className="shrink-0 rounded p-1.5 text-white/35 transition hover:bg-white/[0.06] hover:text-white"
-                >
-                  {s.isActive ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                </button>
-                <button
-                  onClick={() => confirm(`Remove "${s.name}"?`) && remove.mutate(s.id)}
-                  className="shrink-0 rounded p-1.5 text-white/25 transition hover:bg-white/[0.06] hover:text-red-300"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                {s.deletedAt ? (
+                  <button
+                    onClick={() => restore.mutate(s.id)}
+                    title="Put it back"
+                    className="shrink-0 rounded p-1.5 text-white/35 transition hover:bg-white/[0.06] hover:text-[#c8f135]"
+                  >
+                    <Undo2 className="h-3.5 w-3.5" />
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => toggle.mutate(s)}
+                      title={s.isActive ? 'Hide from the site' : 'Show on the site'}
+                      className="shrink-0 rounded p-1.5 text-white/35 transition hover:bg-white/[0.06] hover:text-white"
+                    >
+                      {s.isActive ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const reason = prompt(`Remove "${s.name}"? Say why — it stays on the record.`)
+                        if (reason !== null) remove.mutate({ id: s.id, reason })
+                      }}
+                      className="shrink-0 rounded p-1.5 text-white/25 transition hover:bg-white/[0.06] hover:text-red-300"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </>
+                )}
               </div>
             ))}
           </div>
