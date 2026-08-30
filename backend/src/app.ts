@@ -41,6 +41,7 @@ import leadApplicationsRoutes from "./modules/lead-applications/lead-application
 import leadAppointmentRoutes from "./modules/lead-applications/appointments.routes";
 import publicVerifyRoutes from "./modules/lead-applications/verify.routes";
 import { publicKycRouter, adminKycRouter } from "./modules/lead-applications/kyc.routes";
+import { publicCatalogueRouter, adminB2bRouter } from "./modules/b2b/b2b.routes";
 
 export const app = express();
 
@@ -220,6 +221,9 @@ app.use("/api/verify", publicVerifyRoutes);
 // Public: an applicant with an upload link and no account. Token-scoped.
 app.use("/api/kyc", publicKycRouter);
 app.use("/api/admin/lead-kyc", adminKycRouter);
+// B2B services. The catalogue is public; everything else is admin-only.
+app.use("/api/catalogue", publicCatalogueRouter);
+app.use("/api/admin/b2b", adminB2bRouter);
 app.use("/api/profile", profileRoutes);
 
 // Partner perks. Administration is platform-admin only; the portal routes

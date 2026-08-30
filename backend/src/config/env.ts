@@ -64,6 +64,16 @@ const envSchema = z.object({
    * because generated letters are meant to be shared, and a PAN card is not.
    */
   STORAGE_BUCKET_IDENTITY: z.string().default("identity-documents"),
+
+  /**
+   * Key for encrypting client credentials at rest. 32 bytes, hex or base64.
+   * Generate with: openssl rand -hex 32
+   *
+   * No default on purpose. A default key is the same as no key — everyone with
+   * the source can read every secret — so the vault refuses to store anything
+   * until this is set rather than quietly writing plaintext.
+   */
+  CREDENTIAL_ENCRYPTION_KEY: z.string().optional(),
   STORAGE_BUCKET_RESUMES: z.string().default("candidate-resumes"),
   STORAGE_BUCKET_PITCHDECKS: z.string().default("pitch-decks"),
   MAX_FILE_SIZE_MB: z.string().default("10").transform((v) => Number.parseInt(v, 10)),
@@ -167,6 +177,8 @@ try {
 export const productionGaps = {
   adminRegistrationDisabled: false,
   emailDisabled: false,
+  /** The credential vault refuses to store anything without a key. */
+  credentialVaultDisabled: false,
 };
 
 if (env.NODE_ENV === "production") {
@@ -200,6 +212,13 @@ if (env.NODE_ENV === "production") {
   if (env.RESEND_API_KEY === "re_dev_placeholder") {
     productionGaps.emailDisabled = true;
     console.warn("RESEND_API_KEY is not set. Email is disabled.");
+  }
+  if (!env.CREDENTIAL_ENCRYPTION_KEY) {
+    productionGaps.credentialVaultDisabled = true;
+    console.warn(
+      "CREDENTIAL_ENCRYPTION_KEY is not set. The credential vault is DISABLED — " +
+        "storing client secrets unencrypted in a shared database is worse than not storing them."
+    );
   }
   if (env.CORS_ORIGINS.includes("localhost")) {
     console.warn("CORS_ORIGINS includes localhost in production. Remove it.");

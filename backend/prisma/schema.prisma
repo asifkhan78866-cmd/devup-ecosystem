@@ -950,6 +950,465 @@ model AuditLog {
   createdAt DateTime @default(now())
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// B2B services: catalogue, engagements, money, delivery, maintenance.
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A service DevUp sells. Lifted out of the frontend hardcoded list so the
+/// catalogue can change without a deploy.
+model Service {
+  id            String  @id @default(uuid())
+  slug          String  @unique
+  name          String
+  category      String
+  categoryLabel String
+  icon          String?
+  short         String
+  tagline       String?
+  size          String  @default("small")
+
+  /// Long-form marketing copy, shaped by the frontend rather than by us.
+  whyDevUp      Json?
+  whatsIncluded String[] @default([])
+  howItWorks    Json?
+
+  engagementType String?
+  /// Indicative only. What a client actually pays lives on the engagement.
+  priceFrom      Int?
+
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  engagements Engagement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+enum EngagementStage {
+  ENQUIRY
+  PROPOSED
+  AGREEMENT_SENT
+  AGREEMENT_SIGNED
+  DEPOSIT_PAID
+  IN_BUILD
+  DELIVERED
+  MAINTENANCE
+  CLOSED
+  LOST
+}
+
+/// One piece of paid work, from enquiry to handover.
+///
+/// The spine of the B2B side: agreement, money, people, credentials,
+/// deliverables and maintenance all hang off this rather than living as a
+/// status on a contact-form row.
+model Engagement {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  requestId String?
+
+  clientName    String
+  clientCompany String
+  clientEmail   String
+  clientPhone   String?
+  /// Only this person sign-off counts. Without one named approver, three
+  /// people give contradictory feedback and all three get built.
+  approverName  String?
+  approverEmail String?
+
+  /// GSTIN of the client, needed on every invoice raised against them.
+  clientGstin String?
+
+  title      String
+  summary    String?
+  stage      EngagementStage @default(ENQUIRY)
+  lostReason String?
+
+  /// Contract value excluding tax, in paise to avoid float money.
+  contractValue Int    @default(0)
+  currency      String @default("INR")
+  /// Fraction of the contract that must be paid before build starts.
+  depositPct    Int    @default(25)
+
+  /// The signed agreement that authorises the work.
+  agreementId String?    @unique
+  agreement   Agreement? @relation(fields: [agreementId], references: [id], onDelete: SetNull)
+
+  startedAt    DateTime?
+  deliveredAt  DateTime?
+  closedAt     DateTime?
+  /// Free bug-fix window after delivery. Without it every bug is free forever.
+  warrantyDays Int       @default(30)
+
+  ownerId String?
+
+  milestones   EngagementMilestone[]
+  payments     Payment[]
+  invoices     Invoice[]
+  credentials  EngagementCredential[]
+  team         EngagementMember[]
+  tasks        EngagementTask[]
+  deliverables Deliverable[]
+  handover     HandoverItem[]
+  changes      ChangeRequest[]
+  costs        PassThroughCost[]
+  maintenance  MaintenancePlan?
+  showcase     ShowcaseEntry?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stage, updatedAt])
+  @@index([clientCompany])
+}
+
+enum MilestoneStatus {
+  PENDING
+  INVOICED
+  PAID
+  WAIVED
+}
+
+model EngagementMilestone {
+  id           String     @id @default(uuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  title     String
+  /// Excluding tax, in paise.
+  amount    Int
+  dueOn     DateTime?
+  sortOrder Int             @default(0)
+  status    MilestoneStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([engagementId, sortOrder])
+}
+
+model Payment {
+  id           String     @id @default(uuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  milestoneId  String?
+  invoiceId    String?
+
+  /// What actually landed, in paise.
+  amount      Int
+  /// Tax deducted at source by the client. Untracked, this reads as an
+  /// underpayment forever and is needed at filing time regardless.
+  tdsDeducted Int      @default(0)
+  paidOn      DateTime
+  method      String?
+  reference   String?
+  note        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([engagementId, paidOn])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PART_PAID
+  PAID
+  CANCELLED
+}
+
+model Invoice {
+  id           String     @id @default(uuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  number String @unique
+
+  /// Frozen at issue: a later rate change must not alter an invoice already
+  /// sent to a client accounts team.
+  sellerGstin String?
+  buyerGstin  String?
+  /// Service accounting code. Required on a GST invoice.
+  sacCode     String?
+
+  /// All in paise, computed once and stored.
+  subtotal  Int
+  gstPct    Int @default(18)
+  gstAmount Int
+  total     Int
+
+  status   InvoiceStatus @default(DRAFT)
+  issuedOn DateTime?
+  dueOn    DateTime?
+  sentAt   DateTime?
+  notes    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([engagementId, status])
+}
+
+/// A credential the team needs and keeps forgetting.
+///
+/// The secret is encrypted at rest with a key held outside the database. Every
+/// reveal is audited: this table is the reason someone can answer "which S3
+/// bucket" a year later, and the reason that answer must not leak.
+model EngagementCredential {
+  id           String     @id @default(uuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  /// AWS, Cloudflare, Razorpay — whose system this is.
+  provider   String
+  /// The account, project or bucket it identifies. Deliberately its own field
+  /// rather than prose, so it can be searched.
+  accountRef String?
+  label      String
+  purpose    String?
+  username   String?
+
+  /// AES-256-GCM. Never returned by a list endpoint.
+  secretCipher String?
+  secretIv     String?
+  secretTag    String?
+
+  url           String?
+  lastRotatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([engagementId, provider])
+}
+
+model EngagementMember {
+  id           String     @id @default(uuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  userId String?
+  name   String
+  email  String?
+  role   String
+
+  createdAt DateTime @default(now())
+
+  @@index([engagementId])
+}
+
+enum TaskStatus {
+  TODO
+  DOING
+  BLOCKED
+  DONE
+}
+
+model EngagementTask {
+  id           String     @id @default(uuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  title      String
+  detail     String?
+  assigneeId String?
+  assignee   String?
+  status     TaskStatus @default(TODO)
+  dueOn      DateTime?
+  sortOrder  Int        @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([engagementId, status])
+}
+
+enum AcceptanceStatus {
+  DRAFT
+  SUBMITTED
+  ACCEPTED
+  REJECTED
+}
+
+/// Something handed to the client for sign-off.
+///
+/// Accepted when they say so in writing, or deemed accepted after a stated
+/// silence — without which a project never formally ends.
+model Deliverable {
+  id           String     @id @default(uuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  url         String?
+  status      AcceptanceStatus @default(DRAFT)
+
+  submittedAt     DateTime?
+  /// Silence past this counts as acceptance.
+  deemedAfterDays Int       @default(7)
+  acceptedAt      DateTime?
+  acceptedBy      String?
+  rejectNote      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([engagementId, status])
+}
+
+/// The handover checklist. Its whole purpose is that nothing is left only in
+/// somebody head — repos, domains, DNS, licences, third-party accounts.
+model HandoverItem {
+  id           String     @id @default(uuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  label     String
+  detail    String?
+  done      Boolean   @default(false)
+  doneAt    DateTime?
+  sortOrder Int       @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([engagementId])
+}
+
+enum ChangeRequestStatus {
+  PROPOSED
+  APPROVED
+  DECLINED
+}
+
+/// Extra scope, priced.
+///
+/// The single largest cause of a services engagement losing money. Unpriced
+/// and unrecorded, scope grows and the margin goes with it.
+model ChangeRequest {
+  id           String     @id @default(uuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  /// Additional charge in paise. Zero is allowed but must be deliberate.
+  amount      Int                 @default(0)
+  extraDays   Int                 @default(0)
+  status      ChangeRequestStatus @default(PROPOSED)
+  decidedAt   DateTime?
+  decidedBy   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([engagementId, status])
+}
+
+/// Hosting and API bills DevUp pays on the client behalf, to be rebilled.
+model PassThroughCost {
+  id           String     @id @default(uuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  vendor     String
+  detail     String?
+  amount     Int
+  incurredOn DateTime
+  rebilled   Boolean  @default(false)
+  invoiceId  String?
+
+  createdAt DateTime @default(now())
+
+  @@index([engagementId, rebilled])
+}
+
+enum MaintenanceCadence {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+enum MaintenanceStatus {
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+/// Paid support after the warranty window closes.
+model MaintenancePlan {
+  id           String     @id @default(uuid())
+  engagementId String     @unique
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  /// Current rate in paise. History lives in MaintenanceRate so an invoice
+  /// raised six months ago can still be explained.
+  amount  Int
+  cadence MaintenanceCadence @default(MONTHLY)
+  status  MaintenanceStatus  @default(ACTIVE)
+
+  startsOn   DateTime
+  renewsOn   DateTime?
+  endedOn    DateTime?
+  /// What support actually covers, so "is this included" has an answer.
+  inclusions String[]  @default([])
+  exclusions String[]  @default([])
+
+  rates MaintenanceRate[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, renewsOn])
+}
+
+model MaintenanceRate {
+  id     String          @id @default(uuid())
+  planId String
+  plan   MaintenancePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  amount      Int
+  effectiveOn DateTime
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@index([planId, effectiveOn])
+}
+
+/// Delivered work published as portfolio.
+///
+/// Consent is a stored field, not an assumption: naming a client publicly
+/// without it is how you stop having that client.
+model ShowcaseEntry {
+  id           String     @id @default(uuid())
+  engagementId String     @unique
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+
+  title        String
+  summary      String
+  outcome      String?
+  imageUrls    String[]  @default([])
+  /// Some clients agree to the work being shown but not to being named.
+  clientNamed  Boolean   @default(false)
+  consentGiven Boolean   @default(false)
+  consentBy    String?
+  consentAt    DateTime?
+
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  sortOrder   Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published, sortOrder])
+}
+
 enum ServiceRequestStatus {
   PENDING
   REVIEWING
@@ -1363,6 +1822,7 @@ model Agreement {
   createdBy        String
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
+  Engagement       Engagement?
 
   @@index([status, createdAt])
   @@index([type])
