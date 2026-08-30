@@ -172,7 +172,13 @@ Hyderabad, Telangana shall have exclusive jurisdiction.</p>
   LETTER: {
     label: "Letter",
     blurb: "A plain letter on the letterhead. No clauses, no signatures from the other side — paste your own words.",
-    title: "",
+    /**
+     * Named rather than blank. It is the heading printed on the letter and the
+     * line the list is read by, and a row with nothing under the addressee is
+     * indistinguishable from a broken one. Change it to Invitation, Request,
+     * whatever the letter actually is.
+     */
+    title: "Letter",
     subtitle: "",
     abbr: "LTR",
     bodyHtml: `

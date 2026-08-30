@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { AgreementType } from "@prisma/client";
 import { requireAuth, requireRole } from "../../middleware/auth";
 import { validate } from "../../middleware/validate";
 import * as agreements from "./agreements.service";
@@ -17,7 +18,15 @@ const safeFileName = (v: string) => v.split("/").join("-").split("\\").join("-")
 
 router.use(requireAuth, requireRole(["ADMIN", "SUPER_ADMIN"]));
 
-const TYPES = ["B2B", "COLLABORATOR", "PARTNER", "INCUBATION", "SUPPORT"] as const;
+/**
+ * Derived from the templates, never listed again here.
+ *
+ * This was a hand-written copy of the same list, and adding LETTER to the
+ * templates and the schema left it behind — so the type appeared in the picker
+ * and was then rejected by the endpoint that picker posts to. A second copy of
+ * a list is a second thing to forget.
+ */
+const TYPES = Object.keys(AGREEMENT_TEMPLATES) as [AgreementType, ...AgreementType[]];
 
 const body = z.object({
   body: z.object({

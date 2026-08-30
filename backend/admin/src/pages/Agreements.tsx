@@ -93,7 +93,7 @@ export default function Agreements() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[13.5px] text-white/90">{a.partyName}</div>
                     <div className="truncate text-[11px] text-white/40">
-                      {a.title}
+                      {a.title?.trim() || a.type.toLowerCase()}
                       {a.documentNo ? <span className="font-mono"> · {a.documentNo}</span> : ''}
                     </div>
                   </div>
