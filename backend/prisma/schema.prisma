@@ -976,15 +976,15 @@ model Service {
   /// Indicative only. What a client actually pays lives on the engagement.
   priceFrom      Int?
 
-  isActive  Boolean @default(true)
+  isActive Boolean @default(true)
 
   /// Soft delete. Rows are marked, never removed: a client's record of what
   /// they bought, and the audit trail attached to it, has to survive the
   /// tidying-up. Lists hide these unless asked for them.
-  deletedAt     DateTime?
-  deletedBy     String?
-  deleteReason  String?
-  sortOrder Int     @default(0)
+  deletedAt    DateTime?
+  deletedBy    String?
+  deleteReason String?
+  sortOrder    Int       @default(0)
 
   engagements Engagement[]
 
@@ -1057,9 +1057,9 @@ model Engagement {
   /// Soft delete. Rows are marked, never removed: a client's record of what
   /// they bought, and the audit trail attached to it, has to survive the
   /// tidying-up. Lists hide these unless asked for them.
-  deletedAt     DateTime?
-  deletedBy     String?
-  deleteReason  String?
+  deletedAt    DateTime?
+  deletedBy    String?
+  deleteReason String?
 
   milestones   EngagementMilestone[]
   payments     Payment[]
@@ -1198,9 +1198,9 @@ model EngagementCredential {
   /// Soft delete. Rows are marked, never removed: a client's record of what
   /// they bought, and the audit trail attached to it, has to survive the
   /// tidying-up. Lists hide these unless asked for them.
-  deletedAt     DateTime?
-  deletedBy     String?
-  deleteReason  String?
+  deletedAt    DateTime?
+  deletedBy    String?
+  deleteReason String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1787,6 +1787,11 @@ enum AgreementType {
   PARTNER
   INCUBATION
   SUPPORT
+  /// A plain letter on the letterhead: an invitation, a note, a request.
+  /// No parties block and no counter-signature, because there is no second
+  /// party to it. Its own numbering run so ordinary letters do not consume
+  /// references from the series that binds the company to somebody.
+  LETTER
 }
 
 enum AgreementStatus {

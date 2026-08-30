@@ -208,12 +208,13 @@ function NewAgreement({
         </div>
 
         <div>
-          <label className={label}>Who is it with?</label>
+          {/* A letter is addressed to somebody; an agreement is with them. */}
+          <label className={label}>{type === 'LETTER' ? 'Addressed to' : 'Who is it with?'}</label>
           <input
             autoFocus
             value={partyName}
             onChange={(e) => setPartyName(e.target.value)}
-            placeholder="Company or organisation name"
+            placeholder={type === 'LETTER' ? 'College, company or person' : 'Company or organisation name'}
             className={field}
           />
         </div>
@@ -403,7 +404,7 @@ function Editor({ id, templates, onClose }: { id: string; templates: Template[];
               </div>
             </Section>
 
-            <Section title="Second party">
+            <Section title={data.type === 'LETTER' ? 'Addressed to' : 'Second party'}>
               <div>
                 <label className={label}>Name</label>
                 <input value={form.partyName} onChange={(e) => set('partyName', e.target.value)} disabled={locked} className={field} />

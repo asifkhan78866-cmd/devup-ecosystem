@@ -161,6 +161,35 @@ Hyderabad, Telangana shall have exclusive jurisdiction.</p>
 `,
   },
 
+  /**
+   * A plain letter. No agreement, no parties, no counter-signature.
+   *
+   * The one people actually reach for most days — an invitation, a note to a
+   * college, a request for a venue. Everything else here starts from a set of
+   * clauses; this starts from nothing but the letterhead, because the whole
+   * point is that the writer supplies the words.
+   */
+  LETTER: {
+    label: "Letter",
+    blurb: "A plain letter on the letterhead. No clauses, no signatures from the other side — paste your own words.",
+    title: "",
+    subtitle: "",
+    abbr: "LTR",
+    bodyHtml: `
+<p>To,</p>
+
+<p>&nbsp;</p>
+
+<p><b>Subject:</b> &nbsp;</p>
+
+<p>Dear Sir/Madam,</p>
+
+<p>&nbsp;</p>
+
+<p>Yours sincerely,</p>
+`,
+  },
+
   SUPPORT: {
     label: "Letter of Support",
     blurb: "A short letter backing an application, event or initiative. Not a contract.",

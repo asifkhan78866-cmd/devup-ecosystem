@@ -249,13 +249,24 @@ export async function renderAgreement(a: Agreement) {
   const tpl = AGREEMENT_TEMPLATES[a.type];
   const body = sanitizeBody(a.contentHtml);
 
-  const rows: Array<[string, string | null]> = [
-    ["First Party", `${org.legalName}${org.cin ? ` (CIN: ${org.cin})` : ""}`],
-    ["Second Party", a.partyName],
-    ["Address", a.partyAddress],
-    ["Effective Date", fmtDate(a.effectiveDate)],
-    ["Valid Until", fmtDate(a.expiryDate)],
-  ];
+  /**
+   * A letter is not an agreement, and is not laid out like one.
+   *
+   * No parties table and no counter-signature: there is no second party to a
+   * letter of invitation, and printing an empty rule for one to sign invites
+   * the question of who was meant to.
+   */
+  const isLetter = a.type === "LETTER";
+
+  const rows: Array<[string, string | null]> = isLetter
+    ? [["Date", fmtDate(a.issuedAt ?? new Date())]]
+    : [
+        ["First Party", `${org.legalName}${org.cin ? ` (CIN: ${org.cin})` : ""}`],
+        ["Second Party", a.partyName],
+        ["Address", a.partyAddress],
+        ["Effective Date", fmtDate(a.effectiveDate)],
+        ["Valid Until", fmtDate(a.expiryDate)],
+      ];
 
   const logo = await letterheadLogo();
   const stamps = await loadStamps();
@@ -299,7 +310,7 @@ ${pageChromeCss()}
 <div id="pages"></div>
 <div id="flow">
 
-  <div class="flow-item doc-title">${esc(a.title)}</div>
+  ${a.title?.trim() ? `<div class="flow-item doc-title">${esc(a.title)}</div>` : ""}
   ${tpl.subtitle ? `<div class="flow-item doc-sub">${esc(tpl.subtitle)}</div>` : ""}
 
   <div class="flow-item meta">
@@ -307,7 +318,7 @@ ${pageChromeCss()}
     <div>Date: <b>${fmtDate(a.issuedAt ?? new Date())}</b></div>
   </div>
 
-  <div class="flow-item parties">
+  <div class="flow-item parties" style="${isLetter ? "display:none" : ""}">
     ${rows
       .filter(([, v]) => Boolean(v))
       .map(([k, v]) => `<div class="row"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`)
@@ -317,7 +328,9 @@ ${pageChromeCss()}
   <div class="flow-item content" data-split>${body}</div>
 
   <div class="flow-item signatures">
-    <div class="sig-for">In witness whereof, the Parties have signed this document on the dates below.</div>
+    ${isLetter
+      ? ""
+      : `<div class="sig-for">In witness whereof, the Parties have signed this document on the dates below.</div>`}
     <div class="sig-grid">
       <div class="sig-col stamped">
         ${stamps.authorisedSign ? `<img class="sig-stamp" src="${stamps.authorisedSign}" alt="">` : ""}
@@ -328,14 +341,16 @@ ${pageChromeCss()}
           ${stamps.officialSeal ? `<img class="seal-mark" src="${stamps.officialSeal}" alt="Common Seal">` : ""}
         </div>
       </div>
-      <div class="sig-col stamped">
+      ${isLetter
+        ? ""
+        : `<div class="sig-col stamped">
         <div class="sig-line">
           <div class="sig-name">${esc(a.partySignatory || " ")}</div>
           <div class="sig-role">${esc(a.partyTitle || "Authorised Signatory")}</div>
           <div class="sig-role">${esc(a.partySignOrg || a.partyName)}</div>
           <div class="sig-meta">Date: <span class="sig-fill"></span></div>
         </div>
-      </div>
+      </div>`}
       ${extraSignatureColumns(a.extraSignatories)}
     </div>
   </div>
