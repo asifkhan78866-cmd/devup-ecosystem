@@ -17,35 +17,75 @@ function CallbackContent() {
     if (processed.current) return
     processed.current = true
 
+    /**
+     * Nothing on this screen may wait forever.
+     *
+     * Every await below is a network call, and when one of them stalled the
+     * page simply span under "Signing you in..." with no error, no retry and
+     * no way out. A bounded wait turns a stall into something the visitor can
+     * act on.
+     */
+    const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> =>
+      Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+          setTimeout(() => reject(new Error(`${label} timed out`)), ms)
+        ),
+      ])
+
     const handleCallback = async () => {
       try {
         const supabase = createClient()
 
-        // Wait for session from the OAuth redirect
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-
-        if (sessionError || !session) {
-          // Try exchanging code from URL if session isn't ready yet
-          const { data: { session: refreshedSession }, error: refreshError } =
-            await supabase.auth.refreshSession()
-
-          if (refreshError || !refreshedSession) {
-            setStatus('error')
-            setErrorMsg('Authentication failed. Please try again.')
-            setTimeout(() => router.push('/login'), 2000)
-            return
+        /*
+         * Exchange the one-time code ourselves when one is present.
+         *
+         * The client library also does this on its own when it detects a code
+         * in the URL, and the two used to race: getSession() was called while
+         * that exchange was still in flight, so it saw no session, and the
+         * refreshSession() fallback then ran against a token the exchange was
+         * still rotating. Doing it explicitly means there is one exchange and
+         * we know when it finished. A code can only be spent once, so an
+         * "already used" error here just means the library got there first —
+         * that is a success, not a failure, and getSession() below confirms it.
+         */
+        const code = searchParams.get('code')
+        if (code) {
+          try {
+            await withTimeout(supabase.auth.exchangeCodeForSession(code), 15000, 'Sign in')
+          } catch {
+            // Fall through — getSession() is the arbiter of whether we are in.
           }
+        }
 
-          // Use refreshed session
-          await syncUser(refreshedSession.access_token)
+        const got = await withTimeout(supabase.auth.getSession(), 15000, 'Sign in')
+        let session = got.data.session
+
+        if (!session) {
+          const refreshed = await withTimeout(
+            supabase.auth.refreshSession(),
+            15000,
+            'Sign in'
+          ).catch(() => null)
+          session = refreshed?.data.session ?? null
+        }
+
+        if (!session) {
+          setStatus('error')
+          setErrorMsg('Authentication failed. Please try again.')
+          setTimeout(() => router.push('/login'), 2000)
           return
         }
 
         await syncUser(session.access_token)
-      } catch {
+      } catch (err: any) {
         setStatus('error')
-        setErrorMsg('Something went wrong. Please try again.')
-        setTimeout(() => router.push('/login'), 2000)
+        setErrorMsg(
+          /timed out/i.test(err?.message ?? '')
+            ? 'Sign in is taking too long. Please try again.'
+            : 'Something went wrong. Please try again.'
+        )
+        setTimeout(() => router.push('/login'), 2500)
       }
     }
 
@@ -54,13 +94,20 @@ function CallbackContent() {
 
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
+
+        // The API can be cold on a free tier, so this gets a longer budget than
+        // the auth calls — but still a budget.
+        const controller = new AbortController()
+        const abort = setTimeout(() => controller.abort(), 25000)
+
         const res = await fetch(`${apiUrl}/api/auth/google/sync`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
           },
-        })
+          signal: controller.signal,
+        }).finally(() => clearTimeout(abort))
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
