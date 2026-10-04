@@ -88,7 +88,18 @@ export async function notify(args: NotifyArgs) {
         removeOnComplete: 100,
       });
     } else {
-      await resend.emails.send(payload);
+      /*
+       * Resend does not throw when it refuses a message — it RETURNS
+       * { data: null, error }. Awaiting the call and moving on treated every
+       * rejected email (bad address, oversized attachment, rate limit) as sent,
+       * with nothing in the logs. The error has to be read off the result.
+       */
+      const result: any = await resend.emails.send(payload);
+      if (result?.error) {
+        logger.error(
+          `notification.email rejected for ${to} (${event}): ${result.error.name ?? ""} ${result.error.message ?? JSON.stringify(result.error)}`
+        );
+      }
     }
   } catch (err) {
     logger.error(`notification.email failed for ${to}: ${(err as Error).message}`);

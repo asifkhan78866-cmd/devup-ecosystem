@@ -35,7 +35,7 @@ export async function getBranding(startupId: string) {
   if (!branding) {
     throw new AppError(
       409,
-      "Startup branding must be configured before issuing documents. Add legal name, address and signatory in Settings.",
+      "Startup branding must be configured before issuing documents. Add the legal name and signatory in Settings.",
       "BRANDING_MISSING"
     );
   }
@@ -84,6 +84,9 @@ export async function issue(args: IssueArgs, tx?: Prisma.TransactionClient) {
       cosignatoryOrg: branding.cosignatoryOrg,
       cosignatureImageUrl: branding.cosignatureImageUrl,
       primaryColor: branding.primaryColor,
+      secondaryColor: branding.secondaryColor,
+      tagline: branding.tagline,
+      markUrl: branding.markUrl,
     },
     // type drives the letterhead wording: partners are not "part of" DevUp.
     _startup: { name: startup?.name, code: startup?.code, type: startup?.type },

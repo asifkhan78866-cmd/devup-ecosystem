@@ -864,11 +864,13 @@ router.put(
 const brandingBody = z.object({
   body: z.object({
     legalName: z.string().min(2),
-    addressLine1: z.string().min(2),
-    addressLine2: z.string().optional(),
-    city: z.string().min(1),
-    state: z.string().min(1),
-    pincode: z.string().min(4).max(10),
+    // Optional: a startup may issue letters with no address at all. Blanks are
+    // stored as null so the letterhead prints nothing rather than an empty line.
+    addressLine1: z.string().max(160).optional().or(z.literal("")).transform((v) => v || null),
+    addressLine2: z.string().max(160).optional().or(z.literal("")).transform((v) => v || null),
+    city: z.string().max(80).optional().or(z.literal("")).transform((v) => v || null),
+    state: z.string().max(80).optional().or(z.literal("")).transform((v) => v || null),
+    pincode: z.string().max(10).optional().or(z.literal("")).transform((v) => v || null),
     logoUrl: z.string().url().optional().or(z.literal("")),
     cin: z.string().max(30).optional().or(z.literal("")),
     signatoryName: z.string().min(2),
@@ -881,6 +883,10 @@ const brandingBody = z.object({
     cosignatoryOrg: z.string().max(120).optional().or(z.literal("")),
     cosignatureImageUrl: z.string().url().optional().or(z.literal("")),
     primaryColor: z.string().max(9).optional(),
+    // Setting a second colour switches letters to the branded design.
+    secondaryColor: z.string().max(9).optional().or(z.literal("")).transform((v) => v || null),
+    tagline: z.string().max(60).optional().or(z.literal("")).transform((v) => v || null),
+    markUrl: z.string().url().optional().or(z.literal("")).transform((v) => v || null),
   }),
 });
 

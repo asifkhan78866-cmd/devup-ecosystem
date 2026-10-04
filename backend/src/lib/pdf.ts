@@ -41,7 +41,7 @@ async function getBrowser(): Promise<Browser | null> {
   browserPromise = (async () => {
     try {
       const puppeteer = (await import("puppeteer")).default as any;
-      return (await puppeteer.launch({
+      const browser = (await puppeteer.launch({
         headless: true,
         // Hosts that ship their own Chrome (Render, Docker images, Nix) set this
         // rather than relying on puppeteer's bundled download.
@@ -55,7 +55,20 @@ async function getBrowser(): Promise<Browser | null> {
           "--disable-dev-shm-usage",
           "--font-render-hinting=none",
         ],
-      })) as Browser;
+      })) as Browser & { on?: (e: string, fn: () => void) => void };
+
+      /*
+       * If Chromium dies — out of memory on a small host is the usual cause —
+       * drop the handle. Before this, the dead browser stayed cached for the
+       * life of the process, every later render failed on newPage(), and every
+       * offer letter went out with no PDF attached until somebody restarted
+       * the server.
+       */
+      browser.on?.("disconnected", () => {
+        logger.warn("PDF browser disconnected — it will be relaunched on the next render");
+        browserPromise = null;
+      });
+      return browser;
     } catch (err) {
       unavailableReason = (err as Error).message;
       unavailableAt = Date.now();
@@ -98,9 +111,28 @@ export interface PdfOptions {
   margin?: { top?: string; bottom?: string; left?: string; right?: string };
 }
 
+/**
+ * Renders a PDF, retrying once on a fresh browser.
+ *
+ * A render that fails because the browser crashed between two letters is not
+ * a reason to email a candidate an offer with nothing attached. The second
+ * attempt relaunches Chromium; only if that fails too does the caller get null.
+ */
 export async function htmlToPdf(
   html: string,
   opts: PdfOptions = {},
+): Promise<Buffer | null> {
+  const first = await renderOnce(html, opts);
+  if (first) return first;
+
+  logger.warn("PDF render failed — relaunching the browser and retrying once");
+  await closePdfBrowser().catch(() => undefined);
+  return renderOnce(html, opts);
+}
+
+async function renderOnce(
+  html: string,
+  opts: PdfOptions,
 ): Promise<Buffer | null> {
   const browser = await getBrowser();
   if (!browser) return null;
@@ -111,7 +143,7 @@ export async function htmlToPdf(
 
     // waitUntil networkidle0 so remote logos and signature images are painted
     // before the snapshot; without it letters can render with missing branding.
-    await page.setContent(html, { waitUntil: "networkidle0", timeout: 20000 });
+    await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
 
     const running = Boolean(opts.headerHtml || opts.footerHtml);
 

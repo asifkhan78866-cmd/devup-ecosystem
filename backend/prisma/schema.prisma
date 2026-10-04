@@ -1510,11 +1510,14 @@ model StartupBranding {
   startupId           String   @unique
   startup             Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
   legalName           String
-  addressLine1        String
+  /// Optional. A startup without a registered office of its own — or one that
+  /// would rather not print it — issues letters with no address at all, rather
+  /// than borrowing one that is not theirs.
+  addressLine1        String?
   addressLine2        String?
-  city                String
-  state               String
-  pincode             String
+  city                String?
+  state               String?
+  pincode             String?
   logoUrl             String?
   /// Corporate Identity Number, printed on issued documents. Per startup:
   /// an ecosystem partner is a separate legal entity with its own CIN.
@@ -1537,6 +1540,16 @@ model StartupBranding {
   updatedAt           DateTime @updatedAt
 }
 
+  /// Setting this switches the startup's letters to its own brand: a circular
+  /// seal watermark, a two-colour wave along the foot, and a larger logo. Left
+  /// empty, letters keep the plain monochrome DevUp layout.
+  secondaryColor      String?
+  /// Set around the foot of the watermark seal, e.g. "India's Fast Assistance
+  /// Network".
+  tagline             String?
+  /// The brand mark alone, without the wordmark, used at the centre of the
+  /// watermark. Falls back to the logo.
+  markUrl             String?
 enum EmploymentStatus {
   ACTIVE
   NOTICE

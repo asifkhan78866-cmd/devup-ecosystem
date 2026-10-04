@@ -15,7 +15,7 @@ export default function SettingsPage() {
     logoUrl: "", signatoryName: "", signatoryTitle: "", signatureImageUrl: "",
     signatoryOrg: "DevUp Ecosystem",
     cosignatoryName: "", cosignatoryTitle: "", cosignatoryOrg: "", cosignatureImageUrl: "",
-    primaryColor: "#c8f135",
+    primaryColor: "#c8f135", secondaryColor: "", tagline: "", markUrl: "",
   });
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -41,8 +41,8 @@ export default function SettingsPage() {
     setError(null);
     try {
       await workspaceApi.saveBranding(code, {
-        legalName: f.legalName, cin: f.cin ?? "", addressLine1: f.addressLine1, addressLine2: f.addressLine2 || undefined,
-        city: f.city, state: f.state, pincode: f.pincode,
+        legalName: f.legalName, cin: f.cin ?? "", addressLine1: f.addressLine1 ?? "", addressLine2: f.addressLine2 ?? "",
+        city: f.city ?? "", state: f.state ?? "", pincode: f.pincode ?? "",
         logoUrl: f.logoUrl || undefined, signatoryName: f.signatoryName, signatoryTitle: f.signatoryTitle,
         signatureImageUrl: f.signatureImageUrl || undefined,
         signatoryOrg: f.signatoryOrg || undefined,
@@ -52,6 +52,10 @@ export default function SettingsPage() {
         cosignatoryOrg: f.cosignatoryOrg ?? "",
         cosignatureImageUrl: f.cosignatureImageUrl || undefined,
         primaryColor: f.primaryColor,
+        // Sent as "" so clearing the second colour switches the branded design off.
+        secondaryColor: f.secondaryColor ?? "",
+        tagline: f.tagline ?? "",
+        markUrl: f.markUrl ?? "",
       });
       setSaved(true);
     } catch (e: any) {
@@ -61,7 +65,7 @@ export default function SettingsPage() {
     }
   };
 
-  const complete = f.legalName && f.addressLine1 && f.city && f.state && f.pincode && f.signatoryName && f.signatoryTitle;
+  const complete = f.legalName && f.signatoryName && f.signatoryTitle;
 
   if (loading) return <div className="p-8 text-[#6b6b6b] text-sm">Loading…</div>;
 
@@ -86,13 +90,13 @@ export default function SettingsPage() {
       <div className="space-y-4">
         <Section title="Legal entity">
           <div><label className={label}>Registered legal name *</label><input className={input} value={f.legalName} onChange={(e) => set("legalName", e.target.value)} /></div>
-          <div><label className={label}>Address line 1 *</label><input className={input} value={f.addressLine1} onChange={(e) => set("addressLine1", e.target.value)} /></div>
+          <div><label className={label}>Address line 1</label><input className={input} placeholder="Leave blank to print no address" value={f.addressLine1 ?? ""} onChange={(e) => set("addressLine1", e.target.value)} /></div>
           <div><label className={label}>CIN</label><input className={input} placeholder="U85500TS2026PTC216527" value={f.cin ?? ""} onChange={(e) => set("cin", e.target.value)} /></div>
           <div><label className={label}>Address line 2</label><input className={input} value={f.addressLine2 ?? ""} onChange={(e) => set("addressLine2", e.target.value)} /></div>
           <div className="grid grid-cols-3 gap-2">
-            <div><label className={label}>City *</label><input className={input} value={f.city} onChange={(e) => set("city", e.target.value)} /></div>
-            <div><label className={label}>State *</label><input className={input} value={f.state} onChange={(e) => set("state", e.target.value)} /></div>
-            <div><label className={label}>Pincode *</label><input className={input} value={f.pincode} onChange={(e) => set("pincode", e.target.value)} /></div>
+            <div><label className={label}>City</label><input className={input} value={f.city ?? ""} onChange={(e) => set("city", e.target.value)} /></div>
+            <div><label className={label}>State</label><input className={input} value={f.state ?? ""} onChange={(e) => set("state", e.target.value)} /></div>
+            <div><label className={label}>Pincode</label><input className={input} value={f.pincode ?? ""} onChange={(e) => set("pincode", e.target.value)} /></div>
           </div>
         </Section>
 
@@ -130,6 +134,18 @@ export default function SettingsPage() {
               <input className={input} value={f.primaryColor ?? ""} onChange={(e) => set("primaryColor", e.target.value)} />
             </div>
           </div>
+          <div>
+            <label className={label}>Second brand colour</label>
+            <div className="flex gap-2 items-center">
+              <input type="color" value={f.secondaryColor || "#ffffff"} onChange={(e) => set("secondaryColor", e.target.value)} className="w-10 h-9 rounded bg-transparent border border-white/10 cursor-pointer" />
+              <input className={input} placeholder="Leave blank for the plain DevUp letter" value={f.secondaryColor ?? ""} onChange={(e) => set("secondaryColor", e.target.value)} />
+            </div>
+            <p className="text-[10px] text-[#6b6b6b] mt-1">
+              Setting this switches your letters to your own brand: seal watermark, two-colour wave footer and a larger logo.
+            </p>
+          </div>
+          <div><label className={label}>Watermark tagline</label><input className={input} placeholder="India's Fast Assistance Network" value={f.tagline ?? ""} onChange={(e) => set("tagline", e.target.value)} /></div>
+          <div><label className={label}>Brand mark URL (icon only, for the watermark)</label><input className={input} value={f.markUrl ?? ""} onChange={(e) => set("markUrl", e.target.value)} /></div>
         </Section>
 
         <button
@@ -140,7 +156,7 @@ export default function SettingsPage() {
         >
           {busy ? "Saving…" : "Save branding"}
         </button>
-        {!complete && <p className="text-[10px] text-[#6b6b6b]">Fill every required field before saving.</p>}
+        {!complete && <p className="text-[10px] text-[#6b6b6b]">Legal name and signatory are required.</p>}
       </div>
     </div>
   );

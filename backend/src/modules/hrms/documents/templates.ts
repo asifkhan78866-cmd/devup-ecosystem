@@ -188,7 +188,7 @@ function logos(p: any) {
   const b = p._branding ?? {};
   return `<div class="logos">
     ${p._devupLogo ? `<img class="logo" src="${esc(p._devupLogo)}" alt="DevUp Ecosystem">` : ""}
-    ${b.logoUrl ? `<span class="logo-sep"></span><img class="logo" src="${esc(b.logoUrl)}" alt="">` : ""}
+    ${b.logoUrl ? `<span class="logo-sep"></span><img class="logo brand" src="${esc(b.logoUrl)}" alt="">` : ""}
   </div>`;
 }
 
@@ -271,6 +271,132 @@ function ecosystemSignatures(p: any) {
   </div>`;
 }
 
+/* ─────────────────────────────────────────────────────────
+   Branded letters.
+
+   A startup that sets a second brand colour gets its own identity on its
+   letters: a circular seal watermark, a two-colour wave along the foot, brand
+   rules under the letterhead and a larger logo. One that does not keeps the
+   plain monochrome layout above, unchanged — the switch is the data, so no
+   startup's letters change because another asked for colour.
+   ───────────────────────────────────────────────────────── */
+
+function isBranded(b: any) {
+  return Boolean(b?.secondaryColor && b?.primaryColor);
+}
+
+/** Darkens a #rrggbb colour by a fraction, for the deep band of the wave. */
+function shade(hex: string, by: number) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex ?? "").trim());
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const ch = (v: number) => Math.max(0, Math.round(v * (1 - by)));
+  const r = ch((n >> 16) & 255), g = ch((n >> 8) & 255), bl = ch(n & 255);
+  return `#${((r << 16) | (g << 8) | bl).toString(16).padStart(6, "0")}`;
+}
+
+/**
+ * The seal watermark: two rings, the name set round the top, the tagline round
+ * the foot, and the brand mark in the middle — drawn as SVG so it is crisp at
+ * any print size and costs nothing to render. Held very faint, because it sits
+ * behind the terms of an offer and must never compete with them.
+ */
+function watermark(p: any) {
+  const b = p._branding ?? {};
+  const name = String(p._startup?.name || b.legalName || "").toUpperCase();
+  const tagline = String(b.tagline || "").toUpperCase();
+  const mark = b.markUrl || b.logoUrl;
+  const c1 = b.primaryColor;
+  const c2 = b.secondaryColor;
+
+  // Font size is solved from the arc each line should fill, so a short name
+  // and a long tagline both sit squarely on the seal. Width per glyph is taken
+  // as 0.68em of bold Arial plus the tracking.
+  const fit = (text: string, arc: number, track: number, min: number, max: number) =>
+    Math.max(min, Math.min(max, (arc / Math.max(1, text.length) - track) / 0.68));
+  const nameTrack = 9;
+  const tagTrack = 2.2;
+  const nameSize = fit(name, Math.PI * 152 * (118 / 180), nameTrack, 18, 44);
+  const tagSize = fit(tagline, Math.PI * 162 * (158 / 180), tagTrack, 11, 22);
+
+  return `<svg class="wm" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <path id="wm-top" d="M 48 200 A 152 152 0 0 1 352 200"/>
+      <path id="wm-bot" d="M 38 200 A 162 162 0 0 0 362 200"/>
+    </defs>
+    <circle cx="200" cy="200" r="194" fill="none" stroke="${esc(c1)}" stroke-width="5"/>
+    <circle cx="200" cy="200" r="186" fill="none" stroke="${esc(c2)}" stroke-width="1.6"/>
+    <circle cx="200" cy="200" r="118" fill="none" stroke="${esc(c1)}" stroke-width="2.2"/>
+    <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${nameSize.toFixed(1)}"
+          letter-spacing="${nameTrack}" fill="${esc(c1)}">
+      <textPath href="#wm-top" startOffset="50%" text-anchor="middle">${esc(name)}</textPath>
+    </text>
+    ${
+      tagline
+        ? `<text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${tagSize.toFixed(1)}"
+          letter-spacing="${tagTrack}" fill="${esc(c2)}" dominant-baseline="hanging">
+      <textPath href="#wm-bot" startOffset="50%" text-anchor="middle">${esc(tagline)}</textPath>
+    </text>`
+        : ""
+    }
+    ${mark ? `<image href="${esc(mark)}" x="112" y="132" width="176" height="136" preserveAspectRatio="xMidYMid meet"/>` : ""}
+  </svg>`;
+}
+
+/** The two-colour wave along the foot of a branded letter. */
+function wave(p: any) {
+  const b = p._branding ?? {};
+  const deep = shade(b.primaryColor, 0.45);
+  return `<svg class="wave" viewBox="0 0 1000 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M0,58 C240,30 500,96 1000,34 L1000,58 C520,116 250,58 0,86 Z" fill="${esc(b.secondaryColor)}"/>
+    <path d="M0,84 C260,56 520,120 1000,58 L1000,110 L0,110 Z" fill="${esc(deep)}"/>
+    <path d="M0,98 C280,74 560,126 1000,80 L1000,110 L0,110 Z" fill="${esc(b.primaryColor)}" opacity="0.55"/>
+  </svg>`;
+}
+
+/** Branded styles, scoped under .branded so the plain layout is untouched. */
+function brandedStyles(p: any) {
+  const b = p._branding ?? {};
+  if (!isBranded(b)) return "";
+  const c1 = b.primaryColor;
+  const c2 = b.secondaryColor;
+  return `
+  .branded { padding-bottom: 16mm; }
+  .branded .head { gap: 6mm; padding-bottom: 2.5mm; }
+  .branded .logo { height: 19mm; max-width: 52mm; }
+  /* The startup's own logo is the larger of the two. The supplied artwork is
+     cropped to its ink, so this height is all logo rather than white margin. */
+  .branded .logo.brand { height: 23mm; max-width: 66mm; }
+  .branded .org-name { color: ${esc(shade(c1, 0.35))}; }
+  .branded .rule { background: ${esc(c1)}; height: 2px; }
+  .branded .rule-thin { background: ${esc(c2)}; height: 1px; opacity: 0.85; }
+  .branded .title { color: ${esc(shade(c1, 0.35))}; }
+  .branded .section { border-bottom-color: ${esc(c1)}; color: ${esc(shade(c1, 0.35))}; }
+  .branded .foot { border-top-color: ${esc(c2)}; }
+  /* The wave takes 16mm off the foot of the page, so a branded letter gives
+     back a little vertical rhythm elsewhere to keep a full offer on one sheet
+     with its footer clear of the wave. */
+  .branded .title { margin: 2mm 0 2.6mm; }
+  .branded .confidential { margin-top: 2.6mm; }
+  .branded .section { margin: 2.4mm 0 1.2mm; padding-bottom: 1mm; }
+  .branded table.kv td { padding: 0.75mm 0; }
+  .branded .accept-row { margin-top: 3mm; padding-top: 1.8mm; }
+  .branded .body p { margin-bottom: 1.6mm; }
+  .branded .behalf { margin-top: 3mm; }
+  .branded .terms { margin: 1mm 0 1.4mm; }
+  /* Behind everything, centred on the body. Printed even when the reader's
+     browser would drop backgrounds, because it is an image, not a background. */
+  .branded .wm { position: absolute; left: 50%; top: 52%; width: 132mm; height: 132mm;
+                 transform: translate(-50%, -50%); opacity: 0.1; z-index: 0;
+                 pointer-events: none; }
+  .branded > :not(.wm):not(.wave) { position: relative; z-index: 1; }
+  /* 15mm tall with its highest crest about 10mm off the edge, under a 16mm
+     bottom padding — so the footer line always clears it, on both sides. */
+  .branded .wave { position: absolute; left: 0; right: 0; bottom: 0; width: 210mm;
+                   height: 15mm; z-index: 0; display: block; }
+  `;
+}
+
 /** The single-page A4 frame every letter prints inside. */
 function sheet(
   p: any,
@@ -286,9 +412,10 @@ function sheet(
   return `<!doctype html>
 <html><head><meta charset="utf-8">
 <title>${esc(title)} — ${esc(p._documentNo)}</title>
-<style>${styles()}</style>
+<style>${styles()}${brandedStyles(p)}</style>
 </head><body>
-<div class="sheet">
+<div class="sheet${isBranded(b) ? " branded" : ""}">
+  ${isBranded(b) ? watermark(p) : ""}
   <div class="head">
     ${logos(p)}
     <div class="org">
@@ -330,7 +457,31 @@ function sheet(
         : ""
     }
   </div>
+  ${isBranded(b) ? wave(p) : ""}
 </div>
+${
+  /*
+   * Fit to one page. The wave takes the foot of a branded sheet, so a letter
+   * that runs long would push its footer down onto it. Rather than letting the
+   * footer print over the wave, the body is scaled down in small steps until
+   * the footer clears — never below 84%, which stays comfortably legible. A
+   * letter that already fits is left exactly as written.
+   */
+  isBranded(b)
+    ? `<script>(function () {
+  var s = document.querySelector('.sheet.branded');
+  if (!s) return;
+  var f = s.querySelector('.foot'), body = s.querySelector('.body');
+  if (!f || !body) return;
+  var limit = s.getBoundingClientRect().bottom - parseFloat(getComputedStyle(s).paddingBottom);
+  var z = 1;
+  while (f.getBoundingClientRect().bottom > limit + 0.5 && z > 0.84) {
+    z = Math.round((z - 0.02) * 100) / 100;
+    body.style.zoom = z;
+  }
+})();</script>`
+    : ""
+}
 </body></html>`;
 }
 
@@ -781,3 +932,4 @@ export function renderDocument(
   if (!tpl) throw new Error(`Unknown template: ${key}`);
   return tpl(payload);
 }
+

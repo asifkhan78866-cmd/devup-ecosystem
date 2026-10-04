@@ -102,8 +102,18 @@ export async function issueDocument(req: IssueRequest) {
   return doc;
 }
 
+/**
+ * How a document is named in the email subject. The enum name lower-cased gave
+ * "Your lor is ready", which reads as a typo in an inbox.
+ */
+const DOC_NAMES: Partial<Record<HrDocType, string>> = {
+  LOR: "Letter of Recommendation",
+  OFFER_LETTER: "Offer Letter",
+  ID_CARD: "ID Card",
+};
+
 function label(t: HrDocType) {
-  return t.replace(/_/g, " ").toLowerCase();
+  return DOC_NAMES[t] ?? t.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /** Marks an employee as exited so exit documents become available. */
