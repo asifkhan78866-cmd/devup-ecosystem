@@ -1536,10 +1536,6 @@ model StartupBranding {
   cosignatureImageUrl String?
   letterheadUrl       String?
   primaryColor        String?  @default("#c8f135")
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-}
-
   /// Setting this switches the startup's letters to its own brand: a circular
   /// seal watermark, a two-colour wave along the foot, and a larger logo. Left
   /// empty, letters keep the plain monochrome DevUp layout.
@@ -1550,6 +1546,10 @@ model StartupBranding {
   /// The brand mark alone, without the wordmark, used at the centre of the
   /// watermark. Falls back to the logo.
   markUrl             String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
 enum EmploymentStatus {
   ACTIVE
   NOTICE
