@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import api from '@/config/api'
+import api, { TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY, clearSession } from '@/config/api'
 import type { User } from '@/types'
 
 interface AuthState {
@@ -16,16 +16,15 @@ export function useAuth() {
   })
 
   useEffect(() => {
-    const token = localStorage.getItem('devup_admin_token')
-    const userStr = localStorage.getItem('devup_admin_user')
+    const token = localStorage.getItem(TOKEN_KEY)
+    const userStr = localStorage.getItem(USER_KEY)
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr)
         if (user.role === 'ADMIN') {
           setState({ user, token, isLoading: false })
         } else {
-          localStorage.removeItem('devup_admin_token')
-          localStorage.removeItem('devup_admin_user')
+          clearSession()
           setState({ user: null, token: null, isLoading: false })
         }
       } catch {
@@ -38,21 +37,21 @@ export function useAuth() {
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await api.post('/api/auth/login', { email, password })
-    const { user, token } = res.data.data
+    const { user, token, refreshToken } = res.data.data
 
     if (user.role !== 'ADMIN') {
       throw new Error('Access denied. Admin privileges required.')
     }
 
-    localStorage.setItem('devup_admin_token', token)
-    localStorage.setItem('devup_admin_user', JSON.stringify(user))
+    localStorage.setItem(TOKEN_KEY, token)
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+    localStorage.setItem(USER_KEY, JSON.stringify(user))
     setState({ user, token, isLoading: false })
     return user
   }, [])
 
   const logout = useCallback(() => {
-    localStorage.removeItem('devup_admin_token')
-    localStorage.removeItem('devup_admin_user')
+    clearSession()
     setState({ user: null, token: null, isLoading: false })
   }, [])
 

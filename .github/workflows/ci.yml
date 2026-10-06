@@ -68,7 +68,6 @@ jobs:
     env:
       DATABASE_URL: postgresql://test:test@localhost:5432/devup_test
       DIRECT_URL: postgresql://test:test@localhost:5432/devup_test
-      JWT_SECRET: test-jwt-secret-minimum-32-characters-long
       NODE_ENV: test
 
     steps:

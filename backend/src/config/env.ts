@@ -18,7 +18,8 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().default("http://localhost:54321"),
   SUPABASE_ANON_KEY: z.string().default("dev-anon-key"),
   SUPABASE_SERVICE_ROLE_KEY: z.string().default("dev-service-role-key"),
-  SUPABASE_JWT_SECRET: z.string().default("dev-jwt-secret-min-32-characters-long"),
+  // No SUPABASE_JWT_SECRET: tokens are verified by Supabase Auth, never locally,
+  // so the server has no use for the project's signing secret and must not hold it.
 
   DATABASE_URL: z.string().default("postgresql://postgres:postgres@localhost:5432/devup"),
   DIRECT_URL: z.string().default("postgresql://postgres:postgres@localhost:5432/devup"),
@@ -78,15 +79,7 @@ const envSchema = z.object({
   STORAGE_BUCKET_PITCHDECKS: z.string().default("pitch-decks"),
   MAX_FILE_SIZE_MB: z.string().default("10").transform((v) => Number.parseInt(v, 10)),
 
-  JWT_EXPIRES_IN: z.string().default("7d"),
-  REFRESH_TOKEN_EXPIRES_IN: z.string().default("30d"),
   ADMIN_REGISTRATION_SECRET: z.string().default("dev-admin-secret-key"),
-
-  /**
-   * Opt-in for the hardcoded local admin login. Never set this anywhere real —
-   * it exists so the admin panel can be opened without a Supabase round trip.
-   */
-  ALLOW_DEV_LOGIN: z.string().optional().transform((v) => v === "true"),
 
   RATE_LIMIT_WINDOW_MS: z.string().default("900000").transform((v) => Number.parseInt(v, 10)),
   RATE_LIMIT_MAX_REQUESTS: z.string().default("100").transform((v) => Number.parseInt(v, 10)),
@@ -161,6 +154,58 @@ try {
 }
 
 /**
+ * Shape checks on the Supabase auth configuration. Messages name the variable
+ * and the problem, never the value.
+ *
+ * A key is either a legacy JWT key or one of Supabase's newer API keys. The
+ * classic mistake is pasting the anon key into the service-role slot, which
+ * the legacy keys let us catch by reading their (unverified) role claim.
+ */
+function supabaseAuthProblems(): string[] {
+  const problems: string[] = [];
+  const legacyRole = (key: string) => {
+    const parts = key.split(".");
+    if (parts.length !== 3 || !key.startsWith("eyJ")) return null;
+    try {
+      return JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8")).role ?? "";
+    } catch {
+      return "";
+    }
+  };
+
+  try {
+    if (new URL(env.SUPABASE_URL).protocol !== "https:") problems.push("SUPABASE_URL must use https");
+  } catch {
+    problems.push("SUPABASE_URL is not a valid URL");
+  }
+
+  const anonRole = legacyRole(env.SUPABASE_ANON_KEY);
+  if (anonRole === null ? !env.SUPABASE_ANON_KEY.startsWith("sb_publishable_") : anonRole !== "anon") {
+    problems.push("SUPABASE_ANON_KEY is not a Supabase anon/publishable key");
+  }
+
+  const serviceRole = legacyRole(env.SUPABASE_SERVICE_ROLE_KEY);
+  if (serviceRole === null ? !env.SUPABASE_SERVICE_ROLE_KEY.startsWith("sb_secret_") : serviceRole !== "service_role") {
+    problems.push("SUPABASE_SERVICE_ROLE_KEY is not a Supabase service-role/secret key");
+  }
+  if (env.SUPABASE_SERVICE_ROLE_KEY === env.SUPABASE_ANON_KEY) {
+    problems.push("SUPABASE_SERVICE_ROLE_KEY is the same as SUPABASE_ANON_KEY");
+  }
+
+  return problems;
+}
+
+/**
+ * The signing secret used to be read here. Nothing reads it now, and a copy
+ * sitting in a host's environment is one more place for it to leak from.
+ */
+if (process.env.SUPABASE_JWT_SECRET) {
+  console.warn(
+    "SUPABASE_JWT_SECRET is set but no longer used. Remove it from this environment."
+  );
+}
+
+/**
  * Every variable above has a development default so a fresh clone runs without
  * setup, which is a liability in production: a deploy that forgets
  * SUPABASE_SERVICE_ROLE_KEY would otherwise run on a value published in this
@@ -188,13 +233,12 @@ if (env.NODE_ENV === "production") {
     ["SUPABASE_URL", env.SUPABASE_URL, "http://localhost:54321"],
     ["SUPABASE_ANON_KEY", env.SUPABASE_ANON_KEY, "dev-anon-key"],
     ["SUPABASE_SERVICE_ROLE_KEY", env.SUPABASE_SERVICE_ROLE_KEY, "dev-service-role-key"],
-    ["SUPABASE_JWT_SECRET", env.SUPABASE_JWT_SECRET, "dev-jwt-secret-min-32-characters-long"],
   ];
   for (const [name, value, devDefault] of required) {
     if (!value || value === devDefault) fatal.push(`${name} is not set (still the development default)`);
   }
+  fatal.push(...supabaseAuthProblems());
   if (env.DATABASE_URL.includes("localhost")) fatal.push("DATABASE_URL still points at localhost");
-  if (env.ALLOW_DEV_LOGIN) fatal.push("ALLOW_DEV_LOGIN is enabled — that is a password bypass");
 
   if (fatal.length > 0) {
     console.error("Refusing to start in production:\n  - " + fatal.join("\n  - "));

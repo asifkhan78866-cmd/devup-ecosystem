@@ -28,7 +28,7 @@ class ApiError extends Error {
  * codebase ever wrote that key, so reading it sent requests with no auth header
  * at all and every call came back "Invalid token".
  *
- * localStorage is kept only as a fallback for the dev-bypass JWT.
+ * There is no other source: the API accepts only tokens Supabase vouches for.
  */
 async function getAccessToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
@@ -36,12 +36,10 @@ async function getAccessToken(): Promise<string | null> {
   try {
     const { createClient } = await import("@/lib/supabase");
     const { data } = await createClient().auth.getSession();
-    if (data.session?.access_token) return data.session.access_token;
+    return data.session?.access_token ?? null;
   } catch {
-    // Supabase unavailable — fall through to the local token.
+    return null;
   }
-
-  return localStorage.getItem("devup_token");
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -76,8 +74,6 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     if (response.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("devup_token");
-
       // Only bounce to login when the user genuinely has no session. If a
       // Supabase session exists, a 401 means the backend rejected an otherwise
       // valid token — redirecting would loop, so surface the error instead.

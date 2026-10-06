@@ -1,10 +1,19 @@
+import { isAuthRetryableFetchError, Session } from "@supabase/supabase-js";
 import { prisma } from "../../lib/prisma";
-import { supabaseAdmin } from "../../config/supabase";
+import { supabaseAdmin, createSessionClient } from "../../config/supabase";
 import { AppError } from "../../middleware/errorHandler";
 import { Role, AuthProvider } from "@prisma/client";
 import { env, productionGaps } from "../../config/env";
-import jwt from "jsonwebtoken";
 import { claimByEmail } from "../shared/claim.service";
+
+/** The parts of a Supabase session an API client needs, and nothing else. */
+function sessionTokens(session: Session) {
+  return {
+    token: session.access_token,
+    refreshToken: session.refresh_token,
+    expiresAt: session.expires_at ?? null,
+  };
+}
 
 export class AuthService {
   async register(data: any) {
@@ -70,34 +79,26 @@ export class AuthService {
     return user;
   }
 
+  /**
+   * Password sign-in for clients that talk only to this API (the admin portal).
+   *
+   * Returns Supabase's own session rather than a token minted here. Minting
+   * locally meant signing with the project's JWT secret, which made that secret
+   * a skeleton key; Supabase's session can be refreshed and revoked, ours could
+   * not. There is deliberately no hardcoded development login any more.
+   */
   async login(data: any) {
     const { email, password } = data;
 
-    /**
-     * Local-only bypass so the admin panel opens without a Supabase round trip.
-     *
-     * Gated on an explicit opt-in rather than NODE_ENV alone: NODE_ENV defaults
-     * to "development", so a deploy that simply forgets to set it would have
-     * shipped a published username and password straight to production.
-     */
-    if (env.ALLOW_DEV_LOGIN && env.NODE_ENV !== "production" && email === "admin@devup.in" && password === "admin123") {
-      const user = await prisma.user.findUnique({ where: { email } });
-      if (user) {
-        const token = jwt.sign(
-          { sub: user.id },
-          env.SUPABASE_JWT_SECRET as jwt.Secret,
-          { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
-        );
-        return { user, token };
-      }
-    }
-
-    const { data: authData, error } = await supabaseAdmin.auth.signInWithPassword({
+    const { data: authData, error } = await createSessionClient().auth.signInWithPassword({
       email,
       password,
     });
 
     if (error || !authData.session) {
+      if (error && isAuthRetryableFetchError(error)) {
+        throw new AppError(503, "Authentication is temporarily unavailable. Please retry.", "AUTH_UNAVAILABLE");
+      }
       throw new AppError(401, "Invalid credentials", "INVALID_CREDENTIALS");
     }
 
@@ -112,15 +113,29 @@ export class AuthService {
       data: { lastLoginAt: new Date() },
     });
 
-    const token = jwt.sign(
-      { sub: user.id },
-      env.SUPABASE_JWT_SECRET as jwt.Secret,
-      { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] }
-    );
     return {
       user,
-      token,
+      ...sessionTokens(authData.session),
     };
+  }
+
+  /**
+   * Trades a refresh token for a new session. Supabase access tokens are
+   * short-lived, so API-only clients call this instead of signing in again.
+   */
+  async refresh(refreshToken: string) {
+    const { data, error } = await createSessionClient().auth.refreshSession({
+      refresh_token: refreshToken,
+    });
+
+    if (error || !data.session) {
+      if (error && isAuthRetryableFetchError(error)) {
+        throw new AppError(503, "Authentication is temporarily unavailable. Please retry.", "AUTH_UNAVAILABLE");
+      }
+      throw new AppError(401, "Session expired. Please sign in again.", "INVALID_REFRESH_TOKEN");
+    }
+
+    return sessionTokens(data.session);
   }
 
   /**

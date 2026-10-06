@@ -3,6 +3,7 @@ import { env } from "./config/env";
 import { logger } from "./middleware/logger";
 import { prisma } from "./lib/prisma";
 import { redis } from "./config/redis";
+import { verifySupabaseAuthConfig } from "./config/supabase";
 
 // Initialize BullMQ workers
 import "./jobs/emailQueue";
@@ -14,6 +15,13 @@ const startServer = async () => {
     // Check DB connection
     await prisma.$connect();
     logger.info("✅ Connected to Database (PostgreSQL via Prisma)");
+
+    // Every request is authenticated by Supabase. A rejected key would leave the
+    // server up but unable to let anyone in, so production refuses to start.
+    if (env.NODE_ENV === "production" && !(await verifySupabaseAuthConfig())) {
+      logger.error("❌ Refusing to start: Supabase auth configuration was rejected.");
+      process.exit(1);
+    }
 
     // Start server
     const server = app.listen(env.PORT, () => {

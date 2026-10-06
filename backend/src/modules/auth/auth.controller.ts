@@ -15,6 +15,11 @@ export class AuthController {
     res.status(200).json({ success: true, data });
   }
 
+  async refresh(req: Request, res: Response) {
+    const data = await authService.refresh(req.body.refreshToken);
+    res.status(200).json({ success: true, data });
+  }
+
   async logout(req: Request, res: Response) {
     const token = req.headers.authorization?.split(" ")[1] || "";
     await authService.logout(token);

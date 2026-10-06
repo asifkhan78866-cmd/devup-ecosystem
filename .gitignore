@@ -10,6 +10,16 @@ frontend/.env*.local
 frontend/.env.production
 backend/.env
 backend/admin/.env
+# Any other env variant (staging, production, …). Only the examples are tracked.
+backend/.env.*
+backend/admin/.env.*
+!backend/.env.example
+!backend/admin/.env.example
+
+# Keys and certificates
+*.pem
+*.key
+*.p12
 
 # Dependencies
 node_modules/

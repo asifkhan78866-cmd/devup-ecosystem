@@ -179,12 +179,13 @@ app.get("/api/stats", async (req: Request, res: Response) => {
 });
 
 /**
- * Rate limiting — only on login/register to prevent brute-force attacks.
+ * Rate limiting — only on login/register/refresh to prevent brute-force attacks.
  * All other routes are unrestricted. DB is protected via connection
  * pooling and query timeouts in prisma.ts.
  */
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
+app.use("/api/auth/refresh", authLimiter);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
