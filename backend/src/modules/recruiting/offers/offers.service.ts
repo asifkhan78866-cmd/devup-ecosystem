@@ -6,6 +6,7 @@ import { nextOfferNo, nextEmployeeCode, nextInternCode, offerExpiryFor } from ".
 import * as documents from "../../hrms/documents/document.service";
 import { recordServiceStage } from "../pipeline/pipeline.service";
 import { audit, AuditAction } from "../../shared/audit.service";
+import { findVerifiedUserIdByEmail } from "../../shared/claim.service";
 import { notify, notifyTenantRoles } from "../../shared/notification.service";
 import { HIRING_ROLES } from "../../../lib/tenantRoles";
 
@@ -432,10 +433,29 @@ export async function onboard(args: {
   const isIntern = app.job.type === "INTERNSHIP";
   const email = app.applicantEmail ?? "";
 
+  /**
+   * `applicantEmail` is whatever the candidate typed into the application form;
+   * it proves nothing. An existing record or seat filed under that address is
+   * reused only if it is already this applicant's, or is unclaimed and the
+   * applicant's account has verified that address. Otherwise a candidate who
+   * typed a founder's email would, once hired, have taken over the founder's
+   * workspace seat — role and all.
+   */
+  const verifiedOwnerId = email ? await findVerifiedUserIdByEmail(email) : null;
+  const belongsToApplicant = (ownerId: string | null) =>
+    ownerId === app.userId || (ownerId === null && verifiedOwnerId === app.userId);
+  const emailConflict = () =>
+    new AppError(
+      409,
+      "A record for this email already exists and is not linked to this candidate's verified account",
+      "EMAIL_CONFLICT"
+    );
+
   // Rehire keeps the original permanent code — the brief says it never changes.
   const priorEmployee = isIntern
     ? null
     : await prisma.employee.findFirst({ where: { startupId: args.startupId, email } });
+  if (priorEmployee && !belongsToApplicant(priorEmployee.userId)) throw emailConflict();
 
   return prisma.$transaction(async (tx) => {
     let record: any;
@@ -469,6 +489,7 @@ export async function onboard(args: {
         ? await tx.employee.update({
             where: { id: priorEmployee.id },
             data: {
+              userId: app.userId,
               status: "ACTIVE",
               exitedAt: null,
               designation: app.offer!.designation,
@@ -497,6 +518,12 @@ export async function onboard(args: {
 
     // Grant workspace access at the right privilege level.
     if (app.userId && email) {
+      const seat = await tx.startupMember.findUnique({
+        where: { startupId_email: { startupId: args.startupId, email } },
+        select: { userId: true },
+      });
+      if (seat && !belongsToApplicant(seat.userId)) throw emailConflict();
+
       await tx.startupMember.upsert({
         where: { startupId_email: { startupId: args.startupId, email } },
         create: {

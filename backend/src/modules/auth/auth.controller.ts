@@ -6,8 +6,22 @@ const authService = new AuthService();
 
 export class AuthController {
   async register(req: Request, res: Response) {
-    const user = await authService.register(req.body);
-    res.status(201).json({ success: true, data: user });
+    const data = await authService.register(req.body);
+    // 202 for every outcome: the account is not usable until the email is confirmed.
+    res.status(202).json({ success: true, data });
+  }
+
+  async verifyEmail(req: Request, res: Response) {
+    const data = await authService.verifyEmail(req.body.token, req.body.password);
+    res.status(200).json({ success: true, data });
+  }
+
+  async resendVerification(req: Request, res: Response) {
+    await authService.resendVerification(req.body.email);
+    res.status(202).json({
+      success: true,
+      data: { message: "If that address has an unverified account, a new link is on its way." },
+    });
   }
 
   async login(req: Request, res: Response) {

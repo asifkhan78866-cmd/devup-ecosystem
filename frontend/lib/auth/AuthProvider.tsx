@@ -43,7 +43,7 @@ interface AuthContextType {
   user: UserProfile | null
   session: Session | null
   loading: boolean
-  signUp: (data: SignUpData) => Promise<{ error?: string }>
+  signUp: (data: SignUpData) => Promise<{ error?: string; verificationSent?: boolean }>
   signIn: (email: string, password: string) => Promise<{ error?: string }>
   signInWithGoogle: (redirectTo?: string) => Promise<void>
   signInWithOAuth: (provider: OAuthProvider, redirectTo?: string) => Promise<void>
@@ -151,16 +151,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: result.error || result.message || 'Registration failed' }
       }
 
-      // Sign in with Supabase after registration
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      })
-
-      if (error) return { error: error.message }
-      
-      router.push('/dashboard')
-      return {}
+      // No sign-in yet: the account cannot be used until the owner of the
+      // address follows the link we just emailed. The answer is the same
+      // whether or not the address already had an account.
+      return { verificationSent: true }
     } catch {
       return { error: 'Something went wrong. Please try again.' }
     }

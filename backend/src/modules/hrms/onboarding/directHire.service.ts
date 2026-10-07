@@ -4,6 +4,7 @@ import { prisma } from "../../../lib/prisma";
 import { AppError } from "../../../middleware/errorHandler";
 import { nextEmployeeCode, nextInternCode } from "../../../lib/numbering";
 import { audit } from "../../shared/audit.service";
+import { findVerifiedUserIdByEmail } from "../../shared/claim.service";
 import { notify } from "../../shared/notification.service";
 import { Emails } from "../../../lib/email/templates";
 import { SITE_URL } from "../../../lib/email/layout";
@@ -76,8 +77,11 @@ export async function createDirectHire(input: DirectHireInput) {
   }
 
   // Link to an existing DevUp account when there is one, so they see their
-  // onboarding checklist on their own dashboard.
-  const user = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+  // onboarding checklist on their own dashboard — but only an account that has
+  // proven it owns this address. Anyone can sign up with someone else's email;
+  // an unverified account gets nothing, and the record is claimed on verify.
+  const verifiedUserId = await findVerifiedUserIdByEmail(email);
+  const user = verifiedUserId ? { id: verifiedUserId } : null;
 
   let endDate: Date | null = null;
   if (isIntern) {

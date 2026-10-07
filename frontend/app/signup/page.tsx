@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Rocket, GraduationCap, Briefcase } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import GoogleLogin from '@/components/auth/google-login'
+import CheckInbox from '@/components/auth/CheckInbox'
 
 export default function SignupPage() {
   const [step, setStep] = useState(1)
@@ -25,6 +26,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [sentTo, setSentTo] = useState('')
   const { signUp } = useAuth()
   const router = useRouter()
 
@@ -69,7 +71,22 @@ export default function SignupPage() {
     if (result.error) {
       setError(result.error)
       setLoading(false)
+      return
     }
+    if (result.verificationSent) {
+      setSentTo(formData.email.trim().toLowerCase())
+      setLoading(false)
+    }
+  }
+
+  if (sentTo) {
+    return (
+      <main style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ width: '100%', maxWidth: 420 }}>
+          <CheckInbox email={sentTo} />
+        </div>
+      </main>
+    )
   }
 
   const inputStyle = {

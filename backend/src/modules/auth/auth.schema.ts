@@ -22,6 +22,19 @@ export const refreshSchema = z.object({
   })
 });
 
+export const verifyEmailSchema = z.object({
+  body: z.object({
+    token: z.string().min(20).max(200),
+    password: z.string().min(8).max(128),
+  })
+});
+
+export const resendVerificationSchema = z.object({
+  body: z.object({
+    email: z.string().email(),
+  })
+});
+
 export const authResponseSchema = z.object({
   user: z.object({
     id: z.string(),

@@ -44,8 +44,22 @@ export const logger = winston.createLogger({
   transports,
 });
 
+/**
+ * Request paths with bearer tokens in them — invitation and KYC upload links —
+ * are logged with the token cut out. A log line is copied, shipped and kept far
+ * longer than the link is meant to live.
+ */
+export function redactUrl(url: string) {
+  return url
+    .replace(/(\/invites\/)[^/?#]+/g, "$1[redacted]")
+    .replace(/(\/api\/kyc\/)[^/?#]+/g, "$1[redacted]")
+    .replace(/([?&](?:token|access_token|refresh_token)=)[^&#]*/gi, "$1[redacted]");
+}
+
+morgan.token("safe-url", (req) => redactUrl((req as { originalUrl?: string }).originalUrl ?? req.url ?? ""));
+
 export const morganMiddleware = morgan(
-  ":method :url :status :res[content-length] - :response-time ms",
+  ":method :safe-url :status :res[content-length] - :response-time ms",
   {
     stream: {
       write: (message) => logger.http(message.trim()),

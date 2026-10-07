@@ -3,6 +3,7 @@ import { requireAuth } from "../../middleware/auth";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import * as perks from "./perks.service";
+import { claimByEmail } from "../shared/claim.service";
 
 /**
  * Public verification and the partner portal.
@@ -111,24 +112,18 @@ router.post("/me/partners/:partnerId/redeem", requireAuth, async (req, res) => {
 
 // ── Recipient's own tickets ──────────────────────────
 /**
- * Awards belonging to the signed-in person, matched on account *or* email.
+ * Awards belonging to the signed-in person.
  *
- * Most recipients are awarded before they ever sign up, so an award carrying
- * only their email still has to find them. Matching on both, then writing the
- * link back, means it resolves once and stays resolved.
+ * Most recipients are awarded before they ever sign up, so awards carrying only
+ * their email are attached by the shared claim — which does nothing until the
+ * account has proven it owns that address. Matching on the email directly here
+ * handed redeemable codes to anyone who signed up with someone else's address.
  */
 router.get("/me/tickets", requireAuth, async (req, res) => {
-  const email = req.user!.email.toLowerCase();
-
-  await prisma.perkAward
-    .updateMany({
-      where: { recipientEmail: email, userId: null },
-      data: { userId: req.user!.id },
-    })
-    .catch(() => undefined);
+  await claimByEmail(req.user!.id);
 
   const awards = await prisma.perkAward.findMany({
-    where: { OR: [{ userId: req.user!.id }, { recipientEmail: email }], status: { not: "REVOKED" } },
+    where: { userId: req.user!.id, status: { not: "REVOKED" } },
     include: { perk: { include: { partner: true } }, redemption: true },
     orderBy: { issuedAt: "desc" },
   });

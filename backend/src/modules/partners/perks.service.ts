@@ -7,6 +7,7 @@ import { uploadFile } from "../../lib/storage";
 import { htmlToPdf } from "../../lib/pdf";
 import { logger } from "../../middleware/logger";
 import { audit } from "../shared/audit.service";
+import { findVerifiedUserIdByEmail } from "../shared/claim.service";
 import { notify } from "../shared/notification.service";
 import { Emails } from "../../lib/email/templates";
 import { LOGO_URL, SITE_URL } from "../../lib/email/layout";
@@ -126,8 +127,10 @@ export async function awardPerk(input: AwardInput) {
       continue;
     }
 
-    // Link an account if one exists; claim-by-email attaches it later if not.
-    const user = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+    // Link a verified account if one exists; the shared claim attaches the
+    // award later, once the owner of this address verifies it.
+    const verifiedUserId = await findVerifiedUserIdByEmail(email);
+    const user = verifiedUserId ? { id: verifiedUserId } : null;
 
     const award = await prisma.perkAward.create({
       data: {

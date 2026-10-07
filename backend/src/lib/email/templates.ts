@@ -64,6 +64,30 @@ export const Emails = {
       orgLogoUrl: logoUrl,
     }),
 
+  // ── Account ───────────────────────────────────────
+  verifyEmail: (link: string, hours: number) =>
+    renderEmail({
+      heading: "Confirm your email address",
+      preheader: "Finish setting up your DevUp account",
+      body:
+        p("Someone — hopefully you — signed up for DevUp Ecosystem with this email address.") +
+        p(`Confirm it and set your password to finish. The link works once and expires in ${hours} hours.`) +
+        p("If you did not sign up, ignore this email. Nobody can use this address on DevUp without the link."),
+      cta: { label: "Confirm my email", url: link },
+      footnote: `If the button does not work, copy this link into your browser:<br>${link}`,
+    }),
+
+  accountExists: (loginLink: string) =>
+    renderEmail({
+      heading: "You already have a DevUp account",
+      preheader: "Someone tried to sign up with this email address",
+      body:
+        p("Someone tried to create a DevUp Ecosystem account with this email address, but it already has one.") +
+        p("If that was you, sign in instead — use “Forgot password” if you need to.") +
+        p("If it was not you, you can ignore this email. Your account has not changed."),
+      cta: { label: "Sign in", url: loginLink },
+    }),
+
   // ── Recruiting ────────────────────────────────────
   applicationSubmitted: (args: {
     name: string; jobTitle: string; startupName: string; applicationNo: string; applicationId: string;

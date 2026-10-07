@@ -157,7 +157,7 @@ router.get("/me/onboarding", requireAuth, async (req, res) => {
 
   let [employees, interns] = await load();
   // Onboarded before they signed up? Attach the records, then read again.
-  if (await claimIfEmpty(req.user!.id, req.user!.email, employees.length + interns.length > 0)) {
+  if (await claimIfEmpty(req.user!.id, employees.length + interns.length > 0)) {
     [employees, interns] = await load();
   }
 
@@ -225,7 +225,7 @@ async function myInternships(userId: string) {
 /** One card per active internship — normally exactly one. */
 router.get("/me/attendance", requireAuth, async (req, res) => {
   let internships = await myInternships(req.user!.id);
-  if (await claimIfEmpty(req.user!.id, req.user!.email, internships.length > 0)) {
+  if (await claimIfEmpty(req.user!.id, internships.length > 0)) {
     internships = await myInternships(req.user!.id);
   }
   ok(
@@ -472,7 +472,7 @@ router.get("/me/workspaces", requireAuth, async (req, res) => {
   // wasted write on every dashboard load.
   if (memberships.length === 0) {
     const anyMembership = await prisma.startupMember.count({ where: { userId: req.user!.id } });
-    if (await claimIfEmpty(req.user!.id, req.user!.email, anyMembership > 0)) {
+    if (await claimIfEmpty(req.user!.id, anyMembership > 0)) {
       memberships = await load();
     }
   }

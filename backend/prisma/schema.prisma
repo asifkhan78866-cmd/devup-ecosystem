@@ -25,16 +25,20 @@ enum AuthProvider {
 }
 
 model User {
-  id           String       @id @default(uuid())
-  email        String       @unique
-  passwordHash String?
-  role         Role         @default(STUDENT)
-  isVerified   Boolean      @default(false)
-  avatarUrl    String?
-  authProvider AuthProvider @default(EMAIL)
-  lastLoginAt  DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id              String       @id @default(uuid())
+  email           String       @unique
+  passwordHash    String?
+  role            Role         @default(STUDENT)
+  isVerified      Boolean      @default(false)
+  /// Set only once ownership of `email` has been proven: a verification link, a
+  /// verified OAuth identity, or a token-bearing invite. Records keyed by email
+  /// are never attached to an account without it.
+  emailVerifiedAt DateTime?
+  avatarUrl       String?
+  authProvider    AuthProvider @default(EMAIL)
+  lastLoginAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   profile             Profile?
   startups            Startup[]               @relation("StartupFounders")
@@ -61,6 +65,24 @@ model User {
   pushSubscriptions  PushSubscription[]
   perkAwards         PerkAward[]
   partnerAccounts    PartnerUser[]
+  emailVerifications EmailVerification[]
+}
+
+/// Single-use, expiring proof-of-inbox tokens. Only the SHA-256 of the token is
+/// stored; the token itself exists in the email and nowhere else.
+model EmailVerification {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// The address the token was sent to. Verification fails if the account email
+  /// has changed since.
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model Profile {

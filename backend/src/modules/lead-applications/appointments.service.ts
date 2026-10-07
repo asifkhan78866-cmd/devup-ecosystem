@@ -10,6 +10,7 @@ import { letterheadLogo, orgDetails } from "../legal/letterhead";
 import { SITE_URL } from "../../lib/email/layout";
 import { notify } from "../shared/notification.service";
 import { audit, AuditAction } from "../shared/audit.service";
+import { findVerifiedUserIdByEmail } from "../shared/claim.service";
 import { Emails } from "../../lib/email/templates";
 import { TIERS, renderDeed, AppointmentPayload } from "./appointmentTemplates";
 import { renderCertificate } from "./certificate.template";
@@ -338,7 +339,9 @@ async function sendDeed(
 ) {
   const serial = a.revenueSerial ?? revenueSerialFor(a.documentNo);
   const tier = TIERS[a.role];
-  const user = await prisma.user.findUnique({ where: { email: a.email }, select: { id: true } });
+  // In-app notices go only to an account that has proven it owns this address.
+  const verifiedUserId = await findVerifiedUserIdByEmail(a.email);
+  const user = verifiedUserId ? { id: verifiedUserId } : null;
   const fmt = (d: Date) => d.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
   // Instrument numbers are slash-separated, which no mail client will accept
   // in a filename.
@@ -527,7 +530,9 @@ export async function revokeAppointment(id: string, reason: string, actorId: str
 
   // The holder is told. An office withdrawn silently is how someone keeps
   // introducing themselves with a title they no longer hold.
-  const user = await prisma.user.findUnique({ where: { email: a.email }, select: { id: true } });
+  // In-app notices go only to an account that has proven it owns this address.
+  const verifiedUserId = await findVerifiedUserIdByEmail(a.email);
+  const user = verifiedUserId ? { id: verifiedUserId } : null;
   await notify({
     userId: user?.id,
     email: a.email,

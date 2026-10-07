@@ -1,10 +1,10 @@
-import { randomBytes } from 'crypto';
 import { Role } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { AppError } from '../../middleware/errorHandler';
 import { sendTeamInviteEmail } from '../../lib/resend';
 import { supabaseAdmin } from '../../config/supabase';
-import { createStartupOwnership } from './ownership.service';
+import { newToken, hashToken } from '../../lib/tokens';
+import { claimByEmail } from '../shared/claim.service';
 
 /**
  * Every tenant role is storable, so team structure can be recorded now and the
@@ -21,6 +21,49 @@ const VALID_ROLES = [
  * out of managing their own team.
  */
 const OWNER_ROLES = ['OWNER', 'FOUNDER'] as const;
+
+/**
+ * Invitations are bearer links: whoever holds one can join a startup.
+ *
+ *   - The token is 256 random bits and only its SHA-256 is stored in
+ *     `inviteToken`, so the database cannot be turned back into working links.
+ *   - It expires INVITE_TTL_DAYS after it was (re)issued.
+ *   - Using it rotates the stored hash, so the link dies on first use and a
+ *     replay finds nothing.
+ *   - Acceptance is bound to the invited address.
+ *
+ * Every failure gives the same answer, which says nothing about whether the
+ * invite or the person exists.
+ */
+export const INVITE_TTL_DAYS = 7;
+
+const invalidInvite = () => new AppError(404, 'This invite is invalid or has expired', 'INVITE_INVALID');
+
+const sameEmail = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+async function findUsableInvite(token: string) {
+  if (typeof token !== 'string' || token.length < 20 || token.length > 200) throw invalidInvite();
+  const member = await prisma.startupMember.findUnique({
+    where: { inviteToken: hashToken(token) },
+    include: { startup: { select: { name: true, slug: true } } },
+  });
+  if (!member || member.status !== 'INVITED') throw invalidInvite();
+  if (Date.now() - member.invitedAt.getTime() > INVITE_TTL_DAYS * 24 * 60 * 60_000) throw invalidInvite();
+  return member;
+}
+
+/**
+ * Spends the invite. Conditional on it still being INVITED with the same hash,
+ * so of two simultaneous acceptances exactly one wins; the hash is replaced
+ * with one nobody holds.
+ */
+async function consumeInvite(member: { id: string; inviteToken: string }, userId: string) {
+  const { count } = await prisma.startupMember.updateMany({
+    where: { id: member.id, status: 'INVITED', inviteToken: member.inviteToken },
+    data: { userId, status: 'ACTIVE', joinedAt: new Date(), inviteToken: newToken().hash },
+  });
+  if (count !== 1) throw invalidInvite();
+}
 
 export async function inviteMember(params: {
   startupId: string;
@@ -54,7 +97,7 @@ export async function inviteMember(params: {
     throw new AppError(409, 'This email is already invited or a member');
   }
 
-  const inviteToken = randomBytes(24).toString('hex');
+  const { token: inviteToken, hash: inviteTokenHash } = newToken();
 
   // Handle re-inviting a removed member by upsert or checking existence
   const member = await prisma.startupMember.upsert({
@@ -63,7 +106,7 @@ export async function inviteMember(params: {
       role: params.role as any,
       status: 'INVITED',
       invitedBy: params.invitedBy,
-      inviteToken,
+      inviteToken: inviteTokenHash,
       invitedAt: new Date(),
     },
     create: {
@@ -72,7 +115,7 @@ export async function inviteMember(params: {
       role: params.role as any,
       status: 'INVITED',
       invitedBy: params.invitedBy,
-      inviteToken,
+      inviteToken: inviteTokenHash,
     },
   });
 
@@ -90,24 +133,28 @@ export async function inviteMember(params: {
   return member;
 }
 
+/**
+ * Existing account, signed in. The invite is bound to its address, and the
+ * account must have proven it owns that address — otherwise anyone who signed
+ * up with the invitee's email and got hold of the link could take the seat.
+ */
 export async function acceptInvite(token: string, userId: string) {
-  const member = await prisma.startupMember.findUnique({
-    where: { inviteToken: token },
+  const member = await findUsableInvite(token);
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, emailVerifiedAt: true },
   });
-  
-  if (!member || member.status !== 'INVITED') {
-    throw new AppError(400, 'Invite is invalid or already used');
+  if (!user || !sameEmail(user.email, member.email)) {
+    throw new AppError(403, 'This invite was sent to a different email address', 'INVITE_EMAIL_MISMATCH');
+  }
+  if (!user.emailVerifiedAt) {
+    throw new AppError(403, 'Verify your email address before accepting this invite', 'EMAIL_NOT_VERIFIED');
   }
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (user?.email !== member.email) {
-    throw new AppError(403, 'This invite was sent to a different email address');
-  }
-
-  return prisma.startupMember.update({
-    where: { id: member.id },
-    data: { userId, status: 'ACTIVE', joinedAt: new Date() },
-  });
+  await consumeInvite(member, userId);
+  await claimByEmail(userId);
+  return prisma.startupMember.findUnique({ where: { id: member.id } });
 }
 
 export async function changeRole(params: {
@@ -167,7 +214,7 @@ async function assertIsOwner(startupId: string, userId: string) {
 // ---------------------------------------------------------------------------
 // Admin-issued founder invites (reuses the StartupMember row as the invite
 // record — INVITED == "pending", ACTIVE == "consumed"). No separate Invite
-// table; expiry (expiresAt) is not yet modeled and is deferred.
+// table; expiry runs from invitedAt (see INVITE_TTL_DAYS).
 // ---------------------------------------------------------------------------
 
 // ADMIN-only: invite a founder (by email) to OWN an existing startup.
@@ -188,7 +235,7 @@ export async function adminInviteFounder(params: {
     throw new AppError(409, 'This email is already a member of this startup');
   }
 
-  const inviteToken = randomBytes(24).toString('hex');
+  const { token: inviteToken, hash: inviteTokenHash } = newToken();
 
   // Upsert so a stale/re-sent invite just re-issues a fresh token.
   const member = await prisma.startupMember.upsert({
@@ -197,7 +244,7 @@ export async function adminInviteFounder(params: {
       role: 'FOUNDER',
       status: 'INVITED',
       invitedBy: params.invitedBy,
-      inviteToken,
+      inviteToken: inviteTokenHash,
       invitedAt: new Date(),
     },
     create: {
@@ -206,7 +253,7 @@ export async function adminInviteFounder(params: {
       role: 'FOUNDER',
       status: 'INVITED',
       invitedBy: params.invitedBy,
-      inviteToken,
+      inviteToken: inviteTokenHash,
     },
   });
 
@@ -221,27 +268,35 @@ export async function adminInviteFounder(params: {
 }
 
 // Public: details the accept page needs to render (startup name + which flow).
+// Only a live invite answers; used, expired and unknown links look the same.
 export async function getInviteByToken(token: string) {
-  const member = await prisma.startupMember.findUnique({
-    where: { inviteToken: token },
-    include: { startup: { select: { name: true, slug: true } } },
-  });
-  if (!member) throw new AppError(404, 'Invite not found');
+  const member = await findUsableInvite(token);
 
-  const account = await prisma.user.findUnique({ where: { email: member.email } });
+  const account = await prisma.user.findFirst({
+    where: { email: { equals: member.email, mode: 'insensitive' } },
+    select: { id: true },
+  });
 
   return {
     email: member.email,
     startupName: member.startup?.name ?? null,
     role: member.role,
     status: member.status,
-    consumed: member.status !== 'INVITED',
+    consumed: false,
     hasAccount: Boolean(account),
+    expiresAt: new Date(member.invitedAt.getTime() + INVITE_TTL_DAYS * 24 * 60 * 60_000),
   };
 }
 
-// New-user path: set a password, create the account, then attach ownership.
-// Existing accounts use the existing POST /invites/:token/accept (logged in).
+/**
+ * New-user path: set a password, create the account, join with the invited role.
+ * Existing accounts use POST /invites/:token/accept (signed in).
+ *
+ * The invite link reached this person through the invited inbox, so holding it
+ * is proof of the address: the account is created confirmed and verified, and
+ * anything else HR created for the address is attached. That is the only
+ * reason it may skip email verification.
+ */
 export async function registerAndAccept(params: {
   token: string;
   password: string;
@@ -251,42 +306,45 @@ export async function registerAndAccept(params: {
     throw new AppError(400, 'Password must be at least 6 characters');
   }
 
-  const member = await prisma.startupMember.findUnique({ where: { inviteToken: params.token } });
-  if (!member || member.status !== 'INVITED') {
-    throw new AppError(400, 'Invite is invalid or already used');
-  }
+  const member = await findUsableInvite(params.token);
 
-  const existing = await prisma.user.findUnique({ where: { email: member.email } });
+  const existing = await prisma.user.findFirst({
+    where: { email: { equals: member.email, mode: 'insensitive' } },
+    select: { id: true },
+  });
   if (existing) {
     throw new AppError(409, 'An account already exists for this email — please log in and accept the invite', 'ACCOUNT_EXISTS');
   }
 
-  // Create the Supabase auth user + DB user (same mechanism as auth register).
+  const email = member.email.trim().toLowerCase();
   const { data: authData, error } = await supabaseAdmin.auth.admin.createUser({
-    email: member.email,
+    email,
     password: params.password,
     email_confirm: true,
   });
   if (error || !authData.user) {
-    throw new AppError(500, error?.message || 'Failed to create account', 'SUPABASE_CREATE_FAILED');
+    if (error?.code === 'email_exists') {
+      throw new AppError(409, 'An account already exists for this email — please log in and accept the invite', 'ACCOUNT_EXISTS');
+    }
+    throw new AppError(500, 'Failed to create account', 'SUPABASE_CREATE_FAILED');
   }
 
+  // The platform role follows the invited role. Previously every invitee who
+  // took this path became a FOUNDER and the startup's owner, whatever they
+  // were invited as.
+  const isOwnerInvite = (OWNER_ROLES as readonly string[]).includes(member.role);
   const user = await prisma.user.create({
     data: {
       id: authData.user.id,
-      email: member.email,
-      role: Role.FOUNDER,
-      profile: { create: { name: params.name || member.email.split('@')[0] } },
+      email,
+      role: isOwnerInvite ? Role.FOUNDER : Role.STUDENT,
+      emailVerifiedAt: new Date(),
+      profile: { create: { name: params.name || email.split('@')[0] } },
     },
   });
 
-  // Attach to the EXISTING startup: upsert promotes the INVITED row to ACTIVE OWNER.
-  await createStartupOwnership(prisma, {
-    startupId: member.startupId,
-    userId: user.id,
-    email: member.email,
-    invitedBy: member.invitedBy,
-  });
+  await consumeInvite(member, user.id);
+  await claimByEmail(user.id);
 
   return { email: member.email, startupId: member.startupId };
 }

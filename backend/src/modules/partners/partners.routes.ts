@@ -6,6 +6,7 @@ import { validate } from "../../middleware/validate";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { audit } from "../shared/audit.service";
+import { findVerifiedUserIdByEmail } from "../shared/claim.service";
 import * as perks from "./perks.service";
 
 /**
@@ -337,14 +338,17 @@ router.post("/:id/users", ...adminOnly, async (req, res) => {
   const email = String(req.body?.email ?? "").trim().toLowerCase();
   if (!email) throw new AppError(400, "Email is required", "EMAIL_REQUIRED");
 
-  const user = await prisma.user.findUnique({ where: { email }, select: { id: true } });
-  if (!user) {
+  // Partner staff can redeem tickets, so the account must have proven it owns
+  // this address — signing up with someone else's email must not be enough.
+  const userId = await findVerifiedUserIdByEmail(email);
+  if (!userId) {
     throw new AppError(
       404,
-      `${email} has no DevUp account yet. Ask them to sign up first, then add them here.`,
+      `${email} has no verified DevUp account yet. Ask them to sign up and verify their email first, then add them here.`,
       "USER_NOT_FOUND"
     );
   }
+  const user = { id: userId };
 
   const partnerUser = await prisma.partnerUser.upsert({
     where: { partnerId_userId: { partnerId: req.params.id as string, userId: user.id } },
