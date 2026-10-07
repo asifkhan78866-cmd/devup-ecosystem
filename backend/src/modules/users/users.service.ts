@@ -2,11 +2,27 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { uploadFile } from "../../lib/storage";
 import { env } from "../../config/env";
+import { NEVER_RETURNED } from "../../lib/publicProfile";
+
+/** DevUp staff. Everyone else sees only their own account. */
+const isPlatformAdmin = (role: string) => role === "ADMIN" || role === "SUPER_ADMIN";
+
+/**
+ * A user record is for its owner and DevUp staff. Anyone else gets the same 404
+ * as for an account that does not exist, so ids cannot be probed for members.
+ */
+function assertCanSee(targetId: string, viewer: { id: string; role: string }) {
+  if (viewer.id !== targetId && !isPlatformAdmin(viewer.role)) {
+    throw new AppError(404, "User not found", "NOT_FOUND");
+  }
+}
 
 export class UsersService {
-  async getUserById(id: string) {
+  async getUserById(id: string, viewer: { id: string; role: string }) {
+    assertCanSee(id, viewer);
     const user = await prisma.user.findUnique({
       where: { id },
+      omit: NEVER_RETURNED,
       include: { 
         profile: true,
         startupMemberships: {
@@ -15,13 +31,15 @@ export class UsersService {
         }
       },
     });
-    if (!user) throw new AppError(404, "User not found");
+    if (!user) throw new AppError(404, "User not found", "NOT_FOUND");
     return user;
   }
 
+  /** DevUp staff only (enforced by the route). */
   async getAllUsers(limit: number = 100) {
     const users = await prisma.user.findMany({
       take: limit,
+      omit: NEVER_RETURNED,
       include: { profile: true },
       orderBy: { createdAt: 'desc' }
     });
@@ -100,7 +118,8 @@ export class UsersService {
     });
   }
 
-  async getUserActivity(id: string) {
+  async getUserActivity(id: string, viewer: { id: string; role: string }) {
+    assertCanSee(id, viewer);
     const [hackathons, jobs, founded, joined] = await Promise.all([
       prisma.hackathonRegistration.findMany({
         where: { userId: id },

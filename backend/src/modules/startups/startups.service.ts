@@ -5,6 +5,7 @@ import { env } from "../../config/env";
 import { Prisma } from "@prisma/client";
 import { createStartupOwnership } from "./ownership.service";
 import { canManageStartup, isAnyMember } from "../../lib/tenantRoles";
+import { PUBLIC_USER_SELECT } from "../../lib/publicProfile";
 
 /**
  * The columns a startup's own team may write. Everything else in a request body
@@ -59,7 +60,8 @@ export class StartupsService {
         skip,
         take: Number(limit),
         orderBy: { createdAt: "desc" },
-        include: { primaryFounder: { select: { id: true, email: true, profile: { select: { name: true } } } } }
+        // Public listing: who founded it, never how to reach them.
+        include: { primaryFounder: { select: { id: true, profile: { select: { name: true } } } } }
       }),
       prisma.startup.count({ where })
     ]);
@@ -88,7 +90,9 @@ export class StartupsService {
         ]
       },
       include: {
-        founders: { include: { profile: true } },
+        // Public page: founders as they present themselves. No email, phone,
+        // grades, resume, role or sign-in data.
+        founders: { select: PUBLIC_USER_SELECT },
         jobs: { where: { isActive: true } }
       }
     });

@@ -14,8 +14,11 @@ const upload = multer({
   limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
 });
 
-router.get("/", controller.getUsers);
-router.get("/:id", controller.getUser);
+// Accounts are private. The full list is for DevUp staff; a single record is
+// for its owner and staff. Public profile data is served by the endpoints that
+// show people (startups, co-founders) through PUBLIC_USER_SELECT.
+router.get("/", requireAuth, requireRole(["ADMIN", "SUPER_ADMIN"]), controller.getUsers);
+router.get("/:id", requireAuth, controller.getUser);
 router.patch("/:id", requireAuth, validate(updateUserSchema), controller.updateUser);
 router.post("/:id/resume", requireAuth, upload.single("resume"), controller.uploadResume);
 router.get("/:id/applications", requireAuth, controller.getApplications);

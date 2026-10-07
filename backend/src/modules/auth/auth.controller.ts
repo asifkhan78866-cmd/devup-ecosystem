@@ -1,6 +1,14 @@
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { prisma } from "../../lib/prisma";
+import { NEVER_RETURNED } from "../../lib/publicProfile";
+
+/** A user row as it may leave the server: never with credential columns. */
+function safeUser<T>(user: T): T {
+  if (!user || typeof user !== "object") return user;
+  const { passwordHash: _omit, ...rest } = user as Record<string, unknown>;
+  return rest as T;
+}
 
 const authService = new AuthService();
 
@@ -26,7 +34,7 @@ export class AuthController {
 
   async login(req: Request, res: Response) {
     const data = await authService.login(req.body);
-    res.status(200).json({ success: true, data });
+    res.status(200).json({ success: true, data: { ...data, user: safeUser(data.user) } });
   }
 
   async refresh(req: Request, res: Response) {
@@ -44,6 +52,7 @@ export class AuthController {
     const userId = (req as any).user.id;
     const user = await prisma.user.findUnique({
       where: { id: userId },
+      omit: NEVER_RETURNED,
       include: {
         profile: true,
         // ACTIVE OWNER memberships give the dashboard the caller's own startup(s).
@@ -70,6 +79,6 @@ export class AuthController {
 
     const token = authHeader.split(" ")[1];
     const user = await authService.syncGoogleUser(token);
-    res.status(200).json({ success: true, data: user });
+    res.status(200).json({ success: true, data: safeUser(user) });
   }
 }

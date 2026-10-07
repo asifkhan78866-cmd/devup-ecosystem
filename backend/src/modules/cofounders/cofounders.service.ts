@@ -2,6 +2,10 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { resend, EmailTemplates, MAIL_FROM } from "../../lib/resend";
 import { env } from "../../config/env";
+// Listings are public and a request can be sent to anyone, so people appear only
+// through their public profile: sending a request must not reveal the
+// recipient's phone, grades or resume.
+import { PUBLIC_USER_SELECT } from "../../lib/publicProfile";
 
 export class CofoundersService {
   async getProfiles(query: any) {
@@ -17,7 +21,7 @@ export class CofoundersService {
         where,
         skip,
         take: Number(limit),
-        include: { user: { select: { id: true, profile: true } } },
+        include: { user: { select: PUBLIC_USER_SELECT } },
         orderBy: { updatedAt: "desc" }
       }),
       prisma.cofounderProfile.count({ where })
@@ -33,7 +37,7 @@ export class CofoundersService {
   async getProfileByUserId(userId: string) {
     const profile = await prisma.cofounderProfile.findUnique({
       where: { userId },
-      include: { user: { select: { id: true, profile: true } } }
+      include: { user: { select: PUBLIC_USER_SELECT } }
     });
     if (!profile) throw new AppError(404, "Co-founder profile not found");
     return profile;
@@ -104,13 +108,13 @@ export class CofoundersService {
   async getRequests(userId: string) {
     const received = await prisma.cofounderRequest.findMany({
       where: { toUserId: userId },
-      include: { fromUser: { select: { id: true, profile: true } } },
+      include: { fromUser: { select: PUBLIC_USER_SELECT } },
       orderBy: { createdAt: "desc" }
     });
 
     const sent = await prisma.cofounderRequest.findMany({
       where: { fromUserId: userId },
-      include: { toUser: { select: { id: true, profile: true } } },
+      include: { toUser: { select: PUBLIC_USER_SELECT } },
       orderBy: { createdAt: "desc" }
     });
 

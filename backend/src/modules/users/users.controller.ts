@@ -6,12 +6,14 @@ const usersService = new UsersService();
 
 export class UsersController {
   async getUser(req: Request, res: Response) {
-    const user = await usersService.getUserById(req.params.id as string);
+    const user = await usersService.getUserById(req.params.id as string, req.user!);
     res.status(200).json({ success: true, data: user });
   }
 
   async getUsers(req: Request, res: Response) {
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+    // Bounded: an unbounded limit was a one-request dump of every account.
+    const asked = Number(req.query.limit ?? 100);
+    const limit = Number.isInteger(asked) ? Math.min(Math.max(asked, 1), 200) : 100;
     const users = await usersService.getAllUsers(limit);
     res.status(200).json({ success: true, data: users });
   }
@@ -40,7 +42,7 @@ export class UsersController {
   }
 
   async getActivity(req: Request, res: Response) {
-    const activity = await usersService.getUserActivity(req.params.id as string);
+    const activity = await usersService.getUserActivity(req.params.id as string, req.user!);
     res.status(200).json({ success: true, data: activity });
   }
 

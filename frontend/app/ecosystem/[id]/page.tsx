@@ -78,7 +78,8 @@ export default function StartupProfilePage() {
             twitter: s.twitterUrl,
             team: [
               ...(s.founders?.map((f: any) => ({
-                name: f.profile?.name || f.email,
+                // The public API no longer exposes founders' email addresses.
+                name: f.profile?.name || "Founder",
                 role: "Co-founder",
                 bio: f.profile?.bio || "",
                 seed: f.id,
