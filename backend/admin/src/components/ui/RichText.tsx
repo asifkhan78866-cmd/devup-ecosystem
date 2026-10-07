@@ -195,39 +195,26 @@ export function RichText({ value, onChange, disabled }: Props) {
     run('insertHTML', `<table><thead>${head}</thead><tbody>${body}</tbody></table><p><br></p>`)
   }
 
-  const Btn = ({ onClick, title, children }: any) => (
-    <button
-      type="button"
-      title={title}
-      onMouseDown={(e) => e.preventDefault()} // keep the selection alive
-      onClick={onClick}
-      disabled={disabled}
-      className="rounded p-1.5 text-white/55 transition hover:bg-white/10 hover:text-white disabled:opacity-30"
-    >
-      {children}
-    </button>
-  )
-
   return (
     <div className="overflow-hidden rounded-xl border border-white/10">
       <div className="flex flex-wrap items-center gap-0.5 border-b border-white/10 bg-white/[0.03] px-2 py-1.5">
-        <Btn title="Bold (Ctrl+B)" onClick={() => run('bold')}><Bold className="h-3.5 w-3.5" /></Btn>
-        <Btn title="Italic (Ctrl+I)" onClick={() => run('italic')}><Italic className="h-3.5 w-3.5" /></Btn>
-        <Btn title="Underline (Ctrl+U)" onClick={() => run('underline')}><Underline className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Bold (Ctrl+B)" onClick={() => run('bold')}><Bold className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Italic (Ctrl+I)" onClick={() => run('italic')}><Italic className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Underline (Ctrl+U)" onClick={() => run('underline')}><Underline className="h-3.5 w-3.5" /></Btn>
         <span className="mx-1 h-4 w-px bg-white/10" />
-        <Btn title="Section heading" onClick={() => run('formatBlock', 'h2')}><Heading2 className="h-3.5 w-3.5" /></Btn>
-        <Btn title="Sub-heading" onClick={() => run('formatBlock', 'h3')}><Heading3 className="h-3.5 w-3.5" /></Btn>
-        <Btn title="Body text" onClick={() => run('formatBlock', 'p')}>
+        <Btn disabled={disabled} title="Section heading" onClick={() => run('formatBlock', 'h2')}><Heading2 className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Sub-heading" onClick={() => run('formatBlock', 'h3')}><Heading3 className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Body text" onClick={() => run('formatBlock', 'p')}>
           <span className="px-0.5 text-[11px] font-medium">P</span>
         </Btn>
         <span className="mx-1 h-4 w-px bg-white/10" />
-        <Btn title="Bulleted list" onClick={() => run('insertUnorderedList')}><List className="h-3.5 w-3.5" /></Btn>
-        <Btn title="Numbered list" onClick={() => run('insertOrderedList')}><ListOrdered className="h-3.5 w-3.5" /></Btn>
-        <Btn title="Quote" onClick={() => run('formatBlock', 'blockquote')}><Quote className="h-3.5 w-3.5" /></Btn>
-        <Btn title="Table" onClick={insertTable}><Table className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Bulleted list" onClick={() => run('insertUnorderedList')}><List className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Numbered list" onClick={() => run('insertOrderedList')}><ListOrdered className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Quote" onClick={() => run('formatBlock', 'blockquote')}><Quote className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Table" onClick={insertTable}><Table className="h-3.5 w-3.5" /></Btn>
         <span className="mx-1 h-4 w-px bg-white/10" />
-        <Btn title="Link" onClick={() => setLinkOpen((o) => !o)}><Link2 className="h-3.5 w-3.5" /></Btn>
-        <Btn title="Clear formatting" onClick={() => run('removeFormat')}><Eraser className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Link" onClick={() => setLinkOpen((o) => !o)}><Link2 className="h-3.5 w-3.5" /></Btn>
+        <Btn disabled={disabled} title="Clear formatting" onClick={() => run('removeFormat')}><Eraser className="h-3.5 w-3.5" /></Btn>
 
         <span className="ml-auto pr-1 text-[10px] text-white/25">
           Pasted content keeps its structure, not its styling
@@ -266,6 +253,36 @@ export function RichText({ value, onChange, disabled }: Props) {
         className="agreement-body min-h-[420px] max-h-[62vh] overflow-y-auto bg-[#0d0d0d] px-6 py-5 text-[13.5px] leading-relaxed text-white/85 outline-none"
       />
     </div>
+  )
+}
+
+/**
+ * A toolbar button. Declared at module scope: defined inside RichText it was a
+ * new component type on every render, so React unmounted and remounted every
+ * button on each keystroke.
+ */
+function Btn({
+  onClick,
+  title,
+  disabled,
+  children,
+}: {
+  onClick: () => void
+  title: string
+  disabled?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onMouseDown={(e) => e.preventDefault()} // keep the selection alive
+      onClick={onClick}
+      disabled={disabled}
+      className="rounded p-1.5 text-white/55 transition hover:bg-white/10 hover:text-white disabled:opacity-30"
+    >
+      {children}
+    </button>
   )
 }
 
