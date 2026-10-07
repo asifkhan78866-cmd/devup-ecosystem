@@ -415,9 +415,9 @@ router.post(
     ok(
       res,
       await worklog.fileSummary({
+        ...req.body, /* the request body first: server-resolved fields below always win */
         internId: req.params.internId as string,
         userId: req.user!.id,
-        ...req.body,
       }),
       201
     );

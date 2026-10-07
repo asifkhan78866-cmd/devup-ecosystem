@@ -36,13 +36,24 @@ export class UsersService {
       }
     }
 
+    // Profile columns only. The body used to go to Prisma whole, and Profile
+    // reaches User through a relation — `{ user: { update: { role: "ADMIN" } } }`
+    // made any account a platform admin, and `userId` could re-point the row.
+    const editable = [
+      "name", "bio", "college", "city", "linkedinUrl", "githubUrl", "twitterUrl",
+      "portfolioUrl", "skills", "isOpenToWork", "isLookingForCofounder",
+    ];
+    const fields = Object.fromEntries(
+      Object.entries(data ?? {}).filter(([k, v]) => editable.includes(k) && v !== undefined)
+    );
+
     const profile = await prisma.profile.upsert({
       where: { userId: id },
-      update: data,
+      update: fields,
       create: {
+        ...fields,
         userId: id,
-        name: data.name || "Unknown",
-        ...data,
+        name: (fields.name as string) || "Unknown",
       },
     });
 

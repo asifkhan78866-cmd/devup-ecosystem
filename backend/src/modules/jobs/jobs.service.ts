@@ -4,6 +4,26 @@ import { resend, EmailTemplates, MAIL_FROM } from "../../lib/resend";
 import { env } from "../../config/env";
 import { canManageStartup, canViewApplicants } from "../../lib/tenantRoles";
 
+/**
+ * The columns a startup may write on its own job. Everything else is dropped:
+ * `startupId` would move the job into another startup, and nested relation
+ * writes such as `applications: { connect: [{ id }] }` would re-parent another
+ * startup's applications — and their candidates' details — onto this job.
+ */
+const JOB_EDITABLE = [
+  "title", "description", "type", "domain", "skills", "location", "isRemote", "stipend",
+  "salaryRange", "openings", "deadline", "isActive", "department", "workMode",
+  "responsibilities", "requiredSkills", "preferredSkills", "durationMonths",
+] as const;
+
+function jobFields(data: Record<string, unknown> | undefined) {
+  const out: Record<string, unknown> = {};
+  for (const key of JOB_EDITABLE) {
+    if (data && Object.prototype.hasOwnProperty.call(data, key) && data[key] !== undefined) out[key] = data[key];
+  }
+  return out;
+}
+
 export class JobsService {
   async getJobs(query: any) {
     const { page = 1, limit = 10, type, domain, search, startupId } = query;
@@ -70,7 +90,8 @@ export class JobsService {
       throw new AppError(403, "Not authorized to post a job for this startup");
     }
 
-    return await prisma.job.create({ data });
+    // The startup is the one just authorised above, never anything else in the body.
+    return await prisma.job.create({ data: { ...(jobFields(data) as any), startupId: startup.id } });
   }
 
   async updateJob(id: string, userId: string, role: string, data: any) {
@@ -94,7 +115,7 @@ export class JobsService {
       throw new AppError(403, "Not authorized to update this job");
     }
 
-    return await prisma.job.update({ where: { id }, data });
+    return await prisma.job.update({ where: { id }, data: jobFields(data) as any });
   }
 
   async deleteJob(id: string, userId: string, role: string) {

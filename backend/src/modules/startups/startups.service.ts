@@ -6,6 +6,35 @@ import { Prisma } from "@prisma/client";
 import { createStartupOwnership } from "./ownership.service";
 import { canManageStartup, isAnyMember } from "../../lib/tenantRoles";
 
+/**
+ * The columns a startup's own team may write. Everything else in a request body
+ * is dropped — above all nested relation writes: Prisma treats
+ * `{ employees: { connect: [{ id }] } }` as "move that row into this startup",
+ * so passing the body through let a founder of startup A pull startup B's
+ * employees, jobs, members or documents into A by id.
+ */
+const TEAM_EDITABLE = [
+  "name", "slug", "tagline", "description", "logoUrl", "screenshotUrls", "bannerUrl", "website",
+  "domain", "stage", "foundedYear", "headcount", "location", "city", "fundingAmount", "mrr",
+  "userCount", "founderNames", "githubUrl", "linkedinUrl", "twitterUrl", "aiAnalysis",
+] as const;
+
+/** Presentation and moderation flags only DevUp may set. */
+const PLATFORM_EDITABLE = ["type", "isVerified", "isFeatured", "isActive"] as const;
+
+const isPlatformAdmin = (role: string) => role === "ADMIN" || role === "SUPER_ADMIN";
+
+function writableFields(data: Record<string, unknown> | undefined, role: string) {
+  const allowed: readonly string[] = isPlatformAdmin(role)
+    ? [...TEAM_EDITABLE, ...PLATFORM_EDITABLE]
+    : TEAM_EDITABLE;
+  const out: Record<string, unknown> = {};
+  for (const key of allowed) {
+    if (data && Object.prototype.hasOwnProperty.call(data, key) && data[key] !== undefined) out[key] = data[key];
+  }
+  return out;
+}
+
 export class StartupsService {
   async getStartups(query: any) {
     const { page = 1, limit = 10, domain, stage, search } = query;
@@ -67,23 +96,26 @@ export class StartupsService {
     return startup;
   }
 
-  async createStartup(data: any) {
+  async createStartup(data: any, actor: { id: string; role: string }) {
     // Create the startup and its OWNER membership atomically so a startup can
-    // never exist without an owner. The owner is the founder the startup is
-    // created for (data.founderId), which the controller resolves to req.user.id
-    // for self-serve creation.
+    // never exist without an owner. Self-serve creation always makes the caller
+    // the owner; only DevUp may create a startup on someone else's behalf.
+    // Previously any founder could name an arbitrary user id as the owner.
+    const founderId = isPlatformAdmin(actor.role) && data?.founderId ? String(data.founderId) : actor.id;
+
     return await prisma.$transaction(async (tx) => {
       const startup = await tx.startup.create({
         data: {
-          ...data,
+          ...(writableFields(data, actor.role) as any),
+          founderId,
           isVerified: true,
-          founders: { connect: [{ id: data.founderId }] }
+          founders: { connect: [{ id: founderId }] }
         }
       });
 
       await createStartupOwnership(tx, {
         startupId: startup.id,
-        userId: data.founderId,
+        userId: founderId,
       });
 
       return startup;
@@ -108,14 +140,12 @@ export class StartupsService {
       throw new AppError(403, "Not authorized to update this startup");
     }
 
-    // Only admins may change how a startup is presented (venture vs partner).
-    // A founder must not be able to label their own company an official partner.
-    const { type, ...rest } = data ?? {};
-    const updateData = role === "ADMIN" && type !== undefined ? { ...rest, type } : rest;
-
+    // Only listed columns are written. Admins may additionally change how a
+    // startup is presented (venture vs partner) and moderated; a founder must
+    // not be able to label their own company an official partner or verify it.
     return await prisma.startup.update({
       where: { id },
-      data: updateData
+      data: writableFields(data, role) as any,
     });
   }
 

@@ -56,7 +56,9 @@ export class ApplicationsController {
     // No resume check here — the service decides, because a resume already saved
     // on the profile counts and only the service can see it.
     const data = await service.apply(
-      { jobId: req.params.id as string, userId: req.user!.id, ...req.body },
+      // Body first: the job and the applicant come from the URL and the session,
+      // never from the body — otherwise anyone could apply as someone else.
+      { ...req.body, jobId: req.params.id as string, userId: req.user!.id },
       req.file
     );
     ok(res, data, 201);

@@ -1,10 +1,19 @@
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { AppError } from '../../middleware/errorHandler';
 import { sendTeamInviteEmail } from '../../lib/resend';
 import { supabaseAdmin } from '../../config/supabase';
 import { newToken, hashToken } from '../../lib/tokens';
 import { claimByEmail } from '../shared/claim.service';
+import {
+  Actor,
+  standingIn,
+  canSeeMemberEmails,
+  assertCanChangeRole,
+  assertCanRemove,
+  isOwnerRole,
+  memberNotFound,
+} from './memberPolicy';
 
 /**
  * Every tenant role is storable, so team structure can be recorded now and the
@@ -157,58 +166,125 @@ export async function acceptInvite(token: string, userId: string) {
   return prisma.startupMember.findUnique({ where: { id: member.id } });
 }
 
-export async function changeRole(params: {
-  startupId: string; memberId: string;
-  newRole: string; requestedBy: string;
-}) {
-  await assertIsOwner(params.startupId, params.requestedBy);
-  if (!VALID_ROLES.includes(params.newRole as any)) {
-    throw new AppError(400, 'Invalid role');
-  }
-  return prisma.startupMember.update({
-    where: { id: params.memberId },
-    data: { role: params.newRole as any },
+// ---------------------------------------------------------------------------
+// Team management. Every operation resolves the caller's standing in the
+// startup first, then finds the target *inside that startup* — a member id
+// from another startup is "not found". See memberPolicy.ts.
+// ---------------------------------------------------------------------------
+
+/**
+ * Runs `fn` holding a row lock on the startup, so changes that can reduce the
+ * number of owners are serialised: two simultaneous removals cannot each see
+ * "another owner remains" and together leave the startup with none.
+ */
+function withStartupLock<T>(startupId: string, fn: (tx: Prisma.TransactionClient) => Promise<T>) {
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Startup" WHERE id = ${startupId} FOR UPDATE`;
+    return fn(tx);
   });
 }
 
-export async function removeMember(params: {
-  startupId: string; memberId: string; requestedBy: string;
-}) {
-  await assertIsOwner(params.startupId, params.requestedBy);
-  const member = await prisma.startupMember.findUnique({
-    where: { id: params.memberId }
-  });
-
-  if (!member) throw new AppError(404, 'Member not found');
-
-  // Never leave a startup ownerless.
-  if ((OWNER_ROLES as readonly string[]).includes(member.role)) {
-    const activeOwners = await prisma.startupMember.count({
-      where: {
-        startupId: params.startupId,
-        role: { in: OWNER_ROLES as unknown as string[] } as never,
-        status: 'ACTIVE',
-      },
-    });
-    if (activeOwners <= 1) {
-      throw new AppError(400, 'Cannot remove the last owner');
-    }
-  }
-
-  return prisma.startupMember.delete({ where: { id: params.memberId } });
-}
-
-async function assertIsOwner(startupId: string, userId: string) {
-  const member = await prisma.startupMember.findFirst({
+/** Refuses a change that would leave the startup without an active owner. */
+async function assertAnotherOwnerRemains(tx: Prisma.TransactionClient, startupId: string, leavingId: string) {
+  const others = await tx.startupMember.count({
     where: {
       startupId,
-      userId,
+      id: { not: leavingId },
       status: 'ACTIVE',
       role: { in: OWNER_ROLES as unknown as string[] } as never,
     },
   });
+  if (others === 0) throw new AppError(409, 'A startup must keep at least one founder', 'LAST_OWNER');
+}
 
-  if (!member) throw new AppError(403, 'Only owners can manage the team');
+/**
+ * The team, for someone on it. Founders and admins see everyone, including
+ * pending invites and addresses; other members see active colleagues by name.
+ * Nobody outside the startup sees anything — they get the same 404 as for a
+ * startup that does not exist.
+ */
+export async function listMembers(startupId: string, actor: Actor) {
+  const standing = await standingIn(startupId, actor);
+  const managers = canSeeMemberEmails(standing);
+
+  const rows = await prisma.startupMember.findMany({
+    where: { startupId, ...(managers ? {} : { status: 'ACTIVE' as const }) },
+    select: {
+      id: true, role: true, status: true, joinedAt: true, invitedAt: true, email: true, userId: true,
+      user: { select: { avatarUrl: true, profile: { select: { name: true } } } },
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  return rows.map((m) => ({
+    id: m.id,
+    role: m.role,
+    status: m.status,
+    joinedAt: m.joinedAt,
+    invitedAt: m.invitedAt,
+    isMe: m.userId === actor.id,
+    ...(managers ? { email: m.email } : {}),
+    user: m.user ? { avatarUrl: m.user.avatarUrl, profile: { name: m.user.profile?.name ?? null } } : null,
+  }));
+}
+
+export async function changeRole(params: {
+  startupId: string;
+  memberId: string;
+  newRole: string;
+  actor: Actor;
+}) {
+  const standing = await standingIn(params.startupId, params.actor);
+  if (!VALID_ROLES.includes(params.newRole as any)) {
+    throw new AppError(400, 'Invalid role', 'INVALID_ROLE');
+  }
+
+  return withStartupLock(params.startupId, async (tx) => {
+    const target = await tx.startupMember.findFirst({
+      where: { id: params.memberId, startupId: params.startupId },
+      select: { id: true, userId: true, role: true },
+    });
+    if (!target) throw memberNotFound();
+
+    assertCanChangeRole(standing, params.actor, target, params.newRole);
+    if (isOwnerRole(target.role) && !isOwnerRole(params.newRole)) {
+      await assertAnotherOwnerRemains(tx, params.startupId, target.id);
+    }
+
+    const { count } = await tx.startupMember.updateMany({
+      where: { id: target.id, startupId: params.startupId },
+      data: { role: params.newRole as any },
+    });
+    if (count !== 1) throw memberNotFound();
+    return { id: target.id, role: params.newRole };
+  });
+}
+
+export async function removeMember(params: {
+  startupId: string;
+  memberId: string;
+  actor: Actor;
+}) {
+  const standing = await standingIn(params.startupId, params.actor);
+
+  return withStartupLock(params.startupId, async (tx) => {
+    const target = await tx.startupMember.findFirst({
+      where: { id: params.memberId, startupId: params.startupId },
+      select: { id: true, userId: true, role: true },
+    });
+    if (!target) throw memberNotFound();
+
+    assertCanRemove(standing, params.actor, target);
+    if (isOwnerRole(target.role)) {
+      await assertAnotherOwnerRemains(tx, params.startupId, target.id);
+    }
+
+    const { count } = await tx.startupMember.deleteMany({
+      where: { id: target.id, startupId: params.startupId },
+    });
+    if (count !== 1) throw memberNotFound();
+    return { id: target.id, removed: true };
+  });
 }
 
 // ---------------------------------------------------------------------------

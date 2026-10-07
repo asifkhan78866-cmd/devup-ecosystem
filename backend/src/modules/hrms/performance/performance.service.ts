@@ -79,7 +79,13 @@ export async function update(args: {
     throw new AppError(409, "An acknowledged review can no longer be edited", "REVIEW_LOCKED");
   }
 
-  const updated = await args.db.performanceReview.update({ where: { id: args.id }, data: args.data });
+  // Only the review itself is editable — never whose review it is, who wrote it,
+  // or which startup it belongs to.
+  const editable = ["periodStart", "periodEnd", "rating", "strengths", "improvements", "goals", "status"];
+  const data = Object.fromEntries(
+    Object.entries(args.data ?? {}).filter(([k, v]) => editable.includes(k) && v !== undefined)
+  );
+  const updated = await args.db.performanceReview.update({ where: { id: args.id }, data });
 
   await audit({
     action: "performance.review_updated",

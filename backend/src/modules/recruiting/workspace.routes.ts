@@ -156,11 +156,11 @@ router.post(
     ok(
       res,
       await interviews.schedule({
+        ...req.body, /* the request body first: server-resolved fields below always win */
         startupId: req.startupId!,
         startupCode: req.startup?.code ?? null,
         applicationId: req.params.id as string,
         actorId: req.user!.id,
-        ...req.body,
       }),
       201
     );
@@ -187,11 +187,11 @@ router.post(
     ok(
       res,
       await interviews.submitFeedback({
+        ...req.body, /* the request body first: server-resolved fields below always win */
         db: req.db,
         startupId: req.startupId!,
         interviewId: req.params.id as string,
         reviewerId: req.user!.id,
-        ...req.body,
       }),
       201
     );
@@ -218,11 +218,11 @@ router.post(
   ),
   async (req, res) => {
     const result = await offers.generate({
+      ...req.body, /* the request body first: server-resolved fields below always win */
       startupId: req.startupId!,
       startupCode: req.startup?.code ?? "GEN",
       applicationId: req.params.id as string,
       actorId: req.user!.id,
-      ...req.body,
     });
     ok(res, result, result.created ? 201 : 200);
   }
@@ -276,7 +276,7 @@ router.post(
     })
   ),
   async (req, res) => {
-    ok(res, await attendance.mark({ db: req.db, startupId: req.startupId!, actorId: req.user!.id, ...req.body }), 201);
+    ok(res, await attendance.mark({ ...req.body, db: req.db, startupId: req.startupId!, actorId: req.user!.id }), 201);
   }
 );
 
@@ -295,7 +295,7 @@ router.post(
     })
   ),
   async (req, res) => {
-    ok(res, await attendance.bulkMark({ db: req.db, startupId: req.startupId!, actorId: req.user!.id, ...req.body }));
+    ok(res, await attendance.bulkMark({ ...req.body, db: req.db, startupId: req.startupId!, actorId: req.user!.id }));
   }
 );
 
@@ -341,7 +341,7 @@ router.post(
   async (req, res) => {
     ok(
       res,
-      await performance.create({ db: req.db, startupId: req.startupId!, reviewerId: req.user!.id, ...req.body }),
+      await performance.create({ ...req.body, db: req.db, startupId: req.startupId!, reviewerId: req.user!.id }),
       201
     );
   }
@@ -388,10 +388,10 @@ router.post("/:code/team/direct-hire", requireTenantRank("HR"), validate(directH
   ok(
     res,
     await createDirectHire({
+      ...req.body, /* the request body first: server-resolved fields below always win */
       startupId: req.startupId!,
       startupCode: req.startup?.code ?? "GEN",
       actorId: req.user!.id,
-      ...req.body,
     }),
     201
   );
@@ -539,10 +539,10 @@ router.post(
     ok(
       res,
       await issuance.issueDocument({
+        ...req.body, /* the request body first: server-resolved fields below always win */
         startupId: req.startupId!,
         startupCode: req.startup?.code ?? "GEN",
         actorId: req.user!.id,
-        ...req.body,
       }),
       201
     );
@@ -636,11 +636,11 @@ router.post(
     ok(
       res,
       await issuance.recordExit({
+        ...req.body, /* the request body first: server-resolved fields below always win */
         db: req.db,
         startupId: req.startupId!,
         employeeId: req.params.id as string,
         actorId: req.user!.id,
-        ...req.body,
       })
     );
   }
@@ -894,10 +894,17 @@ router.get("/:code/branding", requireTenantRank("ADMIN"), async (req, res) => {
   ok(res, await req.db!.startupBranding.findFirst({}));
 });
 router.put("/:code/branding", requireTenantRank("ADMIN"), validate(brandingBody), async (req, res) => {
+  // Only the declared branding fields: `startupId` in the body would otherwise
+  // move this startup's letterhead onto another startup's letters.
+  const data: any = Object.fromEntries(
+    Object.keys(brandingBody.shape.body.shape)
+      .filter((k) => req.body?.[k] !== undefined)
+      .map((k) => [k, req.body[k]])
+  );
   const existing = await req.db!.startupBranding.findFirst({});
   const saved = existing
-    ? await req.db!.startupBranding.update({ where: { id: existing.id }, data: req.body })
-    : await req.db!.startupBranding.create({ data: req.body });
+    ? await req.db!.startupBranding.update({ where: { id: existing.id }, data })
+    : await req.db!.startupBranding.create({ data });
 
   await audit({
     action: AuditAction.BRANDING_UPDATED,

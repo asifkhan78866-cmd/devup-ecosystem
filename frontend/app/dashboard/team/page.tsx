@@ -53,7 +53,8 @@ export default function TeamPage() {
       const data = await res.json();
       if (data.success) {
         setMembers(data.data);
-        const me = data.data.find((m: any) => m.userId === user?.id);
+        // The API marks the caller's own row rather than exposing every member's account id.
+        const me = data.data.find((m: any) => m.isMe);
         if (me) setMyRole(me.role);
       }
     } catch (err) {
@@ -207,13 +208,19 @@ export default function TeamPage() {
                           <Mail className="w-3 h-3" /> Resend
                         </button>
                       )}
-                      <select 
-                        value={member.role}
-                        onChange={(e) => changeRole(member.id, e.target.value)}
-                        className="bg-[#1a1a1a] border border-white/10 rounded px-2 py-1 text-xs text-white outline-none"
-                      >
-                        {roles.map(r => <option key={r} value={r}>{r}</option>)}
-                      </select>
+                      {/* Founder access comes from a founder invitation, never a role change,
+                          and a founder's own role is changed only by DevUp. */}
+                      {member.role === 'FOUNDER' || member.role === 'OWNER' ? (
+                        <span className="text-xs text-[#6b6b6b] px-2">Founder</span>
+                      ) : (
+                        <select
+                          value={member.role}
+                          onChange={(e) => changeRole(member.id, e.target.value)}
+                          className="bg-[#1a1a1a] border border-white/10 rounded px-2 py-1 text-xs text-white outline-none"
+                        >
+                          {[...new Set([member.role, ...roles.filter(r => r !== 'FOUNDER')])].map(r => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                      )}
                       <button 
                         onClick={() => removeMember(member.id)}
                         className="text-red-400 hover:text-red-300 p-1 rounded-md hover:bg-white/5 transition-colors"

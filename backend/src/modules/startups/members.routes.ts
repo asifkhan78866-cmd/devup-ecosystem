@@ -2,9 +2,8 @@ import { Router } from 'express';
 import { requireAuth, requireRole } from '../../middleware/auth';
 import {
   inviteMember, acceptInvite, changeRole, removeMember,
-  adminInviteFounder, getInviteByToken, registerAndAccept,
+  adminInviteFounder, getInviteByToken, registerAndAccept, listMembers,
 } from './members.service';
-import { prisma } from '../../lib/prisma';
 
 const router = Router();
 
@@ -59,12 +58,11 @@ router.post('/invites/:token/accept', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Members of this startup only, and only for someone on its team. Outsiders get
+// the same 404 as for a startup that does not exist.
 router.get('/:startupId/members', requireAuth, async (req, res, next) => {
   try {
-    const members = await prisma.startupMember.findMany({
-      where: { startupId: req.params.startupId },
-      include: { user: { select: { id: true, email: true, avatarUrl: true, profile: true } } },
-    });
+    const members = await listMembers(req.params.startupId, req.user!);
     res.json({ success: true, data: members });
   } catch (err) { next(err); }
 });
@@ -74,8 +72,8 @@ router.patch('/:startupId/members/:memberId/role', requireAuth, async (req, res,
     const member = await changeRole({
       startupId: req.params.startupId,
       memberId: req.params.memberId,
-      newRole: req.body.role,
-      requestedBy: req.user!.id,
+      newRole: String(req.body?.role ?? ''),
+      actor: req.user!,
     });
     res.json({ success: true, data: member });
   } catch (err) { next(err); }
@@ -86,7 +84,7 @@ router.delete('/:startupId/members/:memberId', requireAuth, async (req, res, nex
     const member = await removeMember({
       startupId: req.params.startupId,
       memberId: req.params.memberId,
-      requestedBy: req.user!.id,
+      actor: req.user!,
     });
     res.json({ success: true, data: member });
   } catch (err) { next(err); }

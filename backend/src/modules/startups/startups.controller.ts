@@ -36,10 +36,8 @@ export class StartupsController {
       });
     }
 
+    // The owner is decided by the service from who is asking, not by the body.
     const payload = { ...req.body };
-    if (!payload.founderId) {
-      payload.founderId = req.user!.id;
-    }
 
     if (payload.foundedYear) payload.foundedYear = parseInt(payload.foundedYear, 10);
     if (payload.fundingAmount) payload.fundingAmount = parseFloat(payload.fundingAmount);
@@ -60,7 +58,7 @@ export class StartupsController {
       );
     }
 
-    const data = await startupsService.createStartup(payload);
+    const data = await startupsService.createStartup(payload, req.user!);
     res.status(201).json({ success: true, data });
   }
 

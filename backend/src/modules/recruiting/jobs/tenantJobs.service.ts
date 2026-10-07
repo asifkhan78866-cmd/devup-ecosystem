@@ -3,6 +3,27 @@ import { prisma } from "../../../lib/prisma";
 import { AppError } from "../../../middleware/errorHandler";
 import { audit, AuditAction } from "../../shared/audit.service";
 
+/**
+ * Columns HR may write on a job. The tenant-scoped client pins `startupId` on
+ * create, but on update it would pass `startupId` through — moving the job to
+ * another startup — and it never inspects nested relation writes, so
+ * `applications: { connect: [{ id }] }` could pull another startup's
+ * candidates onto this job. Only these keys are written.
+ */
+const JOB_FIELDS = [
+  "title", "description", "type", "domain", "skills", "location", "isRemote", "stipend",
+  "salaryRange", "openings", "deadline", "department", "workMode", "responsibilities",
+  "requiredSkills", "preferredSkills", "durationMonths", "status", "pipelineTemplate", "hiringManagerId",
+] as const;
+
+function jobFields(data: Record<string, unknown> | undefined) {
+  const out: Record<string, unknown> = {};
+  for (const key of JOB_FIELDS) {
+    if (data && Object.prototype.hasOwnProperty.call(data, key) && data[key] !== undefined) out[key] = data[key];
+  }
+  return out;
+}
+
 export async function list(db: any, status?: string) {
   return db.job.findMany({
     where: status ? { status: status as never } : {},
@@ -24,6 +45,7 @@ export async function getOne(db: any, id: string) {
 }
 
 export async function create(db: any, startupId: string, actorId: string, data: any) {
+  data = jobFields(data);
   // isActive mirrors status for backward compatibility with the public job list.
   const job = await db.job.create({
     data: { ...data, status: data.status ?? "DRAFT", isActive: data.status === "OPEN" },
@@ -42,6 +64,7 @@ export async function create(db: any, startupId: string, actorId: string, data: 
 }
 
 export async function update(db: any, startupId: string, id: string, actorId: string, data: any) {
+  data = jobFields(data);
   await getOne(db, id);
   const job = await db.job.update({
     where: { id },

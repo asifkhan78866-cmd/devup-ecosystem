@@ -133,6 +133,11 @@ export async function update(
   const existing = await db.interview.findFirst({ where: { id } });
   if (!existing) throw new AppError(404, "Interview not found", "NOT_FOUND");
 
+  // The schedule itself, nothing else: `startupId` or `applicationId` in the
+  // body would move the interview onto another startup's candidate.
+  const editable = ["stage", "scheduledAt", "durationMins", "timezone", "mode", "meetingUrl", "location", "status"];
+  data = Object.fromEntries(Object.entries(data ?? {}).filter(([k, v]) => editable.includes(k) && v !== undefined));
+
   const updated = await db.interview.update({ where: { id }, data });
 
   await audit({
