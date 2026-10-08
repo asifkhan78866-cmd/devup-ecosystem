@@ -88,7 +88,9 @@ export const registerHackathonSchema = z.object({
 export const leadRegistrationSchema = z.object({
   body: z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Invalid email").optional(),
+    // Required: the team's private management link is sent here, and it is the
+    // only way to recover access from another device.
+    email: z.string().email("Invalid email"),
     phone: z.string().regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian phone number"),
     teamCount: z.number().int().min(1).max(10),
     teamName: z.string().optional(),
@@ -98,5 +100,11 @@ export const leadRegistrationSchema = z.object({
       phone: z.string()
     })).optional(),
     college: z.string().min(2, "College must be at least 2 characters"),
+  })
+});
+
+export const leadAccessSchema = z.object({
+  body: z.object({
+    phone: z.string().regex(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian phone number"),
   })
 });

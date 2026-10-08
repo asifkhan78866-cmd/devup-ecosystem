@@ -789,20 +789,25 @@ model HackathonPartner {
 }
 
 model HackathonLead {
-  id           String    @id @default(uuid())
-  hackathonId  String
-  hackathon    Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
-  name         String
-  email        String?
-  phone        String
-  teamName     String?
-  teamCount    Int
-  members      Json? // Array of { name, email, phone }
-  college      String
-  source       String    @default("website")
-  preferences  Json?
-  redirectedAt DateTime?
-  createdAt    DateTime  @default(now())
+  id               String    @id @default(uuid())
+  hackathonId      String
+  hackathon        Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  name             String
+  email            String?
+  phone            String
+  teamName         String?
+  teamCount        Int
+  members          Json? // Array of { name, email, phone }
+  college          String
+  source           String    @default("website")
+  preferences      Json?
+  redirectedAt     DateTime?
+  createdAt        DateTime  @default(now())
+  /// SHA-256 of the private token that lets this team manage its registration.
+  /// The token itself is only ever in the registrant's browser and email.
+  accessTokenHash  String?   @unique
+  /// Throttles "email me my access link" so it cannot be used to flood an inbox.
+  accessLinkSentAt DateTime?
 
   submission HackathonSubmission?
 

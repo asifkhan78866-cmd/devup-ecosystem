@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { HackathonsService } from "./hackathons.service";
 import { AppError } from "../../middleware/errorHandler";
+import * as leadAccess from "./leadAccess.service";
+
+/** A team's private access token travels in a header, never in a URL. */
+const leadToken = (req: Request) => req.get("x-lead-token");
 import { env } from "../../config/env";
 
 const hackathonsService = new HackathonsService();
@@ -82,19 +86,44 @@ export class HackathonsController {
     res.status(201).json({ success: true, data });
   }
 
+  /**
+   * Public registration. Returns the team's private access token — never the
+   * registration's id — and emails the same "manage your registration" link.
+   */
   async createLead(req: Request, res: Response) {
-    const data = await hackathonsService.createLead(req.params.id as string, req.body);
-    res.status(201).json({ success: true, data: { registrationId: data.id } });
+    const lead = await hackathonsService.createLead(req.params.id as string, req.body);
+    const token = await leadAccess.issueLeadToken(lead.id);
+    const hackathon = await hackathonsService.titleOf(lead.hackathonId);
+    await leadAccess.sendRegistrationLink(lead, hackathon, token);
+    res.status(201).json({ success: true, data: { accessToken: token } });
   }
 
-  async updateLead(req: Request, res: Response) {
-    const data = await hackathonsService.updateLead(req.params.id as string, req.params.leadId as string, req.body);
-    res.status(200).json({ success: true, data });
+  /** "Email me my link." Same answer whether or not the phone is registered. */
+  async requestLeadAccess(req: Request, res: Response) {
+    await leadAccess.requestAccessLink(req.params.id as string, String(req.body.phone));
+    res.status(202).json({
+      success: true,
+      data: { message: "If this phone is registered with an email, a private link is on its way to that inbox." },
+    });
   }
 
-  async markLeadRedirected(req: Request, res: Response) {
-    const data = await hackathonsService.markLeadRedirected(req.params.leadId);
-    res.status(200).json({ success: true, data });
+  /** The caller's own registration, found by its token. */
+  async myLead(req: Request, res: Response) {
+    const lead = await leadAccess.leadFromToken(req.params.id as string, leadToken(req));
+    res.status(200).json({ success: true, data: leadAccess.ownView(lead) });
+  }
+
+  async updateMyLead(req: Request, res: Response) {
+    const lead = await leadAccess.leadFromToken(req.params.id as string, leadToken(req));
+    await hackathonsService.updateLead(lead.hackathonId, lead.id, req.body);
+    const fresh = await leadAccess.leadFromToken(req.params.id as string, leadToken(req));
+    res.status(200).json({ success: true, data: leadAccess.ownView(fresh) });
+  }
+
+  async markMyLeadRedirected(req: Request, res: Response) {
+    const lead = await leadAccess.leadFromToken(req.params.id as string, leadToken(req));
+    await hackathonsService.markLeadRedirected(lead.id);
+    res.status(200).json({ success: true, data: { redirected: true } });
   }
 
   async getLeads(req: Request, res: Response) {
@@ -102,20 +131,17 @@ export class HackathonsController {
     res.status(200).json({ success: true, data, meta });
   }
 
-  async uploadSubmission(req: Request, res: Response) {
+  /** The caller's own team submits; the registration comes from the token. */
+  async submitMyLead(req: Request, res: Response) {
     if (!req.file) throw new AppError(400, "No file uploaded");
-    
+
     if (req.file.size > 10 * 1024 * 1024) {
       throw new AppError(400, "File size must be less than 10MB");
     }
-    
-    const submission = await hackathonsService.uploadSubmission(req.params.id as string, req.params.leadId as string, req.file.buffer, req.file.mimetype);
-    res.status(201).json({ success: true, data: submission });
-  }
 
-  async getSubmissionStatus(req: Request, res: Response) {
-    const status = await hackathonsService.getSubmissionStatusByPhone(req.params.id as string, req.query.phone as string);
-    res.status(200).json({ success: true, data: status });
+    const lead = await leadAccess.leadFromToken(req.params.id as string, leadToken(req));
+    const submission = await hackathonsService.uploadSubmission(lead.hackathonId, lead.id, req.file.buffer, req.file.mimetype);
+    res.status(201).json({ success: true, data: { status: submission.status, createdAt: submission.createdAt } });
   }
 
   async getAllSubmissions(req: Request, res: Response) {

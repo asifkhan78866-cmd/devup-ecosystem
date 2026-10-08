@@ -88,6 +88,17 @@ export const Emails = {
       cta: { label: "Sign in", url: loginLink },
     }),
 
+  hackathonAccess: (hackathonTitle: string, link: string) =>
+    renderEmail({
+      heading: `Your ${hackathonTitle} registration`,
+      preheader: "Your private link to check status, update your team and submit",
+      body:
+        p("Use this link to check your status, update your team details and upload your submission.") +
+        p("It is private to your team — anyone with it can manage your registration, so do not share it publicly. Requesting a new link retires this one."),
+      cta: { label: "Manage my registration", url: link },
+      footnote: `If the button does not work, copy this link into your browser:<br>${link}`,
+    }),
+
   // ── Recruiting ────────────────────────────────────
   applicationSubmitted: (args: {
     name: string; jobTitle: string; startupName: string; applicationNo: string; applicationId: string;

@@ -214,6 +214,8 @@ export class HackathonsService {
     const [leads, total] = await Promise.all([
       prisma.hackathonLead.findMany({
         where: { hackathonId },
+        // Admin view: everything but the token material.
+        omit: { accessTokenHash: true, accessLinkSentAt: true },
         orderBy: { createdAt: "desc" },
       }),
       prisma.hackathonLead.count({ where: { hackathonId } }),
@@ -256,31 +258,17 @@ export class HackathonsService {
     return submission;
   }
 
-  async getSubmissionStatusByPhone(hackathonId: string, phone: string) {
-    const lead = await prisma.hackathonLead.findUnique({
-      where: { hackathonId_phone: { hackathonId, phone } },
-      include: { submission: true }
-    });
-    
-    if (!lead) throw new AppError(404, "No registration found for this phone number");
-    
-    return {
-      id: lead.id,
-      name: lead.name,
-      teamCount: lead.teamCount,
-      teamName: lead.teamName,
-      college: lead.college,
-      preferences: lead.preferences,
-      members: lead.members,
-      submission: lead.submission
-    };
+  /** For emails. */
+  async titleOf(hackathonId: string) {
+    const h = await prisma.hackathon.findUnique({ where: { id: hackathonId }, select: { title: true } });
+    return h?.title ?? "hackathon";
   }
 
   async getAllSubmissions(hackathonId: string) {
     const [submissions, total] = await Promise.all([
       prisma.hackathonSubmission.findMany({
         where: { hackathonId },
-        include: { lead: true },
+        include: { lead: { omit: { accessTokenHash: true, accessLinkSentAt: true } } },
         orderBy: { createdAt: "desc" }
       }),
       prisma.hackathonSubmission.count({ where: { hackathonId } })

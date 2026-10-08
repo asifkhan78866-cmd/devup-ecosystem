@@ -2,7 +2,8 @@ import { Router } from "express";
 import multer from "multer";
 import { HackathonsController } from "./hackathons.controller";
 import { validate } from "../../middleware/validate";
-import { hackathonSchema, updateHackathonSchema, registerHackathonSchema, leadRegistrationSchema } from "./hackathons.schema";
+import { hackathonSchema, updateHackathonSchema, registerHackathonSchema, leadRegistrationSchema, leadAccessSchema } from "./hackathons.schema";
+import { hackathonLeadLimiter } from "../../middleware/rateLimit";
 import { requireAuth, requireRole } from "../../middleware/auth";
 import { env } from "../../config/env";
 
@@ -34,21 +35,24 @@ router.post("/:id/partners/:pid/logo", requireAuth, requireRole(["ADMIN"]), uplo
 
 router.post("/:id/register", requireAuth, validate(registerHackathonSchema), controller.register);
 
-// Public lead capture (no auth — saves to DB before redirecting to Google Form)
-router.post("/:id/lead", validate(leadRegistrationSchema), controller.createLead);
+// Public registration. Returns the team's private access token, never an id.
+router.post("/:id/lead", hackathonLeadLimiter, validate(leadRegistrationSchema), controller.createLead);
+// "Email me my link": goes to the inbox on file, never to the requester.
+router.post("/:id/leads/access-link", hackathonLeadLimiter, validate(leadAccessSchema), controller.requestLeadAccess);
 
-// Mark lead as redirected
-router.patch("/:id/lead/:leadId/redirect", controller.markLeadRedirected);
+// A team's own registration, addressed by the X-Lead-Token header — not by id,
+// and not by phone number (which used to hand out the whole team's details).
+router.get("/:id/leads/me", controller.myLead);
+router.patch("/:id/leads/me", controller.updateMyLead);
+router.post("/:id/leads/me/submission", upload.single("file"), controller.submitMyLead);
+router.patch("/:id/leads/me/redirect", controller.markMyLeadRedirected);
+
 
 // Admin: list leads from the website
 router.get("/:id/leads", requireAuth, requireRole(["ADMIN"]), controller.getLeads);
 
-// Participant: update lead details (name, college, preferences)
-router.patch("/:id/leads/:leadId", controller.updateLead);
 
 // Submissions (Phase 1)
-router.post("/:id/leads/:leadId/submission", upload.single("file"), controller.uploadSubmission);
-router.get("/:id/submissions/status", controller.getSubmissionStatus); // use query ?phone=...
 router.get("/:id/submissions", requireAuth, requireRole(["ADMIN"]), controller.getAllSubmissions);
 router.patch("/:id/submissions/:submissionId/status", requireAuth, requireRole(["ADMIN"]), controller.updateSubmissionStatus);
 

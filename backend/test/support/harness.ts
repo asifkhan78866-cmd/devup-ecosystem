@@ -141,8 +141,17 @@ export async function startHarness(dbUrl: string) {
     return s;
   }
 
+  /** Multipart POST (file uploads), with extra headers such as auth or a lead token. */
+  async function upload(p: string, form: FormData, headers: Record<string, string> = {}) {
+    const res = await fetch(`${base}${p}`, { method: "POST", body: form, headers });
+    const text = await res.text();
+    let json: any = {};
+    try { json = JSON.parse(text); } catch { json = { raw: text }; }
+    return { status: res.status, body: json };
+  }
+
   return {
-    prisma, call, person, startup, mails, uniq, sha,
+    prisma, call, upload, person, startup, mails, uniq, sha, origin: base,
     close: async () => {
       server.close();
       await prisma.$disconnect();

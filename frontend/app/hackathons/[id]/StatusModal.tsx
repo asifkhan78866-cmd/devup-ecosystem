@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+import { getLeadToken, leadFetch, requestLeadAccessLink } from "@/lib/hackathonLead";
 
 export default function StatusModal({
   isOpen,
@@ -19,6 +19,27 @@ export default function StatusModal({
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [linkSent, setLinkSent] = useState(false);
+
+  /**
+   * A team's status is read with its private token — kept in this browser at
+   * registration or arriving in the emailed link. A phone number alone no
+   * longer opens a registration: it only asks for the link to be emailed to
+   * the address on file.
+   */
+  const loadStatus = async () => {
+    if (!getLeadToken(hackathonId)) return;
+    setLoading(true);
+    try {
+      const res = await leadFetch(hackathonId);
+      const data = await res.json();
+      if (res.ok) setStatus(data.data);
+    } catch {
+      /* fall back to the "email my link" form */
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -28,13 +49,16 @@ export default function StatusModal({
       setStatus(null);
       setError("");
       setFile(null);
+      setLinkSent(false);
+      loadStatus();
     } else {
       document.body.style.overflow = "unset";
     }
     return () => { document.body.style.overflow = "unset"; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  const checkStatus = async () => {
+  const requestLink = async () => {
     if (!/^[6-9]\d{9}$/.test(phone)) {
       setError("Enter a valid 10-digit Indian phone number");
       return;
@@ -42,12 +66,15 @@ export default function StatusModal({
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API}/api/hackathons/${hackathonId}/submissions/status?phone=${phone}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "No registration found");
-      setStatus(data.data);
-    } catch (err: any) {
-      setError(err.message);
+      const res = await requestLeadAccessLink(hackathonId, phone);
+      if (res.status === 429) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Too many attempts. Please wait and try again.");
+      }
+      // Same screen whatever the answer: the server never says whether a phone is registered.
+      setLinkSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -70,16 +97,16 @@ export default function StatusModal({
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch(`${API}/api/hackathons/${hackathonId}/leads/${status.id}/submission`, {
+      const res = await leadFetch(hackathonId, "/submission", {
         method: "POST",
         body: formData,
       });
-      
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || data.message || "Upload failed");
-      
+
       // Refresh status
-      await checkStatus();
+      await loadStatus();
     } catch (err: any) {
       setError(err.message || "Upload failed");
     } finally {
@@ -113,10 +140,27 @@ export default function StatusModal({
                 Check Phase 1 Status
               </h2>
               <p className="text-sm text-[#6b6b6b] mb-6" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
-                Enter the phone number you used to register.
+                {status
+                  ? "Your team's registration."
+                  : linkSent
+                    ? "Check your inbox."
+                    : "Enter the phone number you registered with and we'll email your team's private link to the address on file."}
               </p>
 
-              {!status ? (
+              {!status && linkSent ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-[#bbb]">
+                    If that number is registered with an email address, a private link to your team&apos;s
+                    registration is on its way there. Open it on this device to check your status or submit.
+                  </p>
+                  <p className="text-xs text-[#666]">
+                    Registered without an email? Contact the organisers to update your registration.
+                  </p>
+                  <button onClick={onClose} className="w-full px-4 py-3 rounded-xl border border-white/10 text-[#888] text-sm font-medium hover:bg-white/5 transition-colors">
+                    Close
+                  </button>
+                </div>
+              ) : !status ? (
                 <div className="space-y-4">
                   <div>
                     <input
@@ -133,11 +177,11 @@ export default function StatusModal({
                       Cancel
                     </button>
                     <button
-                      onClick={checkStatus}
+                      onClick={requestLink}
                       disabled={loading}
                       className="flex-1 px-4 py-3 rounded-xl bg-[#c8f135] text-black text-sm font-bold hover:bg-[#b0d829] transition-colors disabled:opacity-50"
                     >
-                      {loading ? "Checking..." : "Check Status →"}
+                      {loading ? "Sending..." : "Email my link →"}
                     </button>
                   </div>
                 </div>

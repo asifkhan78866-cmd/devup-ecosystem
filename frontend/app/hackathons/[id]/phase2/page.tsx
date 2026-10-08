@@ -6,7 +6,7 @@ import { Lock, ArrowLeft, Loader2, Sparkles, AlertTriangle, Gift, Edit2, X, Plus
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+import { captureLeadTokenFromUrl, getLeadToken, leadFetch, requestLeadAccessLink } from "@/lib/hackathonLead";
 
 export default function Phase2Page() {
   const params = useParams();
@@ -17,6 +17,7 @@ export default function Phase2Page() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState<any>(null);
+  const [linkSent, setLinkSent] = useState(false);
 
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
@@ -30,21 +31,18 @@ export default function Phase2Page() {
   const [updateError, setUpdateError] = useState("");
   const [updateSuccess, setUpdateSuccess] = useState("");
 
-  const checkAccess = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!/^[6-9]\d{9}$/.test(phone)) {
-      setError("Enter a valid 10-digit Indian phone number");
-      return;
-    }
-
+  /**
+   * The team's registration, read with its private token — from this browser
+   * or from the emailed link. A phone number no longer opens a registration.
+   */
+  const loadWithToken = async () => {
+    if (!getLeadToken(id)) return;
     setLoading(true);
     setError("");
-
     try {
-      const res = await fetch(`${API}/api/hackathons/${id}/submissions/status?phone=${phone}`);
+      const res = await leadFetch(id);
       const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.message || "Registration not found.");
+      if (!res.ok) throw new Error("Your link has expired. Request a new one below.");
 
       if (data.data?.submission?.status !== "SELECTED") {
         throw new Error("You have not been selected for Phase 2 yet.");
@@ -61,6 +59,41 @@ export default function Phase2Page() {
       });
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    captureLeadTokenFromUrl(id);
+    loadWithToken();
+    // Also when the emailed link is opened while this page is already showing.
+    const onHash = () => {
+      if (captureLeadTokenFromUrl(id)) loadWithToken();
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const requestLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      setError("Enter a valid 10-digit Indian phone number");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await requestLeadAccessLink(id, phone);
+      if (res.status === 429) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Too many attempts. Please wait and try again.");
+      }
+      // Same screen whatever the answer: the server never says whether a phone is registered.
+      setLinkSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -83,7 +116,7 @@ export default function Phase2Page() {
         }
       }
 
-      const res = await fetch(`${API}/api/hackathons/${id}/leads/${status.id}`, {
+      const res = await leadFetch(id, "", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -364,10 +397,16 @@ export default function Phase2Page() {
         </div>
         <h1 className="text-2xl font-bold text-center mb-2" style={{ fontFamily: "var(--font-syne), sans-serif" }}>Phase 2 Access</h1>
         <p className="text-sm text-center text-[#888] mb-8">
-          This area is restricted to participants selected for the offline hackathon. Enter your registered phone number to verify access.
+          This area is restricted to participants selected for the offline hackathon. Open it from your team&apos;s private link — or enter your registered phone number and we&apos;ll email that link to the address on file.
         </p>
 
-        <form onSubmit={checkAccess} className="space-y-4">
+        {linkSent ? (
+          <p className="text-sm text-center text-[#bbb]">
+            If that number is registered with an email address, a private link is on its way there.
+            Open it on this device to continue.
+          </p>
+        ) : (
+        <form onSubmit={requestLink} className="space-y-4">
           <div>
             <input
               type="text"
@@ -390,9 +429,10 @@ export default function Phase2Page() {
             disabled={loading || !phone}
             className="w-full h-12 flex items-center justify-center bg-[#c8f135] text-black font-bold rounded-xl hover:bg-[#b0d829] transition-all disabled:opacity-50"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify Access"}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Email my link"}
           </button>
         </form>
+        )}
       </div>
     </div>
   );

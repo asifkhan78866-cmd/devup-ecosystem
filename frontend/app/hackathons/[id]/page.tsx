@@ -33,6 +33,7 @@ import HackathonSchema, {
 } from "@/components/seo/HackathonSchema";
 import HackathonFAQ from "@/components/seo/HackathonFAQ";
 import StatusModal from "./StatusModal";
+import { leadFetch, storeLeadToken, captureLeadTokenFromUrl } from "@/lib/hackathonLead";
 import { ALL_DOMAINS } from "../../../data/domains";
 
 // Pretty-print the uppercase Prisma enum mode (ONLINE -> Online)
@@ -295,7 +296,8 @@ function RegisterModal({
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [registrationId, setRegistrationId] = useState<string | null>(null);
+  // The team's private access token (see lib/hackathonLead) — never a lead id.
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -311,7 +313,9 @@ function RegisterModal({
     const e: Record<string, string> = {};
     if (form.name.trim().length < 2)
       e.name = "Name must be at least 2 characters";
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+    // Required: the team's private "manage your registration" link is sent here.
+    if (!form.email.trim()) e.email = "Email is required — we send your private team link here";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       e.email = "Invalid email";
     if (!/^[6-9]\d{9}$/.test(form.phone))
       e.phone = "Enter a valid 10-digit Indian phone number";
@@ -364,12 +368,9 @@ function RegisterModal({
     }, 300);
   }, []);
 
-  const triggerRedirect = async (leadId: string) => {
+  const triggerRedirect = async () => {
     try {
-      await fetch(
-        `${API}/api/hackathons/${hackathonId}/lead/${leadId}/redirect`,
-        { method: "PATCH" },
-      );
+      await leadFetch(hackathonId, "/redirect", { method: "PATCH" });
     } catch (e) {}
     window.open(registrationLink || GOOGLE_FORM_BASE, "_blank");
   };
@@ -415,8 +416,9 @@ function RegisterModal({
             data?.message ||
             "Registration failed",
         );
-      const newLeadId = data.data?.registrationId || null;
-      setRegistrationId(newLeadId);
+      const token = data.data?.accessToken || null;
+      if (token) storeLeadToken(hackathonId, token);
+      setAccessToken(token);
       setStep("upload");
     } catch (err: any) {
       setErrors({ submit: err.message || "Something went wrong" });
@@ -439,13 +441,10 @@ function RegisterModal({
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch(
-        `${API}/api/hackathons/${hackathonId}/leads/${registrationId}/submission`,
-        {
-          method: "POST",
-          body: formData,
-        },
-      );
+      const res = await leadFetch(hackathonId, "/submission", {
+        method: "POST",
+        body: formData,
+      });
       const data = await res.json();
       if (!res.ok)
         throw new Error(data?.error || data?.message || "Upload failed");
@@ -453,7 +452,7 @@ function RegisterModal({
       setStep("success");
       fireConfetti();
       setTimeout(() => {
-        if (registrationId) triggerRedirect(registrationId);
+        if (accessToken) triggerRedirect();
       }, 2500);
     } catch (err: any) {
       setErrors({ upload: err.message || "Upload failed" });
@@ -466,12 +465,12 @@ function RegisterModal({
     setStep("success");
     fireConfetti();
     setTimeout(() => {
-      if (registrationId) triggerRedirect(registrationId);
+      if (accessToken) triggerRedirect();
     }, 2500);
   };
 
   const handleContinueToForm = () => {
-    if (registrationId) triggerRedirect(registrationId);
+    if (accessToken) triggerRedirect();
     else window.open(registrationLink || GOOGLE_FORM_BASE, "_blank");
   };
 
@@ -489,7 +488,7 @@ function RegisterModal({
       });
       setMembers([]);
       setErrors({});
-      setRegistrationId(null);
+      setAccessToken(null);
     }
   }, [isOpen]);
 
@@ -914,6 +913,16 @@ export default function HackathonDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showRegister, setShowRegister] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
+  // Arriving from a "manage your registration" email: keep the token, open status.
+  useEffect(() => {
+    const take = () => {
+      if (captureLeadTokenFromUrl(id)) setShowStatus(true);
+    };
+    take();
+    // Also when the emailed link is opened while this page is already showing.
+    window.addEventListener("hashchange", take);
+    return () => window.removeEventListener("hashchange", take);
+  }, [id]);
   const [countdown, setCountdown] = useState({
     days: 0,
     hours: 0,

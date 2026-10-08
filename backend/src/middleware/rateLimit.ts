@@ -63,3 +63,28 @@ export const aiLimiter = rateLimit({
     code: "AI_RATE_LIMITED",
   },
 });
+
+/**
+ * Public hackathon registration and "email me my link". Keyed on the hackathon
+ * and the phone number being used, so one team's number cannot be hammered and
+ * an inbox cannot be flooded — without relying on the client IP.
+ */
+export const hackathonLeadLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const phone = String((req.body as { phone?: string } | undefined)?.phone ?? "");
+    return `lead:${req.params.id ?? ""}:${phone || ipKeyGenerator(req.ip ?? "")}`;
+  },
+  store: redis ? new RedisStore({
+    sendCommand: (...args: string[]) => redis!.call(args[0], ...args.slice(1)) as any,
+    prefix: "rl-lead:",
+  }) : undefined,
+  message: {
+    success: false,
+    error: "Too many attempts for this number. Please wait 15 minutes and try again.",
+    code: "TOO_MANY_ATTEMPTS",
+  },
+});
