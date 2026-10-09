@@ -1,4 +1,6 @@
 import { prisma } from '../../lib/prisma'
+import { assertPublicWebUrl } from '../../lib/publicUrl'
+import { logger } from '../../middleware/logger'
 
 const FIRECRAWL_URL = process.env.FIRECRAWL_BASE_URL!
 const FIRECRAWL_KEY = process.env.FIRECRAWL_API_KEY!
@@ -190,6 +192,10 @@ export async function researchStartup(params: {
   const startTime = Date.now()
   const warnings: string[] = []
 
+  // Only public web addresses are researched — checked before the cache, the
+  // crawler or the model ever see the URL. See lib/publicUrl.
+  params = { ...params, websiteUrl: await assertPublicWebUrl(params.websiteUrl) }
+
   // Check cache
   if (!params.forceRefresh && params.startupId) {
     const existing = await prisma.startup.findUnique({
@@ -212,7 +218,10 @@ export async function researchStartup(params: {
   // Step 1: crawl
   const { markdown, error: crawlError } = await crawlWebsite(params.websiteUrl)
   if (crawlError) {
-    warnings.push(`Could not crawl website directly: ${crawlError}. Relying on web search only.`)
+    // The crawler's own error text can echo third-party responses; it stays in
+    // the server log, and the caller gets a plain warning.
+    logger.warn(`AI research crawl failed: ${crawlError.slice(0, 200)}`)
+    warnings.push('Could not crawl the website directly. Relying on web search only.')
   }
 
   // Step 2: synthesize (online search fills gaps even if crawl failed)
