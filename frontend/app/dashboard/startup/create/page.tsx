@@ -128,7 +128,7 @@ export default function CreateStartupPage() {
           <label className={labelClass}>Logo <span className="text-[#6b6b6b]">(required)</span></label>
           <label className="flex items-center gap-2 border border-white/10 text-white text-sm px-4 py-2.5 rounded-lg cursor-pointer hover:bg-white/5 transition-colors w-max">
             <ImageIcon className="w-4 h-4" /> {logo ? logo.name : "Choose an image"}
-            <input type="file" accept="image/*" className="hidden" onChange={(e) => setLogo(e.target.files?.[0] ?? null)} />
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => setLogo(e.target.files?.[0] ?? null)} />
           </label>
         </div>
 

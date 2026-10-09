@@ -834,15 +834,15 @@ function RegisterModal({
                       className="text-sm text-[#6b6b6b] mb-6"
                       style={{ fontFamily: "var(--font-inter), sans-serif" }}
                     >
-                      Upload your 1-page PDF abstract or Pitch Deck. Max size
-                      10MB.
+                      Upload your 1-page abstract or pitch deck as a PDF. Max
+                      size 10MB.
                     </p>
 
                     <div className="space-y-4">
                       <div>
                         <input
                           type="file"
-                          accept=".pdf,.ppt,.pptx"
+                          accept=".pdf,application/pdf"
                           onChange={(e) => setFile(e.target.files?.[0] || null)}
                           className="w-full text-sm text-[#888] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#c8f135] file:text-black hover:file:bg-[#b0d829] transition-all cursor-pointer"
                         />

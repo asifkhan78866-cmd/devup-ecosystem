@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import { StartupsService } from "./startups.service";
-import { AppError } from "../../middleware/errorHandler";
-import { env } from "../../config/env";
 import { uploadStartupImage } from "../../lib/storage";
+import { verifyUpload } from "../../lib/uploads";
 
 const startupsService = new StartupsService();
 
@@ -49,12 +48,14 @@ export class StartupsController {
       try { payload.founderNames = JSON.parse(payload.founderNames); } catch (e) {}
     }
 
-    const slug = payload.slug;
-    payload.logoUrl = await uploadStartupImage(files.logo[0], slug, "logo");
+    // Stored under the creator's id: the startup has no id yet, and the slug is
+    // request input, so it never becomes part of a storage path.
+    const folder = req.user!.id;
+    payload.logoUrl = await uploadStartupImage(files.logo[0], folder, "logo");
 
     if (files.screenshots && files.screenshots.length > 0) {
       payload.screenshotUrls = await Promise.all(
-        files.screenshots.map((f) => uploadStartupImage(f, slug, "screenshot"))
+        files.screenshots.map((f) => uploadStartupImage(f, folder, "screenshot"))
       );
     }
 
@@ -79,15 +80,17 @@ export class StartupsController {
       try { payload.founderNames = JSON.parse(payload.founderNames); } catch (e) {}
     }
 
-    const slug = payload.slug || req.params.id; // use ID if slug not in body
+    // Authorise before storing anything, and file images under the startup's
+    // own id rather than a slug from the body.
+    const startup = await startupsService.assertCanManage(req.params.id as string, req.user!.id, req.user!.role);
 
     if (files?.logo?.[0]) {
-      payload.logoUrl = await uploadStartupImage(files.logo[0], slug, "logo");
+      payload.logoUrl = await uploadStartupImage(files.logo[0], startup.id, "logo");
     }
 
     if (files?.screenshots && files.screenshots.length > 0) {
       payload.screenshotUrls = await Promise.all(
-        files.screenshots.map((f) => uploadStartupImage(f, slug, "screenshot"))
+        files.screenshots.map((f) => uploadStartupImage(f, startup.id, "screenshot"))
       );
     }
 
@@ -100,31 +103,16 @@ export class StartupsController {
     res.status(200).json({ success: true, message: "Startup deleted successfully" });
   }
 
+  // SVG is no longer accepted: it can carry script, and these are public files.
   async uploadLogo(req: Request, res: Response) {
-    if (!req.file) throw new AppError(400, "No file uploaded");
-    const maxBytes = env.MAX_FILE_SIZE_MB * 1024 * 1024;
-    const allowedTypes = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
-    if (req.file.size > maxBytes) {
-      throw new AppError(400, "File exceeds maximum size", "FILE_TOO_LARGE");
-    }
-    if (!allowedTypes.includes(req.file.mimetype)) {
-      throw new AppError(400, "Invalid file type", "INVALID_FILE_TYPE");
-    }
-    const data = await startupsService.uploadImage(req.params.id as string, req.user!.id, req.user!.role, "logo", req.file.buffer, req.file.mimetype);
+    const image = verifyUpload(req.file, "image");
+    const data = await startupsService.uploadImage(req.params.id as string, req.user!.id, req.user!.role, "logo", image);
     res.status(200).json({ success: true, data });
   }
 
   async uploadBanner(req: Request, res: Response) {
-    if (!req.file) throw new AppError(400, "No file uploaded");
-    const maxBytes = env.MAX_FILE_SIZE_MB * 1024 * 1024;
-    const allowedTypes = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
-    if (req.file.size > maxBytes) {
-      throw new AppError(400, "File exceeds maximum size", "FILE_TOO_LARGE");
-    }
-    if (!allowedTypes.includes(req.file.mimetype)) {
-      throw new AppError(400, "Invalid file type", "INVALID_FILE_TYPE");
-    }
-    const data = await startupsService.uploadImage(req.params.id as string, req.user!.id, req.user!.role, "banner", req.file.buffer, req.file.mimetype);
+    const image = verifyUpload(req.file, "image");
+    const data = await startupsService.uploadImage(req.params.id as string, req.user!.id, req.user!.role, "banner", image);
     res.status(200).json({ success: true, data });
   }
 

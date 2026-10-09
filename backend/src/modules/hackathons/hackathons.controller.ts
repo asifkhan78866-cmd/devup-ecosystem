@@ -1,11 +1,10 @@
 import { Request, Response } from "express";
 import { HackathonsService } from "./hackathons.service";
-import { AppError } from "../../middleware/errorHandler";
 import * as leadAccess from "./leadAccess.service";
+import { verifyUpload } from "../../lib/uploads";
 
 /** A team's private access token travels in a header, never in a URL. */
 const leadToken = (req: Request) => req.get("x-lead-token");
-import { env } from "../../config/env";
 
 const hackathonsService = new HackathonsService();
 
@@ -41,8 +40,7 @@ export class HackathonsController {
   }
 
   async uploadLogo(req: Request, res: Response) {
-    if (!req.file) throw new AppError(400, "No file provided");
-    const data = await hackathonsService.uploadImage(req.params.id, "logo", req.file.buffer, req.file.mimetype);
+    const data = await hackathonsService.uploadImage(req.params.id as string, "logo", verifyUpload(req.file, "image"));
     res.status(200).json({ success: true, data });
   }
 
@@ -62,22 +60,12 @@ export class HackathonsController {
   }
 
   async uploadPartnerLogo(req: Request, res: Response) {
-    if (!req.file) throw new AppError(400, "No file provided");
-    const data = await hackathonsService.uploadPartnerLogo(req.params.id, req.params.pid, req.file.buffer, req.file.mimetype);
+    const data = await hackathonsService.uploadPartnerLogo(req.params.id as string, req.params.pid as string, verifyUpload(req.file, "image"));
     res.status(200).json({ success: true, data });
   }
 
   async uploadBanner(req: Request, res: Response) {
-    if (!req.file) throw new AppError(400, "No file uploaded");
-    const maxBytes = env.MAX_FILE_SIZE_MB * 1024 * 1024;
-    const allowedTypes = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
-    if (req.file.size > maxBytes) {
-      throw new AppError(400, "File exceeds maximum size", "FILE_TOO_LARGE");
-    }
-    if (!allowedTypes.includes(req.file.mimetype)) {
-      throw new AppError(400, "Invalid file type", "INVALID_FILE_TYPE");
-    }
-    const data = await hackathonsService.uploadImage(req.params.id as string, "banner", req.file.buffer, req.file.mimetype);
+    const data = await hackathonsService.uploadImage(req.params.id as string, "banner", verifyUpload(req.file, "image"));
     res.status(200).json({ success: true, data });
   }
 
@@ -133,14 +121,9 @@ export class HackathonsController {
 
   /** The caller's own team submits; the registration comes from the token. */
   async submitMyLead(req: Request, res: Response) {
-    if (!req.file) throw new AppError(400, "No file uploaded");
-
-    if (req.file.size > 10 * 1024 * 1024) {
-      throw new AppError(400, "File size must be less than 10MB");
-    }
-
     const lead = await leadAccess.leadFromToken(req.params.id as string, leadToken(req));
-    const submission = await hackathonsService.uploadSubmission(lead.hackathonId, lead.id, req.file.buffer, req.file.mimetype);
+    const deck = verifyUpload(req.file, "document");
+    const submission = await hackathonsService.uploadSubmission(lead.hackathonId, lead.id, deck);
     res.status(201).json({ success: true, data: { status: submission.status, createdAt: submission.createdAt } });
   }
 

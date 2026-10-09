@@ -3,20 +3,14 @@ import { sendDocumentToStartup, signDocument as signDocService } from "./documen
 import { AppError } from "../../middleware/errorHandler";
 import { env } from "../../config/env";
 import { uploadFile } from "../../lib/storage";
+import { objectKey, verifyUpload } from "../../lib/uploads";
 import { prisma } from "../../lib/prisma";
 
 export class DocumentsController {
   async uploadDocument(req: Request, res: Response) {
-    if (!req.file) throw new AppError(400, "No file uploaded");
-  const maxBytes = env.MAX_FILE_SIZE_MB * 1024 * 1024;
-    if (req.file.size > maxBytes) {
-      throw new AppError(400, "File exceeds maximum size", "FILE_TOO_LARGE");
-    }
-    if (req.file.mimetype !== "application/pdf") {
-      throw new AppError(400, "Invalid file type", "INVALID_FILE_TYPE");
-    }
-    const path = `documents/${req.body.startupId}/${req.body.type}-${Date.now()}.pdf`;
-    const fileUrl = await uploadFile(env.STORAGE_BUCKET_DOCUMENTS, path, req.file.buffer, req.file.mimetype);
+    const pdf = verifyUpload(req.file, "document");
+    const path = objectKey(["documents", req.body.startupId], req.body.type, pdf.ext);
+    const fileUrl = await uploadFile(env.STORAGE_BUCKET_DOCUMENTS, path, pdf.buffer, pdf.mime);
 
     const data = await sendDocumentToStartup({
       startupId: req.body.startupId,

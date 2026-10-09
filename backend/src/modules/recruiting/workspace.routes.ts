@@ -29,11 +29,8 @@ import { prisma } from "../../lib/prisma";
 /** Identity and education documents joiners upload — images or PDFs. */
 const upload = multer({
   storage: multer.memoryStorage(),
+  // File types are checked from content in verifyUpload, not from the browser's header.
   limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    const allowed = ["application/pdf", "image/jpeg", "image/png", "image/webp", "image/heic"];
-    cb(null, allowed.includes(file.mimetype));
-  },
 });
 
 const router = Router({ mergeParams: true });

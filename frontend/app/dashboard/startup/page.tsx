@@ -699,7 +699,7 @@ export default function StartupDashboardPage() {
           )}
           <label className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/60 backdrop-blur text-white text-xs px-3 py-1.5 rounded-lg cursor-pointer hover:bg-black/80 transition-colors">
             <ImageIcon className="w-3.5 h-3.5" /> Change banner
-            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload("banner", e.target.files?.[0])} />
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleImageUpload("banner", e.target.files?.[0])} />
           </label>
         </div>
         <div className="flex items-center gap-4 p-6">
@@ -713,7 +713,7 @@ export default function StartupDashboardPage() {
           </div>
           <label className="flex items-center gap-1.5 border border-white/10 text-white text-sm px-4 py-2 rounded-lg cursor-pointer hover:bg-white/5 transition-colors">
             <ImageIcon className="w-4 h-4" /> Change logo
-            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload("logo", e.target.files?.[0])} />
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleImageUpload("logo", e.target.files?.[0])} />
           </label>
         </div>
       </div>

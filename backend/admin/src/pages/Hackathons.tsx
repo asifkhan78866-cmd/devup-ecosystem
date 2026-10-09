@@ -698,7 +698,7 @@ function PartnersModal({ hackathon, onClose }: { hackathon: { id: string, name: 
                         )}
                         <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
                           <span className="text-[10px] text-white font-medium">Upload</span>
-                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(p.id, e)} />
+                          <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp" onChange={(e) => handleFileChange(p.id, e)} />
                         </label>
                       </div>
                     </td>

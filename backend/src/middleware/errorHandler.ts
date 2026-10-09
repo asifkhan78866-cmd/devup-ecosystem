@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { Prisma } from "@prisma/client";
+import { MulterError } from "multer";
 import { logger } from "./logger";
 
 export class AppError extends Error {
@@ -49,6 +50,15 @@ export const errorHandler = (
     statusCode = 503;
     message = "Database temporarily unavailable. Please retry.";
     code = "DB_UNAVAILABLE";
+  }
+
+  // Rejected by multer before any handler ran: an oversized file, too many
+  // files or an unexpected field. The client's fault, not a server error.
+  if (err instanceof MulterError) {
+    const tooLarge = err.code === "LIMIT_FILE_SIZE";
+    statusCode = tooLarge ? 413 : 400;
+    message = tooLarge ? "That file is too large." : "That upload was not in the expected form.";
+    code = tooLarge ? "FILE_TOO_LARGE" : "INVALID_UPLOAD";
   }
 
   if (!(err instanceof AppError) && !statusCode) {

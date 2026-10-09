@@ -150,7 +150,7 @@ export default function ApplyModal({
             {/* Resume */}
             <div>
               <label className={labelCls}>Resume *</label>
-              <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => setResumeFile(e.target.files?.[0] ?? null)} />
+              <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden" onChange={(e) => setResumeFile(e.target.files?.[0] ?? null)} />
               {resumeFile ? (
                 <div className="flex items-center justify-between p-2.5 rounded-lg bg-white/[0.03] border border-white/10">
                   <span className="text-[11px] text-[#e4e4e4] truncate flex items-center gap-2">
@@ -168,7 +168,7 @@ export default function ApplyModal({
               ) : (
                 <button onClick={() => fileRef.current?.click()} className="w-full p-4 rounded-lg border border-dashed border-white/15 hover:border-[#c8f135]/40 transition flex items-center justify-center gap-2">
                   <Upload className="w-4 h-4 text-[#6b6b6b]" />
-                  <span className="text-[11px] text-[#a1a1a1]">Attach resume (PDF or Word)</span>
+                  <span className="text-[11px] text-[#a1a1a1]">Attach resume (PDF)</span>
                 </button>
               )}
             </div>

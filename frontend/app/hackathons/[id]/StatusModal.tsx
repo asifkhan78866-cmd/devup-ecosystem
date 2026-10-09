@@ -209,7 +209,7 @@ export default function StatusModal({
                         <div>
                           <input
                             type="file"
-                            accept=".pdf,.ppt,.pptx"
+                            accept=".pdf,application/pdf"
                             onChange={(e) => setFile(e.target.files?.[0] || null)}
                             className="w-full text-sm text-[#888] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#c8f135] file:text-black hover:file:bg-[#b0d829] transition-all cursor-pointer"
                           />

@@ -2,6 +2,7 @@ import { OnboardingDocType, Prisma } from "@prisma/client";
 import { prisma } from "../../../lib/prisma";
 import { AppError } from "../../../middleware/errorHandler";
 import { uploadPrivateFile, signedUrl } from "../../../lib/storage";
+import { objectKey, verifyUpload } from "../../../lib/uploads";
 import { env } from "../../../config/env";
 import { audit } from "../../shared/audit.service";
 import { notify } from "../../shared/notification.service";
@@ -167,9 +168,13 @@ export async function uploadDocument(args: {
   startupId: string;
   personId: string;
   docType: OnboardingDocType;
-  file: Express.Multer.File;
+  file?: Express.Multer.File;
   actorId: string;
 }) {
+  if (!Object.values(OnboardingDocType).includes(args.docType)) {
+    throw new AppError(400, "Choose which document this is", "INVALID_DOC_TYPE");
+  }
+  const file = verifyUpload(args.file, "identity");
   const { employee, intern, kind } = await resolvePerson(args.startupId, args.personId);
 
   const requirements = await getRequirements(args.startupId, kind);
@@ -185,9 +190,9 @@ export async function uploadDocument(args: {
    */
   const storagePath = await uploadPrivateFile(
     env.STORAGE_BUCKET_IDENTITY,
-    `onboarding/${args.startupId}/${args.personId}/${args.docType}-${Date.now()}-${args.file.originalname}`,
-    args.file.buffer,
-    args.file.mimetype
+    objectKey(["onboarding", args.startupId, args.personId], args.docType, file.ext),
+    file.buffer,
+    file.mime
   );
 
   // One row per person per document type — re-uploading replaces the previous
@@ -209,9 +214,9 @@ export async function uploadDocument(args: {
     isRequired: requirement?.isRequired ?? true,
     fileUrl: null,
     storagePath,
-    fileName: args.file.originalname,
-    fileSize: args.file.size,
-    mimeType: args.file.mimetype,
+    fileName: file.displayName,
+    fileSize: file.size,
+    mimeType: file.mime,
     status: "SUBMITTED" as const,
     rejectReason: null,
     submittedAt: new Date(),

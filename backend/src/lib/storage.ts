@@ -1,5 +1,7 @@
 import { supabaseAdmin } from "../config/supabase";
 import { AppError } from "../middleware/errorHandler";
+import { env } from "../config/env";
+import { objectKey, verifyUpload } from "./uploads";
 
 export const uploadFile = async (
   bucket: string,
@@ -32,39 +34,27 @@ export const deleteFile = async (bucket: string, path: string): Promise<void> =>
   }
 };
 
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_LOGO_SIZE = 2 * 1024 * 1024;        // 2MB
-const MAX_SCREENSHOT_SIZE = 5 * 1024 * 1024;  // 5MB
 
+/** Verified image → public URL. `folder` must be a server-side id, never request input. */
 export async function uploadStartupImage(
   file: Express.Multer.File,
-  startupSlug: string,
+  folder: string,
   type: 'logo' | 'screenshot'
 ): Promise<string> {
-  if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
-    throw new Error('Only JPEG, PNG, or WEBP images are allowed');
-  }
-  const maxSize = type === 'logo' ? MAX_LOGO_SIZE : MAX_SCREENSHOT_SIZE;
-  if (file.size > maxSize) {
-    throw new Error(`File too large. Max ${maxSize / 1024 / 1024}MB`);
-  }
-
-  const ext = file.mimetype.split('/')[1];
-  const randomSuffix = Math.random().toString(36).substring(2, 8);
-  const filename = `${startupSlug}/${type}-${Date.now()}-${randomSuffix}.${ext}`;
-  const bucket = type === 'logo' 
-    ? process.env.STORAGE_BUCKET_LOGOS! 
-    : process.env.STORAGE_BUCKET_BANNERS!;
+  const image = verifyUpload(file, 'image', type === 'logo' ? MAX_LOGO_SIZE : undefined);
+  const bucket = type === 'logo' ? env.STORAGE_BUCKET_LOGOS : env.STORAGE_BUCKET_BANNERS;
+  const filename = objectKey([folder], type, image.ext);
 
   const { error } = await supabaseAdmin.storage
     .from(bucket)
-    .upload(filename, file.buffer, {
-      contentType: file.mimetype,
+    .upload(filename, image.buffer, {
+      contentType: image.mime,
       cacheControl: '3600',
       upsert: false,
     });
 
-  if (error) throw new Error(`Upload failed: ${error.message}`);
+  if (error) throw new AppError(500, `Upload failed: ${error.message}`, "UPLOAD_FAILED");
 
   const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(filename);
   return data.publicUrl;

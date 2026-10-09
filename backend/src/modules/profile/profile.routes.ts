@@ -6,8 +6,8 @@ import { requireAuth } from "../../middleware/auth";
 import { validate } from "../../middleware/validate";
 import { prisma } from "../../lib/prisma";
 import { uploadFile } from "../../lib/storage";
+import { objectKey, verifyUpload } from "../../lib/uploads";
 import { env } from "../../config/env";
-import { AppError } from "../../middleware/errorHandler";
 import * as push from "../shared/push.service";
 import { completeness, missingRequired, suggestions, canApply, MIN_COMPLETENESS_TO_APPLY } from "./completeness";
 
@@ -16,16 +16,9 @@ const ok = (res: any, data: unknown, status = 200) => res.status(status).json({ 
 
 const upload = multer({
   storage: multer.memoryStorage(),
+  // The type is checked from the file's content in verifyUpload, not from the
+  // browser's Content-Type, so there is no header-based filter here.
   limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    const allowed = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-    if (!allowed.includes(file.mimetype)) return cb(null, false);
-    cb(null, true);
-  },
 });
 
 /**
@@ -157,14 +150,14 @@ router.put("/", requireAuth, validate(profileSchema), async (req, res) => {
 });
 
 router.post("/resume", requireAuth, upload.single("resume"), async (req, res) => {
-  if (!req.file) throw new AppError(400, "Upload a PDF or Word document", "INVALID_FILE");
-
+  const resume = verifyUpload(req.file, "document");
   const url = await uploadFile(
     env.STORAGE_BUCKET_RESUMES,
-    `profiles/${req.user!.id}/${Date.now()}-${req.file.originalname}`,
-    req.file.buffer,
-    req.file.mimetype
+    objectKey(["profiles", req.user!.id], "resume", resume.ext),
+    resume.buffer,
+    resume.mime
   );
+  const resumeFileName = resume.displayName ?? `resume.${resume.ext}`;
 
   const existing = await prisma.profile.findUnique({ where: { userId: req.user!.id } });
   const saved = await prisma.profile.upsert({
@@ -174,10 +167,10 @@ router.post("/resume", requireAuth, upload.single("resume"), async (req, res) =>
       name: existing?.name ?? req.user!.email.split("@")[0],
       skills: [],
       resumeUrl: url,
-      resumeFileName: req.file.originalname,
+      resumeFileName,
       resumeUpdatedAt: new Date(),
     },
-    update: { resumeUrl: url, resumeFileName: req.file.originalname, resumeUpdatedAt: new Date() },
+    update: { resumeUrl: url, resumeFileName, resumeUpdatedAt: new Date() },
   });
 
   ok(res, saved, 201);

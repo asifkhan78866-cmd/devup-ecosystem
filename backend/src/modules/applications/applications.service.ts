@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { uploadFile } from "../../lib/storage";
+import { objectKey, verifyUpload } from "../../lib/uploads";
 import { env } from "../../config/env";
 import { resend, EmailTemplates, MAIL_FROM } from "../../lib/resend";
 import { ApplicationStatus, Role } from "@prisma/client";
@@ -31,13 +32,13 @@ export class ApplicationsService {
     return application;
   }
 
-  async uploadPitchDeck(id: string, userId: string, fileBuffer: Buffer, mimetype: string) {
+  async uploadPitchDeck(id: string, userId: string, file?: Express.Multer.File) {
     const application = await prisma.application.findUnique({ where: { id } });
     if (!application) throw new AppError(404, "Application not found");
     if (application.submittedBy !== userId) throw new AppError(403, "Not authorized");
 
-    const path = `pitch-decks/${id}-${Date.now()}.pdf`;
-    const url = await uploadFile(env.STORAGE_BUCKET_PITCHDECKS, path, fileBuffer, mimetype);
+    const deck = verifyUpload(file, "document");
+    const url = await uploadFile(env.STORAGE_BUCKET_PITCHDECKS, objectKey(["pitch-decks"], id, deck.ext), deck.buffer, deck.mime);
 
     return await prisma.application.update({
       where: { id },

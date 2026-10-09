@@ -436,7 +436,7 @@ function DocRow({ item, personId, busy, onUpload }: any) {
           <input
             type="file"
             className="hidden"
-            accept="application/pdf,image/*"
+            accept="application/pdf,image/jpeg,image/png,image/webp"
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) onUpload(personId, item.docType, f);

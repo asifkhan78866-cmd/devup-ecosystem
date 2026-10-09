@@ -850,7 +850,7 @@ export default function JobDetailPage() {
                     <input
                       id="jd-resume"
                       type="file"
-                      accept=".pdf,.doc,.docx"
+                      accept=".pdf,application/pdf"
                       onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
                       className={`w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl p-3 outline-none text-[#e4e4e4] focus:border-[#c8f135]/50 transition-colors text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#c8f135]/10 file:text-[#c8f135] hover:file:bg-[#c8f135]/20 ${profile?.resumeUrl && !resumeFile ? "hidden" : ""}`}
                     />

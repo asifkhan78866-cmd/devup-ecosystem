@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { uploadFile } from "../../lib/storage";
+import { objectKey, type VerifiedFile } from "../../lib/uploads";
 import { env } from "../../config/env";
 
 export class HackathonsService {
@@ -69,10 +70,9 @@ export class HackathonsService {
     return await prisma.hackathon.delete({ where: { id } });
   }
 
-  async uploadImage(id: string, type: "logo" | "banner", fileBuffer: Buffer, mimetype: string) {
+  async uploadImage(id: string, type: "logo" | "banner", file: VerifiedFile) {
     const bucket = type === "logo" ? env.STORAGE_BUCKET_LOGOS : env.STORAGE_BUCKET_BANNERS; // Reuse startup buckets or create separate
-    const path = `hackathons/${id}/${type}-${Date.now()}`;
-    const url = await uploadFile(bucket, path, fileBuffer, mimetype);
+    const url = await uploadFile(bucket, objectKey(["hackathons", id], type, file.ext), file.buffer, file.mime);
 
     return await prisma.hackathon.update({
       where: { id },
@@ -103,10 +103,9 @@ export class HackathonsService {
     });
   }
 
-  async uploadPartnerLogo(hackathonId: string, partnerId: string, fileBuffer: Buffer, mimetype: string) {
+  async uploadPartnerLogo(hackathonId: string, partnerId: string, file: VerifiedFile) {
     const bucket = env.STORAGE_BUCKET_LOGOS;
-    const path = `hackathons/${hackathonId}/partners/${partnerId}-${Date.now()}`;
-    const url = await uploadFile(bucket, path, fileBuffer, mimetype);
+    const url = await uploadFile(bucket, objectKey(["hackathons", hackathonId, "partners"], partnerId, file.ext), file.buffer, file.mime);
 
     return await prisma.hackathonPartner.update({
       where: { id: partnerId, hackathonId },
@@ -224,7 +223,7 @@ export class HackathonsService {
     return { data: leads, meta: { total } };
   }
 
-  async uploadSubmission(hackathonId: string, leadId: string, fileBuffer: Buffer, mimetype: string) {
+  async uploadSubmission(hackathonId: string, leadId: string, file: VerifiedFile) {
     const lead = await prisma.hackathonLead.findUnique({
       where: { id: leadId },
       include: { hackathon: true, submission: true }
@@ -243,8 +242,7 @@ export class HackathonsService {
     }
 
     const bucket = env.STORAGE_BUCKET_PITCHDECKS || "pitchdecks";
-    const path = `hackathons/${hackathonId}/submissions/${leadId}-${Date.now()}`;
-    const fileUrl = await uploadFile(bucket, path, fileBuffer, mimetype);
+    const fileUrl = await uploadFile(bucket, objectKey(["hackathons", hackathonId, "submissions"], leadId, file.ext), file.buffer, file.mime);
 
     const submission = await prisma.hackathonSubmission.create({
       data: {

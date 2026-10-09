@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { UsersService } from "./users.service";
-import { AppError } from "../../middleware/errorHandler";
 
 const usersService = new UsersService();
 
@@ -24,10 +23,7 @@ export class UsersController {
   }
 
   async uploadResume(req: Request, res: Response) {
-    if (!req.file) {
-      throw new AppError(400, "No file uploaded");
-    }
-    const profile = await usersService.uploadResume(req.params.id as string, (req as any).user!.id, req.file.buffer, req.file.mimetype);
+    const profile = await usersService.uploadResume(req.params.id as string, (req as any).user!.id, req.file);
     res.status(200).json({ success: true, data: profile });
   }
 

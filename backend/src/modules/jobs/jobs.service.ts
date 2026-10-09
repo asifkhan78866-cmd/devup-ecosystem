@@ -153,8 +153,10 @@ export class JobsService {
 
     if (file) {
       const { uploadFile } = await import("../../lib/storage");
-      const path = `${userId}/job-applications/${jobId}/resume-${Date.now()}.pdf`;
-      finalResumeUrl = await uploadFile(env.STORAGE_BUCKET_RESUMES, path, file.buffer, file.mimetype);
+      const { objectKey, verifyUpload } = await import("../../lib/uploads");
+      const resume = verifyUpload(file, "document");
+      const path = objectKey([userId, "job-applications", jobId], "resume", resume.ext);
+      finalResumeUrl = await uploadFile(env.STORAGE_BUCKET_RESUMES, path, resume.buffer, resume.mime);
     } else {
       if (profile?.resumeUrl) {
         finalResumeUrl = profile.resumeUrl;

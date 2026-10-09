@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { uploadFile } from "../../lib/storage";
+import { objectKey, verifyUpload } from "../../lib/uploads";
 import { env } from "../../config/env";
 import { NEVER_RETURNED } from "../../lib/publicProfile";
 
@@ -78,13 +79,13 @@ export class UsersService {
     return profile;
   }
 
-  async uploadResume(id: string, requesterId: string, fileBuffer: Buffer, mimetype: string) {
+  async uploadResume(id: string, requesterId: string, file?: Express.Multer.File) {
     if (id !== requesterId) {
       throw new AppError(403, "Not authorized to upload resume for this user");
     }
 
-    const path = `${id}/resume-${Date.now()}.pdf`;
-    const url = await uploadFile(env.STORAGE_BUCKET_RESUMES, path, fileBuffer, mimetype);
+    const resume = verifyUpload(file, "document");
+    const url = await uploadFile(env.STORAGE_BUCKET_RESUMES, objectKey([id], "resume", resume.ext), resume.buffer, resume.mime);
 
     const profile = await prisma.profile.upsert({
       where: { userId: id },

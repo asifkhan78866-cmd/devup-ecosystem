@@ -37,6 +37,8 @@ export async function startHarness(dbUrl: string, opts: HarnessOptions = {}) {
 
   const tokens = new Map<string, string>();
   const mails: Array<{ to: string; subject: string; html?: string }> = [];
+  /** Every object written to (stubbed) storage, in order. */
+  const stored: Array<{ bucket: string; path: string; contentType?: string; size: number }> = [];
   // Not named `exports`: compiled to CommonJS, that name would shadow the
   // module's own exports object and `SRC` would resolve to undefined.
   const stub = (rel: string, value: unknown) => {
@@ -71,8 +73,11 @@ export async function startHarness(dbUrl: string, opts: HarnessOptions = {}) {
         admin: {},
       },
       storage: {
-        from: () => ({
-          upload: async (p: string) => ({ data: { path: p }, error: null }),
+        from: (bucket: string) => ({
+          upload: async (p: string, body: Buffer, o: { contentType?: string } = {}) => {
+            stored.push({ bucket, path: p, contentType: o.contentType, size: body?.length ?? 0 });
+            return { data: { path: p }, error: null };
+          },
           getPublicUrl: (p: string) => ({ data: { publicUrl: `https://storage.example.test/${p}` } }),
           createSignedUrl: async (p: string) => ({ data: { signedUrl: `https://storage.example.test/signed/${p}` }, error: null }),
           remove: async () => ({ error: null }),
@@ -161,7 +166,7 @@ export async function startHarness(dbUrl: string, opts: HarnessOptions = {}) {
   }
 
   return {
-    prisma, call, upload, person, startup, mails, uniq, sha, origin: base,
+    prisma, call, upload, person, startup, mails, stored, uniq, sha, origin: base,
     close: async () => {
       server.close();
       await prisma.$disconnect();

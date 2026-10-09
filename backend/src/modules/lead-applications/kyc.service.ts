@@ -4,6 +4,7 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { env } from "../../config/env";
 import { uploadPrivateFile, signedUrl } from "../../lib/storage";
+import { objectKey, verifyUpload } from "../../lib/uploads";
 import { logger } from "../../middleware/logger";
 import { audit } from "../shared/audit.service";
 import { resend, MAIL_FROM } from "../../lib/resend";
@@ -65,7 +66,6 @@ export const REQUIRED_DOCS: Array<{
 ];
 
 const MAX_BYTES = 8 * 1024 * 1024;
-const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
 /** Only the tail is kept; the rest is not ours to hold. */
 export function maskNumber(raw?: string | null) {
@@ -227,7 +227,7 @@ export async function uploadKycDocument(args: {
   docType: LeadKycDocType;
   idKind?: string;
   number?: string;
-  file: { buffer: Buffer; originalname: string; mimetype: string; size: number };
+  file?: { buffer: Buffer; originalname?: string };
 }) {
   const kyc = await prisma.leadKyc.findUnique({ where: { token: args.token } });
   if (!kyc) throw new AppError(404, "This link is not valid", "BAD_TOKEN");
@@ -236,28 +236,22 @@ export async function uploadKycDocument(args: {
     throw new AppError(409, "Your documents have already been approved", "ALREADY_APPROVED");
   }
 
-  if (!ALLOWED_MIME.includes(args.file.mimetype)) {
-    throw new AppError(400, "Upload a JPG, PNG or PDF", "BAD_TYPE");
-  }
-  if (args.file.size > MAX_BYTES) {
-    throw new AppError(400, "That file is over 8MB — please compress it", "TOO_LARGE");
-  }
-
-  const path = `lead-kyc/${kyc.id}/${args.docType}-${Date.now()}-${args.file.originalname}`;
+  // Identified from the bytes; the browser's type and file name are not trusted.
+  const file = verifyUpload(args.file, "identity", MAX_BYTES);
   const storagePath = await uploadPrivateFile(
     env.STORAGE_BUCKET_IDENTITY,
-    path,
-    args.file.buffer,
-    args.file.mimetype
+    objectKey(["lead-kyc", kyc.id], args.docType, file.ext),
+    file.buffer,
+    file.mime
   );
 
   await prisma.leadKycDocument.update({
     where: { kycId_docType: { kycId: kyc.id, docType: args.docType } },
     data: {
       storagePath,
-      fileName: args.file.originalname,
-      fileSize: args.file.size,
-      mimeType: args.file.mimetype,
+      fileName: file.displayName,
+      fileSize: file.size,
+      mimeType: file.mime,
       idKind: args.idKind?.trim() || null,
       maskedNumber: maskNumber(args.number),
       // A re-upload replaces a rejected file and clears the rejection with it.

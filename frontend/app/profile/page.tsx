@@ -85,7 +85,7 @@ export default function ProfilePage() {
       const updated = await profileApi.uploadResume(file);
       setP((prev) => ({ ...prev, ...updated }));
     } catch (e: any) {
-      setError(e.message || "Upload failed. Use a PDF or Word file under 10 MB.");
+      setError(e.message || "Upload failed. Use a PDF under 10 MB.");
     }
   };
 
@@ -164,7 +164,7 @@ export default function ProfilePage() {
                 <input
                   ref={fileRef}
                   type="file"
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf,application/pdf"
                   className="hidden"
                   onChange={(e) => onResume(e.target.files?.[0])}
                 />
@@ -193,7 +193,7 @@ export default function ProfilePage() {
                     className="w-full p-6 rounded-lg border border-dashed border-white/15 hover:border-[#c8f135]/40 transition flex flex-col items-center gap-2"
                   >
                     <Upload className="w-5 h-5 text-[#6b6b6b]" />
-                    <span className="text-[#a1a1a1] text-xs">Upload your resume (PDF or Word, max 10 MB)</span>
+                    <span className="text-[#a1a1a1] text-xs">Upload your resume (PDF, max 10 MB)</span>
                   </button>
                 )}
               </Card>

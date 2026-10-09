@@ -3,6 +3,7 @@ import { prisma } from "../../../lib/prisma";
 import { AppError } from "../../../middleware/errorHandler";
 import { nextApplicationNo } from "../../../lib/numbering";
 import { uploadFile } from "../../../lib/storage";
+import { objectKey, verifyUpload } from "../../../lib/uploads";
 import { env } from "../../../config/env";
 import { audit, AuditAction } from "../../shared/audit.service";
 import { notify, notifyTenantRoles } from "../../shared/notification.service";
@@ -60,7 +61,9 @@ const toDecimal = (v: unknown) => {
 };
 
 /** Student-facing. Not tenant-scoped — the tenant is derived from the job. */
-export async function apply(input: ApplyInput, resume?: Express.Multer.File) {
+export async function apply(input: ApplyInput, resumeUpload?: Express.Multer.File) {
+  // Checked first, from the content: nothing is read or written for a bad file.
+  const resume = resumeUpload ? verifyUpload(resumeUpload, "document") : undefined;
   const job = await prisma.job.findUnique({
     where: { id: input.jobId },
     include: { startup: { select: { id: true, code: true, name: true, logoUrl: true } } },
@@ -106,9 +109,9 @@ export async function apply(input: ApplyInput, resume?: Express.Multer.File) {
   if (resume) {
     resumeUrl = await uploadFile(
       env.STORAGE_BUCKET_RESUMES,
-      `${job.startup.id}/${input.userId}/${Date.now()}-${resume.originalname}`,
+      objectKey([job.startup.id, input.userId], "resume", resume.ext),
       resume.buffer,
-      resume.mimetype
+      resume.mime
     );
   }
 

@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { uploadFile } from "../../lib/storage";
+import { objectKey, type VerifiedFile } from "../../lib/uploads";
 import { env } from "../../config/env";
 import { Prisma } from "@prisma/client";
 import { createStartupOwnership } from "./ownership.service";
@@ -126,10 +127,14 @@ export class StartupsService {
     });
   }
 
-  async updateStartup(id: string, requesterId: string, role: string, data: any) {
+  /**
+   * Who may change a startup's details and images. Called before any upload, so
+   * a refused request never leaves a file behind in a public bucket.
+   */
+  async assertCanManage(id: string, requesterId: string, role: string) {
     const startup = await prisma.startup.findUnique({
       where: { id },
-      include: { 
+      include: {
         founders: true,
         members: { where: { userId: requesterId, status: "ACTIVE" } }
       }
@@ -143,6 +148,11 @@ export class StartupsService {
     if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
       throw new AppError(403, "Not authorized to update this startup");
     }
+    return startup;
+  }
+
+  async updateStartup(id: string, requesterId: string, role: string, data: any) {
+    await this.assertCanManage(id, requesterId, role);
 
     // Only listed columns are written. Admins may additionally change how a
     // startup is presented (venture vs partner) and moderated; a founder must
@@ -157,26 +167,11 @@ export class StartupsService {
     return await prisma.startup.delete({ where: { id } });
   }
 
-  async uploadImage(id: string, requesterId: string, role: string, type: "logo" | "banner", fileBuffer: Buffer, mimetype: string) {
-    const startup = await prisma.startup.findUnique({ 
-      where: { id }, 
-      include: { 
-        founders: true,
-        members: { where: { userId: requesterId, status: "ACTIVE" } }
-      } 
-    });
-    if (!startup) throw new AppError(404, "Startup not found");
-    
-    const isMember = canManageStartup(startup.members);
-    const isLegacyFounder = startup.founders.some(f => f.id === requesterId);
-
-    if (role !== "ADMIN" && !isMember && !isLegacyFounder) {
-      throw new AppError(403, "Not authorized");
-    }
+  async uploadImage(id: string, requesterId: string, role: string, type: "logo" | "banner", file: VerifiedFile) {
+    await this.assertCanManage(id, requesterId, role);
 
     const bucket = type === "logo" ? env.STORAGE_BUCKET_LOGOS : env.STORAGE_BUCKET_BANNERS;
-    const path = `${id}/${type}-${Date.now()}`;
-    const url = await uploadFile(bucket, path, fileBuffer, mimetype);
+    const url = await uploadFile(bucket, objectKey([id], type, file.ext), file.buffer, file.mime);
 
     return await prisma.startup.update({
       where: { id },

@@ -20,24 +20,13 @@ const ok = (res: any, data: unknown, status = 200) => res.status(status).json({ 
 
 const onboardingUpload = multer({
   storage: multer.memoryStorage(),
+  // File types are checked from content in verifyUpload, not from the browser's header.
   limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    const allowed = ["application/pdf", "image/jpeg", "image/png", "image/webp", "image/heic"];
-    cb(null, allowed.includes(file.mimetype));
-  },
 });
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    const allowed = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-    cb(null, allowed.includes(file.mimetype));
-  },
 });
 
 /**
