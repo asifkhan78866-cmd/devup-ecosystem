@@ -49,19 +49,58 @@ export const authLimiter = rateLimit({
   },
 });
 
-export const aiLimiter = rateLimit({
-  windowMs: env.AI_RATE_LIMIT_WINDOW_MS,
-  max: env.AI_RATE_LIMIT_MAX, // 20
+/**
+ * AI startup research: every call crawls a website and spends OpenRouter
+ * credit. Three limits, applied in order after authentication:
+ *
+ *   per account   — the configured AI_RESEARCH_RATE_LIMIT per window. Keyed on
+ *                   the authenticated user id, so changing the email, startup
+ *                   name or any other body field does not reset it.
+ *   per client IP — because accounts are free to create, many accounts from one
+ *                   host share a budget. The IP is the trusted client address
+ *                   (see config/proxy.ts), not a forwarded header a client wrote.
+ *   global daily  — a ceiling on total spend however the traffic is spread.
+ */
+const aiExceeded = {
+  success: false,
+  error: "AI research limit reached. Please try again later.",
+  code: "AI_RATE_LIMITED",
+};
+const aiStore = (prefix: string) =>
+  redis
+    ? new RedisStore({ sendCommand: (...args: string[]) => redis!.call(args[0], ...args.slice(1)) as any, prefix })
+    : undefined;
+
+export const aiResearchUserLimiter = rateLimit({
+  windowMs: env.AI_RESEARCH_RATE_WINDOW_MS,
+  max: env.AI_RESEARCH_RATE_LIMIT,
   standardHeaders: true,
   legacyHeaders: false,
-  store: redis ? new RedisStore({
-    sendCommand: (...args: string[]) => redis!.call(args[0], ...args.slice(1)) as any,
-  }) : undefined,
-  message: {
-    success: false,
-    error: "AI rate limit exceeded. Please try again next hour.",
-    code: "AI_RATE_LIMITED",
-  },
+  // Unauthenticated requests never reach this (requireAuth runs first); if one
+  // did, it falls back to the client IP rather than a shared or empty key.
+  keyGenerator: (req) => (req.user?.id ? `user:${req.user.id}` : `ip:${ipKeyGenerator(req.ip ?? "")}`),
+  store: aiStore("rl-ai-user:"),
+  message: aiExceeded,
+});
+
+export const aiResearchIpLimiter = rateLimit({
+  windowMs: env.AI_RESEARCH_RATE_WINDOW_MS,
+  max: env.AI_RESEARCH_IP_LIMIT,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `ip:${ipKeyGenerator(req.ip ?? "")}`,
+  store: aiStore("rl-ai-ip:"),
+  message: aiExceeded,
+});
+
+export const aiResearchGlobalLimiter = rateLimit({
+  windowMs: 24 * 60 * 60_000,
+  max: env.AI_RESEARCH_DAILY_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: () => "global",
+  store: aiStore("rl-ai-global:"),
+  message: aiExceeded,
 });
 
 /**

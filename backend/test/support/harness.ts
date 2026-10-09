@@ -20,7 +20,15 @@ export function testDatabaseUrl(): string | null {
 
 export type Person = { id: string; email: string; token: string; role: string };
 
-export async function startHarness(dbUrl: string) {
+export type HarnessOptions = {
+  /** Extra modules to replace, by path under src/ (e.g. an external-API service). */
+  stubs?: Record<string, unknown>;
+  /** Environment set before the app loads (limits, feature flags). */
+  env?: Record<string, string>;
+};
+
+export async function startHarness(dbUrl: string, opts: HarnessOptions = {}) {
+  Object.assign(process.env, opts.env ?? {});
   process.env.DATABASE_URL = dbUrl;
   process.env.DIRECT_URL = dbUrl;
   process.env.NODE_ENV = "test";
@@ -81,6 +89,8 @@ export async function startHarness(dbUrl: string) {
     // Every legacy template renders to a placeholder; tests assert on behaviour, not markup.
     EmailTemplates: new Proxy({}, { get: () => () => "<p>stub</p>" }),
   });
+
+  for (const [rel, value] of Object.entries(opts.stubs ?? {})) stub(rel, value);
 
   execSync("npx prisma db push --force-reset --skip-generate --accept-data-loss", {
     cwd: path.resolve(SRC, ".."),

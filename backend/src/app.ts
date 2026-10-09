@@ -5,6 +5,7 @@ import helmet from "helmet";
 import compression from "compression";
 import { authLimiter } from "./middleware/rateLimit";
 import { env } from "./config/env";
+import { applyTrustProxy } from "./config/proxy";
 import { morganMiddleware } from "./middleware/logger";
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -44,6 +45,9 @@ import { publicKycRouter, adminKycRouter } from "./modules/lead-applications/kyc
 import { publicCatalogueRouter, adminB2bRouter } from "./modules/b2b/b2b.routes";
 
 export const app = express();
+
+// Real client IPs behind Cloudflare + Render — see config/proxy.ts.
+applyTrustProxy(app);
 
 const allowedOrigins = [
   'http://localhost:3000',

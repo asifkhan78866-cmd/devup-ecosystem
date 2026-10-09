@@ -3,6 +3,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+/** A required positive integer with a default; anything else is a configuration error. */
+const positiveInt = (fallback: number) =>
+  z.preprocess((v) => (v === undefined ? String(fallback) : v), z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().positive()));
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.string().default("4000"),
@@ -85,6 +89,16 @@ const envSchema = z.object({
   RATE_LIMIT_MAX_REQUESTS: z.string().default("100").transform((v) => Number.parseInt(v, 10)),
   AI_RATE_LIMIT_MAX: z.string().default("20").transform((v) => Number.parseInt(v, 10)),
   AI_RATE_LIMIT_WINDOW_MS: z.string().default("3600000").transform((v) => Number.parseInt(v, 10)),
+
+  /**
+   * AI research spends OpenRouter credit on every call. These are strict: a
+   * blank, non-numeric or non-positive value fails start-up instead of turning
+   * into NaN and quietly disabling the limiter.
+   */
+  AI_RESEARCH_RATE_LIMIT: positiveInt(10),          // per account, per window
+  AI_RESEARCH_RATE_WINDOW_MS: positiveInt(3_600_000),
+  AI_RESEARCH_IP_LIMIT: positiveInt(30),            // per client IP, per window (many accounts, one host)
+  AI_RESEARCH_DAILY_MAX: positiveInt(200),          // everyone together, per 24h: the spend ceiling
 
   LOG_LEVEL: z.string().default("debug"),
   LOG_FILE: z.string().default("logs/app.log"),
