@@ -460,16 +460,9 @@ function sheet(
   ${isBranded(b) ? wave(p) : ""}
 </div>
 ${
-  /*
-   * Fit to one page. The wave takes the foot of a branded sheet, so a letter
-   * that runs long would push its footer down onto it. Rather than letting the
-   * footer print over the wave, the body is scaled down in small steps until
-   * the footer clears — never below 84%, which stays comfortably legible. A
-   * letter that already fits is left exactly as written.
-   */
-  isBranded(b)
-    ? `<script>(function () {
-  var s = document.querySelector('.sheet.branded');
+  // Shrinks an overlong body (never below 84%) so the footer stays on page one; letters that fit are untouched.
+  `<script>(function () {
+  var s = document.querySelector('.sheet');
   if (!s) return;
   var f = s.querySelector('.foot'), body = s.querySelector('.body');
   if (!f || !body) return;
@@ -480,7 +473,6 @@ ${
     body.style.zoom = z;
   }
 })();</script>`
-    : ""
 }
 </body></html>`;
 }
